@@ -1,6 +1,6 @@
 model NewModel_model_VR
 
-import "New Model.gaml"
+import "forest_monitoring.gaml"
 
 global {
 	int n_year <- 5;
@@ -115,10 +115,10 @@ global {
 				}
 			}
 			else if (it_can_growth = "-1"){
-				write "Tree" + self.name + "Stop Growth";
+//				write "Tree " + self.name + " Stop Growth";
 			}
 			else if (it_can_growth = "0"){
-				write "Tree" + self.name + "Die";
+//				write "Tree " + self.name + " Die";
 			}
 		}
 		
@@ -149,7 +149,7 @@ global {
 		}
 	}
 	
-	reflex update_wildfire when:(cycle >= init_cycle) and (cycle mod 10 = 0){
+	reflex update_wildfire when:(cycle >= init_cycle) and (cycle mod 10 = 0) and (cycle <15){
 		point at_location <- any_location_in(usable_area_for_wildfire[0]-1);
 		loop j from:0 to:1{
 			loop i from:0 to:2{
@@ -161,7 +161,7 @@ global {
 		}
 	}
 	
-	reflex update_alien when:(cycle >= init_cycle) and (cycle mod 10 = 0){
+	reflex update_alien when:(cycle >= init_cycle) and (cycle mod 10 = 0) and (cycle <15){
 		point at_location <- any_location_in(playerable_area[0]-1);
 		loop j from:0 to:1{
 			loop i from:0 to:2{
@@ -199,7 +199,7 @@ species unity_linker parent: abstract_unity_linker {
 	unity_property up_road;
 	
 	action ChangeTreeState(string tree_Name, string status){
-		if tree_Name = "SeedingWithGrass"{
+		if tree_Name != "SeedingWithGrass"{
 			list<string> split_tree_ID ;
 			list<string> playerID ;
 			write "ChangeTreeState: " + tree_Name + " it_can_growth " + status;
@@ -254,6 +254,25 @@ species unity_linker parent: abstract_unity_linker {
 		
 	}
 	
+	action OtherUpdate(string tName, string status){
+		write "OtherUpdate Name: " + tName + " status: " + status;
+		
+		if status = "GONE"{
+			ask wildfire{
+				if self.name = tName{
+					do die;
+					write "Wildfire GONE!!!!";
+				}
+			}
+			ask alien{
+				if self.name = tName{
+					do die;
+					write "Alien GONE!!!!";
+				}
+			}
+		}
+	} 
+	
 	list<point> init_locations <- define_init_locations();
 
 //	list<point> define_init_locations {
@@ -303,11 +322,11 @@ species unity_linker parent: abstract_unity_linker {
 //		unity_properties << up_tree_Dead;
 		
 		unity_aspect alien_aspect <- prefab_aspect("temp/Prefab/VU2/AlienWeed_F",1.0,0.0,1.0,0.0,precision);
-		up_alien <- geometry_properties("alien","",alien_aspect,new_geometry_interaction(true, false,false,[]),false);
+		up_alien <- geometry_properties("alien","",alien_aspect,new_geometry_interaction(true, false,false,[]),true);
 		unity_properties << up_alien;
 		
 		unity_aspect fire_aspect <- prefab_aspect("temp/Prefab/VU2/ForestFire",1.0,0.0,1.0,0.0,precision);
-		up_fire <- geometry_properties("fire","",fire_aspect,new_geometry_interaction(true, false,false,[]),false);
+		up_fire <- geometry_properties("fire","",fire_aspect,new_geometry_interaction(true, false,false,[]),true);
 		unity_properties << up_fire;
 
 		unity_aspect default_aspect <- prefab_aspect("temp/Prefab/VU2/SeedingWithGrass",1.0,0.0,1.0,0.0,precision);
@@ -320,23 +339,10 @@ species unity_linker parent: abstract_unity_linker {
 
 	}
 	reflex send_geometries {
-		if not empty(wildfire){
-			list<wildfire> list_wildfire_to_send <- wildfire where (each.it_sent = false);
-			write "list_wildfire_to_send " + list_wildfire_to_send;
-			do add_geometries_to_send(list_wildfire_to_send, up_fire);
-			ask list_wildfire_to_send{
-				it_sent <- true;
-			}
-		}
+
+		do add_geometries_to_send(wildfire, up_fire);
+		do add_geometries_to_send(alien, up_alien);
 		
-		if not empty(alien){
-			list<alien> list_alien_to_send <- alien where (each.it_sent = false);
-			write "list_alien_to_send " + list_alien_to_send;
-			do add_geometries_to_send(list_alien_to_send, up_alien);
-			ask list_alien_to_send{
-				it_sent <- true;
-			}
-		}
 		
 		
 //		list<tree> t1_state1 <- p1tree where ((each.it_state = 1));

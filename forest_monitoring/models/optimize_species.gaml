@@ -40,10 +40,6 @@ species tree{
 	int current_cycle <- 0;
 	
 	float logist_growth (float init_input, float max_height, float growth_rate){
-//		growth_rate <- growth_rate + rnd (-0.1, 0.1) * growth_rate;
-//		float height_logist <- (init_input * max_height) / (init_input + (max_height - init_height) * 
-//							exp (-(( growth_rate ) * ((current_cycle)/(365/day_per_cycle) - init_cycle)))) ;
-		
 		float height_logist <- (init_input * max_height) / (init_input + (max_height - init_height) * 
 							exp (-(( growth_rate ) * ((current_cycle * n_years / used_cycle) - 0)))) ;
 		return height_logist;
@@ -57,13 +53,13 @@ species tree{
 			color <- #purple;
 		}
 		else if it_state = 1{
-			color <- rgb(43, 150, 0);
+			color <- rgb(151, 255, 110);
 		}
 		else if it_state = 2{
-			color <- #blue;
+			color <- rgb(50, 176, 0);
 		}
 		else if it_state = 3{
-			color <- #red;
+			color <- rgb(32, 112, 0);
 		}
 	}
 	

@@ -92,7 +92,7 @@ global{
 	float x_adaptive <- 5.5;
 	float y_adaptive <- 0.5;
 	
-	list<string> player_name <- ["Player_102", "Player_1022", "Player_103", "Player_104", "Player_105", "Player_106"];
+	list<string> player_name <- ["Player_59", "Player_1022", "Player_103", "Player_104", "Player_105", "Player_106"];
 	map<int, string> map_player_id <- [1::player_name[0], 2::player_name[1], 3::player_name[2], 4::player_name[3], 5::player_name[4], 6::player_name[5]];
 	map<string, int> map_player_id_reverse <- [player_name[0]::1, player_name[1]::2, player_name[2]::3, player_name[3]::4, player_name[4]::5, player_name[5]::6];
 	
@@ -186,19 +186,19 @@ global{
 					it_state <- 1;
 				}
 				if (i < max_y/2) and (j < max_x/2){
-					write "zone1";
+//					write "zone1";
 					add (12*i)+j to: tree_index_list[0];
 				}
 				else if (i < max_y/2) and (j >= max_x/2){
-					write "zone2";
+//					write "zone2";
 					add (12*i)+j to: tree_index_list[1];
 				}
 				else if (i >= max_y/2) and (j < max_x/2){
-					write "zone3";
+//					write "zone3";
 					add (12*i)+j to: tree_index_list[2];
 				}
 				else if (i >= max_y/2) and (j >= max_x/2){
-					write "zone4";
+//					write "zone4";
 					add (12*i)+j to: tree_index_list[3];
 				}
 			}
