@@ -9,6 +9,11 @@
 model optimizespecies
 
 global{
+	image_file fire_image_file <- image_file("../images/fire.png");
+	image_file alien_image_file <- image_file("../images/alien.png");
+	image_file rain_image_file <- image_file("../images/rain.png");
+	image_file blank_image_file <- image_file("../images/blank.png");
+	
 	float time_per_cycle <- 1.0;
 	int n_years <- 2;
 	int time_to_play <- 300;
@@ -29,9 +34,34 @@ global{
 		write "used_cycle " + used_cycle; 
 		write "day_per_second " + day_per_cycle;
 	}
-}	
+}
+	
+species icon_everything{
+	string type <- "blank";
+	image_file status_icon;
+	
+	aspect default {
+		switch type{
+			match "blank"{
+				status_icon <- blank_image_file;
+			}
+			match "fire"{
+				status_icon <- fire_image_file;
+			}
+			match "alien"{
+				status_icon <- alien_image_file;
+			}
+			match "rain"{
+				status_icon <- rain_image_file;
+			}
+		}
+		
+		draw status_icon size:{3,3};
+	}
+}
 
 species tree{
+	int player <- 1;
 	int tree_type <- 0;
 	int it_state <- 1;
 	float height <- 50.0;
@@ -49,17 +79,19 @@ species tree{
 		if it_can_growth = "0"{
 			color <- #black;
 		}
-		if it_can_growth = "-1"{
+		else if it_can_growth = "-1"{
 			color <- #purple;
 		}
-		else if it_state = 1{
-			color <- rgb(151, 255, 110);
-		}
-		else if it_state = 2{
-			color <- rgb(50, 176, 0);
-		}
-		else if it_state = 3{
-			color <- rgb(32, 112, 0);
+		else if it_can_growth = "1"{
+			if it_state = 1{
+				color <- rgb(151, 255, 110);
+			}
+			else if it_state = 2{
+				color <- rgb(50, 176, 0);
+			}
+			else if it_state = 3{
+				color <- rgb(32, 112, 0);
+			}
 		}
 	}
 	
@@ -68,49 +100,29 @@ species tree{
 	}
 }
 
-species p1tree parent:tree {
-	
-}
-
-species p2tree parent:tree {
-	
-}
-
-species p3tree parent:tree {
-	
-}
-
-species p4tree parent:tree {
-	
-}
-
-species p5tree parent:tree {
-	
-}
-
-species p6tree parent:tree {
-	
-}
-
-species wildfire{
-	bool it_sent <- false;
-	geometry shape <- circle(1#m);
-	rgb color <- #red;
-	
-	aspect default{
-		draw shape color:color ;
-	}
-}
-
-species alien{
-	bool it_sent <- false;
-	geometry shape <- triangle(2#m);
-	rgb color <- #blue;
-	
-	aspect default{
-		draw shape color:color ;
-	}
-}
+//species p1tree parent:tree {
+//	
+//}
+//
+//species p2tree parent:tree {
+//	
+//}
+//
+//species p3tree parent:tree {
+//	
+//}
+//
+//species p4tree parent:tree {
+//	
+//}
+//
+//species p5tree parent:tree {
+//	
+//}
+//
+//species p6tree parent:tree {
+//	
+//}
 
 species playerable_area{
 	geometry shape <- rectangle(50#m, 50#m);
