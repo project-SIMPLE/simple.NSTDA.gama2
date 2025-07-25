@@ -78,23 +78,21 @@ model NewModel
 import "optimize_species.gaml"
 
 global{
-//	shape_file map_shape_file <- shape_file("grid_area.shp");
 	geometry shape <- rectangle(250#m, 150#m);
-//	geometry shape <- (envelope(map_shape_file));
-	
-//	int max_y <- 4 ;
-//	int max_x <- 5 ;
-	int max_y <- 12 ;
-	int max_x <- 12 ;
+
+	int max_y <- 10 ;
+	int max_x <- 10 ;
 	
 	int n_tree <- max_y*max_x;
 	
 	float size_of_tree <- 50.0;
 	float tree_distance <- 3.5;
-	float x_adaptive <- 5.5;
-	float y_adaptive <- 0.5;
+//	float x_adaptive <- 5.5;
+//	float y_adaptive <- 0.5;
+	float x_adaptive <- 9.0;
+	float y_adaptive <- 4.0;
 	
-	list<string> player_name <- ["Player_59", "Player_102", "Player_103", "Player_104", "Player_105", "Player_106"];
+	list<string> player_name <- ["Player_101", "Player_102", "Player_103", "Player_104", "Player_105", "Player_59"];
 	map<int, string> map_player_id <- [1::player_name[0], 2::player_name[1], 3::player_name[2], 4::player_name[3], 5::player_name[4], 6::player_name[5]];
 	map<string, int> map_player_id_reverse <- [player_name[0]::1, player_name[1]::2, player_name[2]::3, player_name[3]::4, player_name[4]::5, player_name[5]::6];
 	list<int> connect_team_list <- [];
@@ -111,8 +109,6 @@ global{
 	list<list<int>> n_remain_tree <- list_with(6, list_with(3, 0));
 	list<int> sum_score_list <- list_with(6,0);
 	
-	list<list<int>> tree_index_list <- [[],[],[],[]];
-	
 	list<int> raining_Stime <- [30,120,285];
 	list<int> raining_Etime <- [60,165,300];
 	
@@ -128,26 +124,23 @@ global{
 	list<int> fire_Etime <- [120,225,285];
 	list<string> fire_type <- ["F1", "F2", "F2"];
 	
-	int announce_time <- 240;
+	int announce_time <- time_to_play - 60;
 	
 	list<int> list_of_bg_score <- [0, n_tree/2, n_tree, 2*n_tree, 3*n_tree, 4*n_tree];
 	
+	list<int> zone_list <- [1,2,3,4];
+	
 	init{	
-		
-		write "gama.machine_time " + gama.machine_time;
-		write "sum_score_list " + sum_score_list;
 		loop j from:0 to:1{
 			loop i from:0 to:2{
+				point at_location <- {((83.33*i)+41.67)#m,((75*j)+37.5)#m,0};
 				create playerable_area{
-					point at_location <- {((83.33*i)+41.67)#m,((75*j)+37.5)#m,0};
 					location <- at_location;
 				}
 				create tree_area{
-					point at_location <- {((83.33*i)+41.67)#m,((75*j)+37.5)#m,0};
 					location <- at_location;
 				}
 				create zone_area{
-					point at_location <- {((83.33*i)+41.67)#m,((75*j)+37.5)#m,0};
 					location <- at_location;
 				}
 			}	
@@ -162,32 +155,26 @@ global{
 		}
 		
 //		save usable_area_for_wildfire to:"../includes/export/usable_area_for_wildfire.shp" format:"shp";
-		loop i from:0 to:max_y-1{
-			loop j from:0 to:max_x-1{
-				if (i < max_y/2) and (j < max_x/2){
-//					write "zone1";
-					add (12*i)+j to: tree_index_list[0];
-				}
-				else if (i < max_y/2) and (j >= max_x/2){
-//					write "zone2";
-					add (12*i)+j to: tree_index_list[1];
-				}
-				else if (i >= max_y/2) and (j < max_x/2){
-//					write "zone3";
-					add (12*i)+j to: tree_index_list[2];
-				}
-				else if (i >= max_y/2) and (j >= max_x/2){
-//					write "zone4";
-					add (12*i)+j to: tree_index_list[3];
-				}
-			}	
-		}
 		
 		loop m from:0 to:1{
 			loop n from:0 to:2{
 				loop i from:0 to:max_y-1{
 					loop j from:0 to:max_x-1{
 						int temp_type <- rnd(1, 3);
+						int temp_zone;
+						if (i < max_y/2) and (j < max_x/2){
+							temp_zone <- 1 ;
+						}
+						else if (i < max_y/2) and (j >= max_x/2){
+							temp_zone <- 2 ;
+						}
+						else if (i >= max_y/2) and (j < max_x/2){
+							temp_zone <- 3 ;
+						}
+						else if (i >= max_y/2) and (j >= max_x/2){
+							temp_zone <- 4 ;
+						}
+						
 						create tree{
 							point at_location <- {((83.33*n)+16.67+x_adaptive+(tree_distance*j))#m,((75*m)+17.5+y_adaptive+(tree_distance*i))#m,0};
 							location <- at_location;
@@ -195,105 +182,13 @@ global{
 							tree_type <- temp_type;
 							it_state <- 1;
 							player <- ((3*m)+(n+1));
-							name <- "p" + ((3*m)+(n+1)) + tree + ((12*i)+j);
+							name <- "p" + ((3*m)+(n+1)) + tree + ((max_x*i)+j);
+							zone <- temp_zone;
 						}
 					}
 				}	
 			}	
 		}
-		
-//		loop i from:0 to:max_y-1{
-//			loop j from:0 to:max_x-1{
-//				int temp_type <- rnd(1, 3);
-//				create p1tree{
-//					point at_location <- {((83.33*0)+16.67+x_adaptive+(tree_distance*j))#m,((75*0)+17.5+y_adaptive+(tree_distance*i))#m,0};
-//					location <- at_location;
-//					shape <- circle(size_of_tree#cm);
-//					tree_type <- temp_type;
-//					it_state <- 1;
-//				}
-//				create p2tree{
-//					point at_location <- {((83.33*1)+16.67+x_adaptive+(tree_distance*j))#m,((75*0)+17.5+y_adaptive+(tree_distance*i))#m,0};
-//					location <- at_location;
-//					shape <- circle(size_of_tree#cm);
-//					tree_type <- temp_type;
-//					it_state <- 1;
-//				}
-//				create p3tree{
-//					point at_location <- {((83.33*2)+16.67+x_adaptive+(tree_distance*j))#m,((75*0)+17.5+y_adaptive+(tree_distance*i))#m,0};
-//					location <- at_location;
-//					shape <- circle(size_of_tree#cm);
-//					tree_type <- temp_type;
-//					it_state <- 1;
-//				}
-//				create p4tree{
-//					point at_location <- {((83.33*0)+16.67+x_adaptive+(tree_distance*j))#m,((75*1)+17.5+y_adaptive+(tree_distance*i))#m,0};
-//					location <- at_location;
-//					shape <- circle(size_of_tree#cm);
-//					tree_type <- temp_type;
-//					it_state <- 1;
-//				}
-//				create p5tree{
-//					point at_location <- {((83.33*1)+16.67+x_adaptive+(tree_distance*j))#m,((75*1)+17.5+y_adaptive+(tree_distance*i))#m,0};
-//					location <- at_location;
-//					shape <- circle(size_of_tree#cm);
-//					tree_type <- temp_type;
-//					it_state <- 1;
-//				}
-//				create p6tree{
-//					point at_location <- {((83.33*2)+16.67+x_adaptive+(tree_distance*j))#m,((75*1)+17.5+y_adaptive+(tree_distance*i))#m,0};
-//					location <- at_location;
-//					shape <- circle(size_of_tree#cm);
-//					tree_type <- temp_type;
-//					it_state <- 1;
-//				}
-//				if (i < max_y/2) and (j < max_x/2){
-////					write "zone1";
-//					add (12*i)+j to: tree_index_list[0];
-//				}
-//				else if (i < max_y/2) and (j >= max_x/2){
-////					write "zone2";
-//					add (12*i)+j to: tree_index_list[1];
-//				}
-//				else if (i >= max_y/2) and (j < max_x/2){
-////					write "zone3";
-//					add (12*i)+j to: tree_index_list[2];
-//				}
-//				else if (i >= max_y/2) and (j >= max_x/2){
-////					write "zone4";
-//					add (12*i)+j to: tree_index_list[3];
-//				}
-//			}
-//		}
-		
-//		write "tree_index_list[0] " + tree_index_list[0] + length(tree_index_list[0]);
-//		write "tree_index_list[1] " + tree_index_list[1] + length(tree_index_list[1]);
-//		write "tree_index_list[2] " + tree_index_list[2] + length(tree_index_list[2]);
-//		write "tree_index_list[3] " + tree_index_list[3] + length(tree_index_list[3]);
-//		
-//		loop i over:tree_index_list[0]{
-//			ask p1tree[i]{
-//				color <- #purple;
-//			}
-//		}
-//		
-//		loop i over:tree_index_list[1]{
-//			ask p1tree[i]{
-//				color <- #brown;
-//			}
-//		}
-//		
-//		loop i over:tree_index_list[2]{
-//			ask p1tree[i]{
-//				color <- #yellow;
-//			}
-//		}
-//		
-//		loop i over:tree_index_list[3]{
-//			ask p1tree[i]{
-//				color <- #black;
-//			}
-//		}
 	}
 	
 	reflex for_send_start when:(can_start and not paused){
@@ -321,14 +216,9 @@ experiment init_exp type: gui {
 			species wait_area;
 			species zone_area;
 			species playerable_area;
-			species tree;
-//			species p1tree;
-//			species p2tree;
-//			species p3tree;
-//			species p4tree;
-//			species p5tree;
-//			species p6tree;
+			species tree_area;
 			species icon_everything;
+			species tree;
 		}
 		
 //		display "Total seeds" type: 2d locked:true{

@@ -14,14 +14,16 @@ global{
 	image_file rain_image_file <- image_file("../images/rain.png");
 	image_file blank_image_file <- image_file("../images/blank.png");
 	
-	float time_per_cycle <- 1.0;
+//	float time_per_cycle <- 1.0;
 	int n_years <- 2;
 	int time_to_play <- 300;
 	
 	int init_cycle <- 3;
 	
-	float used_cycle <- time_to_play / time_per_cycle;
-	float day_per_cycle <- (n_years*365)/used_cycle;
+//	float used_cycle <- time_to_play / time_per_cycle;
+//	float day_per_time <- (n_years*365)/used_cycle;
+
+	float day_per_time <- (n_years*365)/time_to_play;
 	
 	
 	float init_height <- 50.0;
@@ -31,8 +33,9 @@ global{
 	list<float> list_of_growth_rate <- [0.523, 0.8155, 0.4537];
 	
 	init{
-		write "used_cycle " + used_cycle; 
-		write "day_per_second " + day_per_cycle;
+//		write "used_cycle " + used_cycle; 
+		write "time_to_play " + time_to_play;
+		write "day_per_second " + day_per_time;
 	}
 }
 	
@@ -56,7 +59,7 @@ species icon_everything{
 			}
 		}
 		
-		draw status_icon size:{3,3};
+		draw status_icon size:{1.25,1.25};
 	}
 }
 
@@ -67,11 +70,15 @@ species tree{
 	float height <- 50.0;
 	string it_can_growth <- "1" ;
 	rgb color <- rgb(43, 150, 0);
-	int current_cycle <- 0;
+	int current_time <- 0;
+	int zone <- 1;
 	
-	float logist_growth (float init_input, float max_height, float growth_rate){
+	float logist_growth (float init_input, float max_height, float growth_rate, int multiple){
 		float height_logist <- (init_input * max_height) / (init_input + (max_height - init_height) * 
-							exp (-(( growth_rate ) * ((current_cycle * n_years / used_cycle) - 0)))) ;
+							exp (-((growth_rate * multiple) * ((current_time * n_years / time_to_play) - 0)))) ;
+							
+//		float height_logist <- (init_input * max_height) / (init_input + (max_height - init_height) * 
+//							exp (-((growth_rate * multiple) * (current_time  - 0)))) ;
 		return height_logist;
 	}
 	
@@ -94,47 +101,38 @@ species tree{
 			}
 		}
 	}
+
+//	reflex change_color{
+//		if zone = 1{
+//			color <- #black;
+//		}
+//		else if zone = 2{
+//			color <- #red;
+//		}
+//		else if zone = 3{
+//			color <- #blue;
+//		}
+//		else if zone = 4{
+//			color <- #green;
+//		}
+//	}
 	
 	aspect default{
 		draw shape color:color;
 	}
 }
 
-//species p1tree parent:tree {
-//	
-//}
-//
-//species p2tree parent:tree {
-//	
-//}
-//
-//species p3tree parent:tree {
-//	
-//}
-//
-//species p4tree parent:tree {
-//	
-//}
-//
-//species p5tree parent:tree {
-//	
-//}
-//
-//species p6tree parent:tree {
-//	
-//}
-
 species playerable_area{
-	geometry shape <- rectangle(50#m, 50#m);
+	geometry shape <- rectangle(40#m, 40#m);
 	rgb color <- #white;
-	
+
 	aspect default{
 		draw shape color:color border:#black ;
 	}
 }
 
 species tree_area{
-	geometry shape <- rectangle(45#m, 45#m);
+	geometry shape <- rectangle(35#m, 35#m);
 	rgb color <- #white;
 	
 	aspect default{
