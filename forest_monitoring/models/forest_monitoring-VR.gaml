@@ -8,7 +8,7 @@ global {
 	
 	init{
 //		create unity_player{
-//			name <- "Player_102";
+//			name <- "Player_104";
 //		}
 	}
 	
@@ -127,84 +127,14 @@ global {
 		write "sum_score_list " + sum_score_list;
 	}
 
-//	and (time_now mod 15 = 0) (cycle >= init_cycle+1)
-	reflex update_height_and_threats when:(time_now > 0) and (time_now mod 5 = 0) {
+//	and (time_now mod 5 = 0)(cycle >= init_cycle+1)
+	reflex update_height_and_threats when:(time_now > 0)  {
 		list all_for_send <- [];
 		list<map<string,string>> send_tree_update_grass <- [];
 		list<map<string,string>> send_tree_update_threats <- [];
 		list<map<string,string>> send_tree_update_grow <- [];
 		list<map<string,string>> send_tree_update_environment <- [];
 		list<map<string,string>> send_tree_update_rain <- [];
-		
-		// Weeds
-		loop p over:connect_team_list{
-			loop i from:0 to:(length(grass_Stime)-1){
-				if (time_now > grass_Stime[i]) and (time_now <= grass_Etime[i]) and (time_now mod 15 = 0){
-					list<int> it_zone;
-					if grass_type[i] = "G1"{
-						it_zone <- sample(zone_list,1,false);
-						loop j over:it_zone{
-							list<tree> for_rnd_tree <- tree where ((each.player = p) 
-																and (each.zone = j)
-																and (each.it_can_growth = "1"));
-							ask sample(for_rnd_tree,2,false){
-								add map<string, string>(["PlayerID"::map_player_id[self.player], 
-														"Name"::self.name, 
-														"State"::99]) to:send_tree_update_grass;
-								it_can_growth <- "-1";
-							}
-						}
-					}
-					else if grass_type[i] = "G2"{
-						it_zone <- sample(zone_list,2,false);
-						loop j over:it_zone{
-							list<tree> for_rnd_tree <- tree where ((each.player = p) 
-																and (each.zone = j)
-																and (each.it_can_growth = "1"));
-							ask sample(for_rnd_tree,4,false){
-								add map<string, string>(["PlayerID"::map_player_id[self.player], 
-														"Name"::self.name, 
-														"State"::99]) to:send_tree_update_grass;
-								it_can_growth <- "-1";
-							}
-						}
-					}
-					write "send_tree_update_grass " + send_tree_update_grass;
-					write "it_zone " + it_zone + " at time " + time_now +"s" + " type " + grass_type[i];
-				}
-			}
-		}
-		
-		// Growth
-		ask tree where (each.it_can_growth = "1"){
-			current_time <- time_now;
-			height <- logist_growth(init_height, float(list_of_height[self.tree_type-1]), float(list_of_growth_rate[self.tree_type-1]), 1);
-			int h_max <- list_of_max_height_in_n_years[self.tree_type - 1];
-			
-			if (height >= (h_max*0.5)) and (height < (h_max*0.8)) and (it_state = 1){
-				it_state <- 2;
-				write "Tree: " + self.name + " State -> 2 (it_type=" + self.tree_type +")";
-				add map<string, string>(["PlayerID"::map_player_id[self.player], "Name"::self.name, "State"::it_state]) to:send_tree_update_grow;
-			}
-			else if (height >= (h_max*0.8)) and (height <= (h_max)) and (it_state = 2){
-				it_state <- 3;
-				write "Tree: " + self.name + " State -> 3 (it_type=" + self.tree_type +")";
-				add map<string, string>(["PlayerID"::map_player_id[self.player], "Name"::self.name, "State"::it_state]) to:send_tree_update_grow;
-			}
-		}
-		
-		// Background
-//		loop p over:connect_team_list{
-//			loop j from:0 to:4{
-//				if (sum_score_list[p-1] >= list_of_bg_score[j]) and (sum_score_list[p-1] < list_of_bg_score[j+1]){
-//					add map<string, string>(["PlayerID"::map_player_id[p], 
-//											"Name"::string("Environment"+(j+1)), 
-//											"State"::""]) to:send_tree_update_environment;
-//					write "Player " + map_player_id[p] + " send " + string("Environment"+(j+1)) ;
-//				}
-//			}
-//		}
-		
 		
 		loop p over:connect_team_list{
 			// Fire
@@ -285,6 +215,78 @@ global {
 					}
 					write "send_tree_update_threats " + send_tree_update_threats;
 					write "it_zone " + it_zone + " at time " + time_now +"s" + " type " + alien_type[i];
+				}
+			}
+		}
+		
+		// Weeds
+		loop p over:connect_team_list{
+			loop i from:0 to:(length(grass_Stime)-1){
+				if (time_now > grass_Stime[i]) and (time_now <= grass_Etime[i]) and (time_now mod 15 = 0){
+					list<int> it_zone;
+					if grass_type[i] = "G1"{
+						it_zone <- sample(zone_list,1,false);
+						loop j over:it_zone{
+							list<tree> for_rnd_tree <- tree where ((each.player = p) 
+																and (each.zone = j)
+																and (each.it_can_growth = "1"));
+							ask sample(for_rnd_tree,2,false){
+								add map<string, string>(["PlayerID"::map_player_id[self.player], 
+														"Name"::self.name, 
+														"State"::99]) to:send_tree_update_grass;
+								it_can_growth <- "-1";
+							}
+						}
+					}
+					else if grass_type[i] = "G2"{
+						it_zone <- sample(zone_list,2,false);
+						loop j over:it_zone{
+							list<tree> for_rnd_tree <- tree where ((each.player = p) 
+																and (each.zone = j)
+																and (each.it_can_growth = "1"));
+							ask sample(for_rnd_tree,4,false){
+								add map<string, string>(["PlayerID"::map_player_id[self.player], 
+														"Name"::self.name, 
+														"State"::99]) to:send_tree_update_grass;
+								it_can_growth <- "-1";
+							}
+						}
+					}
+					write "send_tree_update_grass " + send_tree_update_grass;
+					write "it_zone " + it_zone + " at time " + time_now +"s" + " type " + grass_type[i];
+				}
+			}
+		}
+		
+		// Growth
+		ask tree where (each.it_can_growth = "1"){
+			current_time <- time_now;
+			height <- logist_growth(init_height, float(list_of_height[self.tree_type-1]), float(list_of_growth_rate[self.tree_type-1]), 1);
+			int h_max <- list_of_max_height_in_n_years[self.tree_type - 1];
+			
+			if (height >= (h_max*0.5)) and (height < (h_max*0.8)) and (it_state = 1){
+				it_state <- 2;
+				write "Tree: " + self.name + " State -> 2 (it_type=" + self.tree_type +")";
+				add map<string, string>(["PlayerID"::map_player_id[self.player], "Name"::self.name, "State"::it_state]) to:send_tree_update_grow;
+			}
+			else if (height >= (h_max*0.8)) and (height <= (h_max)) and (it_state = 2){
+				it_state <- 3;
+				write "Tree: " + self.name + " State -> 3 (it_type=" + self.tree_type +")";
+				add map<string, string>(["PlayerID"::map_player_id[self.player], "Name"::self.name, "State"::it_state]) to:send_tree_update_grow;
+			}
+		}
+		
+		// Background
+		loop p over:connect_team_list{
+			loop j from:0 to:4{
+				if (sum_score_list[p-1] >= list_of_bg_score[j]) and 
+					(sum_score_list[p-1] < list_of_bg_score[j+1]) and
+					(j != list_of_player_bg[p-1]){
+					add map<string, string>(["PlayerID"::map_player_id[p], 
+											"Name"::string("Environment"+(j+1)), 
+											"State"::""]) to:send_tree_update_environment;
+					list_of_player_bg[p-1] <- j;
+					write "Player " + map_player_id[p] + " send " + string("Environment"+(j+1)) ;
 				}
 			}
 		}

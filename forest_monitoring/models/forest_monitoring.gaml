@@ -92,7 +92,7 @@ global{
 	float x_adaptive <- 9.0;
 	float y_adaptive <- 4.0;
 	
-	list<string> player_name <- ["Player_101", "Player_102", "Player_103", "Player_104", "Player_105", "Player_59"];
+	list<string> player_name <- ["Player_101", "Player_102", "Player_103", "Player_104", "Player_52", "Player_59"];
 	map<int, string> map_player_id <- [1::player_name[0], 2::player_name[1], 3::player_name[2], 4::player_name[3], 5::player_name[4], 6::player_name[5]];
 	map<string, int> map_player_id_reverse <- [player_name[0]::1, player_name[1]::2, player_name[2]::3, player_name[3]::4, player_name[4]::5, player_name[5]::6];
 	list<int> connect_team_list <- [];
@@ -127,6 +127,7 @@ global{
 	int announce_time <- time_to_play - 60;
 	
 	list<int> list_of_bg_score <- [0, n_tree/2, n_tree, 2*n_tree, 3*n_tree, 4*n_tree];
+	list<int> list_of_player_bg <- [2,2,2,2,2,2];
 	
 	list<int> zone_list <- [1,2,3,4];
 	
