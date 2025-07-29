@@ -225,7 +225,7 @@ experiment init_exp type: gui {
 		
 		display "Total" type: 2d locked:true{
 			chart "Total seeds" type:histogram reverse_axes:true
-			y_range:[0, (max_x*max_y) +10]
+			y_range:[0, (3*max_x*max_y)]
 			x_serie_labels: [""]
 			
 			style:"3d"
