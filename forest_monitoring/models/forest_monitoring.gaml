@@ -92,6 +92,7 @@ global{
 	float x_adaptive <- 9.0;
 	float y_adaptive <- 4.0;
 	
+	list<rgb> player_colors <- [rgb(66, 72, 255), #red, #green, rgb(255, 196, 0), #black, rgb(156, 152, 142)];
 	list<string> player_name <- ["Player_101", "Player_102", "Player_103", "Player_104", "Player_52", "Player_59"];
 	map<int, string> map_player_id <- [1::player_name[0], 2::player_name[1], 3::player_name[2], 4::player_name[3], 5::player_name[4], 6::player_name[5]];
 	map<string, int> map_player_id_reverse <- [player_name[0]::1, player_name[1]::2, player_name[2]::3, player_name[3]::4, player_name[4]::5, player_name[5]::6];
@@ -222,26 +223,26 @@ experiment init_exp type: gui {
 			species tree;
 		}
 		
-//		display "Total seeds" type: 2d locked:true{
-//			chart "Total seeds" type:histogram reverse_axes:true
-//			y_range:[0, 100]
-//			x_serie_labels: [""]
-//			
-//			style:"3d"
-//			series_label_position: xaxis
-//			{
-//				loop i from:0 to:(length(sum_total_seeds)-1){
-//					data "Team" + (i+1) value:int(sum_total_seeds[i])
-//					color:player_colors[i];
-////					legend: string(int(sum_total_seeds[i])) ;
-//				}
-//			}
-//			graphics Strings {
-//				loop i from:0 to:(length(sum_total_seeds)-1){
-//					draw "=> " + int(sum_total_seeds[i]) at:{420,65 + 36*i} font:font("Times", 16, #bold+#italic) 
-//					border:#black color:player_colors[i];
-//				}
-//			}
-//		}
+		display "Total" type: 2d locked:true{
+			chart "Total seeds" type:histogram reverse_axes:true
+			y_range:[0, (max_x*max_y) +10]
+			x_serie_labels: [""]
+			
+			style:"3d"
+			series_label_position: xaxis
+			{
+				loop i from:0 to:(length(n_remain_tree)-1){
+					data "Team" + (i+1) value:int(sum(n_remain_tree[i]))
+					color:player_colors[i];
+//					legend: string(int(sum_total_seeds[i])) ;
+				}
+			}
+			graphics Strings {
+				loop i from:0 to:(length(n_remain_tree)-1){
+					draw "=> " + int(sum(n_remain_tree[i])) at:{420,65 + 36*i} font:font("Times", 16, #bold+#italic) 
+					border:#black color:player_colors[i];
+				}
+			}
+		}
 	}
 }
