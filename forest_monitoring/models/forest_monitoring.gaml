@@ -73,12 +73,18 @@
 // การเก็บคะแนน
 // export ข้อมูลคะแนนของผู้เล่น
 
+// 30Jul2025
+// การเริ่มเกมส่งคำว่า START PAUSE CONTINUE STOP 
+
 model NewModel
 
 import "optimize_species.gaml"
 
 global{
 	geometry shape <- rectangle(250#m, 150#m);
+	
+	float width <- shape.width;
+	float height <- shape.height;
 
 	int max_y <- 10 ;
 	int max_x <- 10 ;
@@ -87,13 +93,14 @@ global{
 	
 	float size_of_tree <- 50.0;
 	float tree_distance <- 3.5;
+	float rnd_location <- 5.0;
 //	float x_adaptive <- 5.5;
 //	float y_adaptive <- 0.5;
 	float x_adaptive <- 9.0;
 	float y_adaptive <- 4.0;
 	
 	list<rgb> player_colors <- [rgb(66, 72, 255), #red, #green, rgb(255, 196, 0), #black, rgb(156, 152, 142)];
-	list<string> player_name <- ["Player_101", "Player_102", "Player_103", "Player_104", "Player_52", "Player_59"];
+	list<string> player_name <- ["Player_101", "Player_102", "Player_59", "Player_52", "Player_105", "Player_106"];
 	map<int, string> map_player_id <- [1::player_name[0], 2::player_name[1], 3::player_name[2], 4::player_name[3], 5::player_name[4], 6::player_name[5]];
 	map<string, int> map_player_id_reverse <- [player_name[0]::1, player_name[1]::2, player_name[2]::3, player_name[3]::4, player_name[4]::5, player_name[5]::6];
 	list<int> connect_team_list <- [];
@@ -113,7 +120,7 @@ global{
 	list<int> raining_Stime <- [30,120,285];
 	list<int> raining_Etime <- [60,165,300];
 	
-	list<int> alien_Stime <- [15, 30, 120, 165, 240];
+	list<int> alien_Stime <- [0, 30, 120, 165, 240];
 	list<int> alien_Etime <- [30, 60, 165, 195, 270];
 	list<string> alien_type <- ["A1", "A2", "A2", "A1", "A2"];
 	
@@ -121,16 +128,18 @@ global{
 	list<int> grass_Etime <- [60, 75, 165, 210, 270];
 	list<string> grass_type <- ["G2", "G1", "G2", "G1", "G2"];
 	
-	list<int> fire_Stime <- [75,195,240];
-	list<int> fire_Etime <- [120,225,285];
-	list<string> fire_type <- ["F1", "F2", "F2"];
+	list<int> fire_Stime <- [75,195,225,240,255,270];
+	list<int> fire_Etime <- [120,225,240,255,270,285];
+	list<string> fire_type <- ["F1", "F2", "F2C", "F2", "F2C", "F2"];
 	
 	int announce_time <- time_to_play - 60;
 	
-	list<int> list_of_bg_score <- [0, n_tree/2, n_tree, 2*n_tree, 3*n_tree, 4*n_tree];
+	list<int> list_of_bg_score <- [0, 41, 86, 151, 226, 301];
 	list<int> list_of_player_bg <- [2,2,2,2,2,2];
 	
 	list<int> zone_list <- [1,2,3,4];
+	
+	int time_now;
 	
 	init{	
 		loop j from:0 to:1{
@@ -178,7 +187,7 @@ global{
 						}
 						
 						create tree{
-							point at_location <- {((83.33*n)+16.67+x_adaptive+(tree_distance*j))#m,((75*m)+17.5+y_adaptive+(tree_distance*i))#m,0};
+							point at_location <- {((83.33*n)+16.67+x_adaptive+(tree_distance*j)+rnd(-tree_distance/rnd_location,tree_distance/rnd_location))#m,((75*m)+17.5+y_adaptive+(tree_distance*i)+rnd(-tree_distance/rnd_location,tree_distance/rnd_location))#m,0};
 							location <- at_location;
 							shape <- circle(size_of_tree#cm);
 							tree_type <- temp_type;
@@ -221,6 +230,13 @@ experiment init_exp type: gui {
 			species tree_area;
 			species icon_everything;
 			species tree;
+			
+			graphics Strings {
+				draw "Remaining time: "+ ((time_to_play - time_now) div 60) + " minutes " + 
+					((time_to_play - time_now) mod 60) + " seconds" 
+					at:{width/5, -10} 
+					font:font("Times", 16, #bold+#italic) ;
+			}
 		}
 		
 		display "Total" type: 2d locked:true{
@@ -231,15 +247,15 @@ experiment init_exp type: gui {
 			style:"3d"
 			series_label_position: xaxis
 			{
-				loop i from:0 to:(length(n_remain_tree)-1){
-					data "Team" + (i+1) value:int(sum(n_remain_tree[i]))
+				loop i from:0 to:(length(sum_score_list)-1){
+					data "Team" + (i+1) value:int(sum_score_list[i])
 					color:player_colors[i];
 //					legend: string(int(sum_total_seeds[i])) ;
 				}
 			}
 			graphics Strings {
-				loop i from:0 to:(length(n_remain_tree)-1){
-					draw "=> " + int(sum(n_remain_tree[i])) at:{420,65 + 36*i} font:font("Times", 16, #bold+#italic) 
+				loop i from:0 to:(length(sum_score_list)-1){
+					draw "=> " + int(sum_score_list[i]) at:{420,65 + 36*i} font:font("Times", 16, #bold+#italic) 
 					border:#black color:player_colors[i];
 				}
 			}

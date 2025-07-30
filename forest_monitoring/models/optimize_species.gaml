@@ -18,7 +18,7 @@ global{
 	int n_years <- 2;
 	int time_to_play <- 300;
 	
-	int init_cycle <- 3;
+	int init_cycle <- 2;
 	
 //	float used_cycle <- time_to_play / time_per_cycle;
 //	float day_per_time <- (n_years*365)/used_cycle;

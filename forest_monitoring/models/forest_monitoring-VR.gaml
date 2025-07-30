@@ -5,10 +5,11 @@ import "forest_monitoring.gaml"
 global {
 	int init_time <- 0;
 	int time_now <- 0;
+	int test_send <- 1;
 	
 	init{
 //		create unity_player{
-//			name <- "Player_104";
+//			name <- "Player_106";
 //		}
 	}
 	
@@ -55,31 +56,29 @@ global {
 	
 	action resume_game {
 		write "send Start";
-		if not empty(unity_player){
-			ask unity_linker {
-				do send_message players: unity_player as list mes: ["ListOfMessage"::[["Head"::"Start", 
-																						"Body"::"", 
-																						"Trees"::"",
-																						"Threats"::""]]];
-			}
+		ask unity_linker {
+			do send_message players: unity_player as list mes: ["ListOfMessage"::[["Head"::"Start", 
+																					"Body"::"", 
+																					"Trees"::"",
+																					"Threats"::""]]];
 		}
 	}
 	
 	action pause_game {
 		write "send Stop";
-		if not empty(unity_player){
-			ask unity_linker {
-				do send_message players: unity_player as list mes: ["ListOfMessage"::[["Head"::"Stop", 
-																						"Body"::"", 
-																						"Trees"::"",
-																						"Threats"::""]]];
-			}
+		ask unity_linker {
+			do send_message players: unity_player as list mes: ["ListOfMessage"::[["Head"::"Stop", 
+																					"Body"::"", 
+																					"Trees"::"",
+																					"Threats"::""]]];
 		}
 	}
 	
 	reflex end_game when:(time_now >= time_to_play){
 		do pause_game;
-		do pause;
+		if time_now >= (time_to_play+1){
+			do pause;
+		}
 	}
 	
 	reflex prepare_step when:(cycle=1) and (first_start=true){
@@ -139,7 +138,8 @@ global {
 		loop p over:connect_team_list{
 			// Fire
 			loop i from:0 to:(length(fire_Stime)-1){
-				if (time_now > fire_Stime[i]) and (time_now <= fire_Etime[i]) and (time_now mod 15 = 0){
+				// and (time_now mod 15 = 0) (time_now = int((fire_Stime[i]+fire_Etime[i])/2))
+				if (time_now >= fire_Stime[i]) and (time_now < fire_Etime[i]) and (time_now mod 15 = 0){
 					point at_location;
 					if fire_type[i] = "F1"{
 						at_location <- any_location_in(usable_area_for_wildfire[p-1]-1);
@@ -157,6 +157,14 @@ global {
 									"z"::-at_location.y,
 									"PlayerID"::map_player_id[p]]) to:send_tree_update_threats;
 					}
+					else if fire_type[i] = "F2C"{
+						at_location <- any_location_in(tree_area[p-1]-5);
+						add map<string, string>(["Name"::"Flame1",  //Flame2
+									"x"::at_location.x, 
+									"y"::at_location.z, 
+									"z"::-at_location.y,
+									"PlayerID"::map_player_id[p]]) to:send_tree_update_threats;
+					}
 					create icon_everything{
 						location <- at_location;
 						type <- "fire";
@@ -166,7 +174,7 @@ global {
 
 			// Alien
 			loop i from:0 to:(length(alien_Stime)-1){
-				if (time_now > alien_Stime[i]) and (time_now <= alien_Etime[i]) and (time_now mod 15 = 0){
+				if (time_now >= alien_Stime[i]) and (time_now < alien_Etime[i]) and (time_now mod 15 = 0){
 					list<int> it_zone;
 					point at_location;
 					if alien_type[i] = "A1"{
@@ -222,7 +230,7 @@ global {
 		// Weeds
 		loop p over:connect_team_list{
 			loop i from:0 to:(length(grass_Stime)-1){
-				if (time_now > grass_Stime[i]) and (time_now <= grass_Etime[i]) and (time_now mod 15 = 0){
+				if (time_now >= grass_Stime[i]) and (time_now < grass_Etime[i]) and (time_now mod 15 = 0){
 					list<int> it_zone;
 					if grass_type[i] = "G1"{
 						it_zone <- sample(zone_list,1,false);
@@ -283,13 +291,24 @@ global {
 					(sum_score_list[p-1] < list_of_bg_score[j+1]) and
 					(j != list_of_player_bg[p-1]){
 					add map<string, string>(["PlayerID"::map_player_id[p], 
-											"Name"::string("Environment"+(j+1)), 
+											"Name"::string(j+1), 
 											"State"::""]) to:send_tree_update_environment;
 					list_of_player_bg[p-1] <- j;
 					write "Player " + map_player_id[p] + " send " + string("Environment"+(j+1)) ;
 				}
 			}
 		}
+
+//		if time_now mod 10 = 0{
+//			loop p over:connect_team_list{
+//				add map<string, string>(["PlayerID"::map_player_id[p], 
+//									"Name"::string(test_send), 
+//									"State"::""]) to:send_tree_update_environment;
+//			list_of_player_bg[p-1] <- test_send;
+//			write "Player " + map_player_id[p] + " send " + string("Environment"+string(test_send));
+//			}
+//			test_send <- test_send + 1 ;	
+//		}
 		
 		// Send update
 		if not empty(send_tree_update_grass){
