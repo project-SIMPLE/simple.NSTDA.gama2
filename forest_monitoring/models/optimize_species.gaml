@@ -63,6 +63,16 @@ species icon_everything{
 	}
 }
 
+species old_tree{
+	int player <- 1;
+	int tree_type <- 0;
+	rgb color <- #brown;
+	
+	aspect default{
+		draw shape color:color;
+	}
+}
+
 species tree{
 	int player <- 1;
 	int tree_type <- 0;
@@ -123,29 +133,35 @@ species tree{
 }
 
 species playerable_area{
+	int player <- 1;
 	geometry shape <- rectangle(40#m, 40#m);
 	rgb color <- #white;
+	rgb border_color <- #black;
 
 	aspect default{
-		draw shape color:color border:#black ;
+		draw shape color:color border:border_color ;
 	}
 }
 
 species tree_area{
+	int player <- 1;
 	geometry shape <- rectangle(35#m, 35#m);
 	rgb color <- #white;
+	rgb border_color <- #black;
 	
 	aspect default{
-		draw shape color:color border:#black ;
+		draw shape color:color border:border_color ;
 	}
 }
 
 species zone_area{
-	geometry shape <- rectangle(82#m, 74#m);
+	int player <- 1;
+	geometry shape <- rectangle(83#m, 75#m); //(82#m, 74#m);
 	rgb color <- #white;
+	rgb border_color <- #black;
 	
 	aspect default{
-		draw shape color:color border:#black ;
+		draw shape color:color border:border_color ;
 	}
 }
 

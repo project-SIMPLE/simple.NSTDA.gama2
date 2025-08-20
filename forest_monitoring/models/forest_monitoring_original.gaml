@@ -79,13 +79,6 @@
 // การเกิดหญ้า 9 ช่อง
 // ทดสอบ dymamic ตามจำนวนผู้เล่น
 
-// 20Aug2025
-// การเริ่มเกมส่งคำว่า Tutorial, Start, Stop แทน
-// การรันเกม player คนต่อไป จะกด next บน unity และให้ GAMA รันต่อได้
-// เก็บ score ของผู้เล่นแต่ละคนเป็น csv และ จำนวนต้นไม้ที่เหลือแต่ละต้น เป็น csv เช่นกัน 
-// คะแนน ตาย -0.5 state 1,2,3 ได้ 1,1.25,1.5 ตามลำดับ
-// bg1,2,3,4,5 <41 <86 <111 <131 <150
-
 model NewModel
 
 import "optimize_species.gaml"
@@ -143,9 +136,9 @@ global{
 	list<int> grass_Etime <- [60, 75, 165, 210, 270];
 	list<string> grass_type <- ["G2", "G1", "G2", "G1", "G2"];
 	
-	list<int> fire_Stime <- [75,90,105,195,210,225,240,255,270];
-	list<int> fire_Etime <- [90,105,120,210,225,240,255,270,285];
-	list<string> fire_type <- ["F1", "F2", "F1", "F1", "F2", "F2", "F2", "F2", "F1"];
+	list<int> fire_Stime <- [75,195,225,240,255,270];
+	list<int> fire_Etime <- [120,225,240,255,270,285];
+	list<string> fire_type <- ["F1", "F2", "F2C", "F2", "F2C", "F2"];
 	
 	int announce_time <- time_to_play - 60;
 	
@@ -161,15 +154,12 @@ global{
 			loop i from:0 to:2{
 				point at_location <- {((83.33*i)+41.67)#m,((75*j)+37.5)#m,0};
 				create playerable_area{
-					player <- ((3*j)+(i+1));
 					location <- at_location;
 				}
 				create tree_area{
-					player <- ((3*j)+(i+1));
 					location <- at_location;
 				}
 				create zone_area{
-					player <- ((3*j)+(i+1));
 					location <- at_location;
 				}
 			}	
@@ -188,40 +178,31 @@ global{
 		}
 		
 		int count_create_tree <- 0;
-
+		bool is_ok <- true;
 		loop i from:0 to:(n_old_tree-1){
-			if count_create_tree > 0{
-				ask old_tree[count_create_tree-6] {
-//					write self;
-					usable_area_for_tree <- usable_area_for_tree - (self.shape + tree_distance);
+			create old_tree{
+				if count_create_tree > 0{
+					ask old_tree[count_create_tree-1] {
+						usable_area_for_tree <- usable_area_for_tree - (self.shape + tree_distance);
+					}
+				}
+				if (usable_area_for_tree = nil) {
+					is_ok <- false;
+				} 
+				
+				else{
+					point at_location <- any_location_in(usable_area_for_tree);
+					location <- at_location;
+					shape <- circle(size_of_old_tree#cm);
+					count_create_tree <- count_create_tree + 1;
 				}
 			}
-			
-			if (usable_area_for_tree = nil) {
+			if (not is_ok) {
 				write 'Geometry not enough when n=' + count_create_tree;
 				break;
-			} 
-			else{
-				point at_location <- any_location_in(usable_area_for_tree);
-				
-				loop m from:0 to:1{
-					loop n from:0 to:2{
-						create old_tree{
-							location <- {at_location.x+(83.33*n),
-										at_location.y+(75*m),
-										at_location.z
-										};
-							shape <- circle(size_of_old_tree#cm);
-							player <- ((3*m)+(n+1));
-							name <- "p" + ((3*m)+(n+1)) + "oldtree" + (i+1);
-							count_create_tree <- count_create_tree + 1;
-						}
-					}	
-				}
 			}
 		}
-		ask old_tree[count_create_tree-6] {
-//			write self;
+		ask old_tree[count_create_tree-1] {
 			usable_area_for_tree <- usable_area_for_tree - (self.shape + tree_distance);
 		}
 		
@@ -231,6 +212,7 @@ global{
 		bool still_do <- true;
 		loop while: still_do {
 			still_do <- false;
+			is_ok <- true;
 			ask tree {do die;}
 			
 			count_create_tree <- 0;
@@ -238,60 +220,53 @@ global{
 			ask tree_area[0]{
 				loop i from:0 to:max_y-1{
 					loop j from:0 to:max_x-1{
-						if count_create_tree > 0{
-							ask tree[count_create_tree-6] {
-//								write self.name;
-								usable_area_for_tree <- usable_area_for_tree - (self.shape + tree_distance);
+						int temp_type <- rnd(1, 3);
+						int temp_zone;
+						if (i < max_y/2) and (j < max_x/2){
+							temp_zone <- 1 ;
+						}
+						else if (i < max_y/2) and (j >= max_x/2){
+							temp_zone <- 2 ;
+						}
+						else if (i >= max_y/2) and (j < max_x/2){
+							temp_zone <- 3 ;
+						}
+						else if (i >= max_y/2) and (j >= max_x/2){
+							temp_zone <- 4 ;
+						}
+
+						create tree{
+							if count_create_tree > 0{
+								ask tree[count_create_tree-1] {
+									usable_area_for_tree <- usable_area_for_tree - (self.shape + tree_distance);
+								}
+							}
+							if (usable_area_for_tree = nil) {
+								is_ok <- false;
+							} 
+							
+							else{
+								point at_location <- any_location_in(usable_area_for_tree);
+	//							point at_location <- {((83.33*n)+16.67+x_adaptive+(tree_distance*j))#m,
+	//								((75*m)+17.5+y_adaptive+(tree_distance*i))#m,0};
+	
+								location <- at_location;
+								shape <- circle(size_of_tree#cm);
+								tree_type <- temp_type;
+								it_state <- 1;
+	//							player <- ((3*m)+(n+1));
+	//							name <- "p" + ((3*m)+(n+1)) + tree + ((max_x*i)+j);
+								zone <- temp_zone;
+								
+								count_create_tree <- count_create_tree + 1;
 							}
 						}
 						
-						if (usable_area_for_tree = nil) {
+						if (not is_ok) {
 							write 'Geometry not enough when n=' + count_create_tree;
 							break;
-						} 
-						else{
-							point at_location <- any_location_in(usable_area_for_tree);
-//							{((83.33*i)+41.67)#m,((75*j)+37.5)#m,0};
-							int temp_type <- rnd(1, 3);
-							int temp_zone;
-							
-							if (at_location.x <= 41.67) and (at_location.y <= 37.5){
-								temp_zone <- 1 ;
-							}
-							else if (at_location.x > 41.67) and (at_location.y <= 37.5){
-								temp_zone <- 2 ;
-							}
-							else if (at_location.x <= 41.67) and (at_location.y > 37.5){
-								temp_zone <- 3 ;
-							}
-							else if (at_location.x > 41.67) and (at_location.y > 37.5){
-								temp_zone <- 4 ;
-							}
-				
-							loop m from:0 to:1{
-								loop n from:0 to:2{
-									create tree{
-										location <- {at_location.x+(83.33*n),
-													at_location.y+(75*m),
-													at_location.z
-													};
-										shape <- circle(size_of_tree#cm);
-										tree_type <- temp_type;
-										it_state <- 1;
-										player <- ((3*m)+(n+1));
-										name <- "p" + ((3*m)+(n+1)) + "tree" + ((max_x*i)+j);
-										zone <- temp_zone;
-										
-										count_create_tree <- count_create_tree + 1;
-									}
-								}	
-							}
 						}
 					}	
-				}
-				ask tree[count_create_tree-6] {
-//					write self.name;
-					usable_area_for_tree <- usable_area_for_tree - (self.shape + tree_distance);
 				}
 			}
 			

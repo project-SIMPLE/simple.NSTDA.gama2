@@ -8,20 +8,20 @@ global {
 	int test_send <- 1;
 	
 	init{
-//		create unity_player{
-//			name <- "Player_106";
-//		}
+		create unity_player{
+			name <- "Player_106";
+		}
 	}
 	
 	reflex update_time_and_bound when: (cycle >= init_cycle){
 		if (gama.machine_time div 1000) - init_time >= 1{
 			init_time <- gama.machine_time div 1000;
 			time_now <- time_now + 1;
-			write "time_now " + time_now + "s";
+			write "time_now " + time_now + "s  at cycle = " + cycle;
 		}
 	}
 	
-	reflex send_readID when:cycle=(init_cycle){
+	reflex send_readID when:cycle=(init_cycle+1){
 		list<map<string,string>> send_tree_update_readID <- [];
 		ask tree{
 			add map<string, string>(["PlayerID"::map_player_id[self.player], 
@@ -29,6 +29,11 @@ global {
 									"State"::""]) to:send_tree_update_readID;
 		}
 		
+		ask old_tree{
+			add map<string, string>(["PlayerID"::map_player_id[self.player], 
+									"Name"::self.name, 
+									"State"::""]) to:send_tree_update_readID;
+		}
 		write send_tree_update_readID;
 		write "End First Start";
 		
@@ -38,11 +43,28 @@ global {
 																					"Trees"::send_tree_update_readID,
 																					"Threats"::""]]];
 		}
-		write "Send ReadID";
+		write "Send ReadID at cycle = " + cycle;
 		
 		ask tree where not(each.player in connect_team_list){
 			do die;
 		}
+		ask old_tree where not(each.player in connect_team_list){
+			do die;
+		}
+		ask playerable_area where not(each.player in connect_team_list){
+			color <- rgb(50,50,50);
+			border_color <- rgb(50,50,50);
+		}
+		ask tree_area where not(each.player in connect_team_list){
+			color <- rgb(50,50,50);
+			border_color <- rgb(50,50,50);
+		}
+		ask zone_area where not(each.player in connect_team_list){
+			color <- rgb(50,50,50);
+			border_color <- rgb(50,50,50);
+		}
+		
+		
 		
 		ask unity_player{
 			write "move player " + self.name;
@@ -55,7 +77,7 @@ global {
 	}
 	
 	action resume_game {
-		write "send Start";
+		write "send Start at cycle = " + cycle;
 		ask unity_linker {
 			do send_message players: unity_player as list mes: ["ListOfMessage"::[["Head"::"Start", 
 																					"Body"::"", 
@@ -65,7 +87,7 @@ global {
 	}
 	
 	action pause_game {
-		write "send Stop";
+		write "send Stop at cycle = " + cycle;
 		ask unity_linker {
 			do send_message players: unity_player as list mes: ["ListOfMessage"::[["Head"::"Stop", 
 																					"Body"::"", 
@@ -76,12 +98,14 @@ global {
 	
 	reflex end_game when:(time_now >= time_to_play){
 		do pause_game;
-		if time_now >= (time_to_play+1){
+		if (time_now >= time_to_play+1){
+			time_now <- time_to_play;
 			do pause;
 		}
+		
 	}
 	
-	reflex prepare_step when:(cycle=1) and (first_start=true){
+	reflex prepare_step when:(cycle=(init_cycle-1)) and (first_start=true){
 		first_start <- false;
 		
 		ask unity_player{
@@ -92,19 +116,6 @@ global {
 		do pause_game;
 		do pause;
 	}
-	
-//	reflex do_move_player when:(first_start=false) and (first_move_player=true) and (cycle>=init_cycle){
-//		first_move_player <- false;
-//		
-//		ask unity_player{
-//			write "move player " + self.name;
-//			location <- playerable_area[map_player_id_reverse[self.name]-1].location + {0, 0, 3};
-//			ask unity_linker {
-//				new_player_position[myself.name] <- [myself.location.x *precision,myself.location.y *precision,myself.location.z *precision];
-//				move_player_event <- true;
-//			}
-//		}	
-//	}
 
 	reflex update_n_remain_tree when:(cycle >= init_cycle){
 		write "n_remain_tree " + n_remain_tree;
@@ -127,7 +138,7 @@ global {
 	}
 
 //	and (time_now mod 5 = 0)(cycle >= init_cycle+1)
-	reflex update_height_and_threats when:(time_now > 0)  {
+	reflex update_height_and_threats when:(time_now > 0) and (cycle > init_cycle+1){
 		list all_for_send <- [];
 		list<map<string,string>> send_tree_update_grass <- [];
 		list<map<string,string>> send_tree_update_threats <- [];
@@ -149,17 +160,17 @@ global {
 									"z"::-at_location.y,
 									"PlayerID"::map_player_id[p]]) to:send_tree_update_threats;
 					}
+//					else if fire_type[i] = "F2"{
+//						at_location <- any_location_in(usable_area_for_wildfire[p-1]-1);
+//						add map<string, string>(["Name"::"Flame2",  //Flame2
+//									"x"::at_location.x, 
+//									"y"::at_location.z, 
+//									"z"::-at_location.y,
+//									"PlayerID"::map_player_id[p]]) to:send_tree_update_threats;
+//					}
 					else if fire_type[i] = "F2"{
-						at_location <- any_location_in(usable_area_for_wildfire[p-1]-1);
-						add map<string, string>(["Name"::"Flame1",  //Flame2
-									"x"::at_location.x, 
-									"y"::at_location.z, 
-									"z"::-at_location.y,
-									"PlayerID"::map_player_id[p]]) to:send_tree_update_threats;
-					}
-					else if fire_type[i] = "F2C"{
 						at_location <- any_location_in(tree_area[p-1]-5);
-						add map<string, string>(["Name"::"Flame1",  //Flame2
+						add map<string, string>(["Name"::"Flame2",  //Flame2
 									"x"::at_location.x, 
 									"y"::at_location.z, 
 									"z"::-at_location.y,
@@ -243,6 +254,15 @@ global {
 														"Name"::self.name, 
 														"State"::99]) to:send_tree_update_grass;
 								it_can_growth <- "-1";
+								
+								list<tree> temp_list_tree <- tree at_distance (tree_distance)#m;
+								write "See hereeeeeeee " + temp_list_tree;
+								ask temp_list_tree{
+									add map<string, string>(["PlayerID"::map_player_id[self.player], 
+															"Name"::self.name, 
+															"State"::99]) to:send_tree_update_grass;
+									it_can_growth <- "-1";
+								}
 							}
 						}
 					}
@@ -257,6 +277,15 @@ global {
 														"Name"::self.name, 
 														"State"::99]) to:send_tree_update_grass;
 								it_can_growth <- "-1";
+								
+								list<tree> temp_list_tree <- tree at_distance (tree_distance)#m;
+								write "See hereeeeeeee " + temp_list_tree;
+								ask temp_list_tree{
+									add map<string, string>(["PlayerID"::map_player_id[self.player], 
+															"Name"::self.name, 
+															"State"::99]) to:send_tree_update_grass;
+									it_can_growth <- "-1";
+								}
 							}
 						}
 					}
@@ -268,7 +297,8 @@ global {
 		
 		// Growth
 		ask tree where (each.it_can_growth = "1"){
-			current_time <- time_now;
+//			current_time <- time_now;
+			current_time <- current_time + 1;
 			height <- logist_growth(init_height, float(list_of_height[self.tree_type-1]), float(list_of_growth_rate[self.tree_type-1]), 1);
 			int h_max <- list_of_max_height_in_n_years[self.tree_type - 1];
 			
@@ -380,10 +410,9 @@ species unity_linker parent: abstract_unity_linker {
 	string player_species <- string(unity_player);
 	int max_num_players  <- 6;
 	int min_num_players  <- 6;
-	unity_property up_tree_1;
-	unity_property up_tree_2;
-	unity_property up_tree_3;
-	unity_property up_tree_Dead;
+	unity_property up_oldtree_1;
+	unity_property up_oldtree_2;
+	unity_property up_oldtree_3;
 	unity_property up_default;
 	unity_property up_alien;
 	unity_property up_fire;
@@ -466,7 +495,8 @@ species unity_linker parent: abstract_unity_linker {
 		do define_properties;
 		player_unity_properties <- [nil,nil,nil,nil,nil,nil];
 		
-		do add_background_geometries(tree,up_default);
+//		do add_background_geometries(tree,up_default);
+//		do add_background_geometries(old_tree,up_oldtree_1);
 //		do add_background_geometries(p1tree,up_default);
 //		do add_background_geometries(p2tree,up_default);
 //		do add_background_geometries(p3tree,up_default);
@@ -479,17 +509,29 @@ species unity_linker parent: abstract_unity_linker {
 	}
 	
 	action define_properties {		
-		unity_aspect alien_aspect <- prefab_aspect("temp/Prefab/VU2/AlienWeed_F",1.0,0.0,1.0,0.0,precision);
-		up_alien <- geometry_properties("alien","",alien_aspect,new_geometry_interaction(true, false,false,[]),true);
-		unity_properties << up_alien;
-		
-		unity_aspect fire_aspect <- prefab_aspect("temp/Prefab/VU2/ForestFire",1.0,0.0,1.0,0.0,precision);
-		up_fire <- geometry_properties("fire","",fire_aspect,new_geometry_interaction(true, false,false,[]),true);
-		unity_properties << up_fire;
+//		unity_aspect alien_aspect <- prefab_aspect("temp/Prefab/VU2/AlienWeed_F",1.0,0.0,1.0,0.0,precision);
+//		up_alien <- geometry_properties("alien","",alien_aspect,new_geometry_interaction(true, false,false,[]),true);
+//		unity_properties << up_alien;
+//		
+//		unity_aspect fire_aspect <- prefab_aspect("temp/Prefab/VU2/ForestFire",1.0,0.0,1.0,0.0,precision);
+//		up_fire <- geometry_properties("fire","",fire_aspect,new_geometry_interaction(true, false,false,[]),true);
+//		unity_properties << up_fire;
 
-		unity_aspect default_aspect <- prefab_aspect("temp/Prefab/VU2/SeedingWithGrass",1.0,0.0,1.0,0.0,precision);
+		unity_aspect default_aspect <- prefab_aspect("temp/Prefab/VU2/Gmelina/SeedingGmelina",1.0,0.0,1.0,0.0,precision);
 		up_default <- geometry_properties("default","",default_aspect,new_geometry_interaction(true, false,false,[]),false);
 		unity_properties << up_default;
+		
+		unity_aspect old_tree1_aspect <- prefab_aspect("temp/Prefab/Tree/12.Gmelina/Gmelina_Tree_NoFruit",1.0,0.0,1.0,0.0,precision);
+		up_oldtree_1 <- geometry_properties("old_tree1","",old_tree1_aspect,new_geometry_interaction(true, false,false,[]),false);
+		unity_properties << up_oldtree_1;
+		
+		unity_aspect old_tree2_aspect <- prefab_aspect("temp/Prefab/Tree/12.Gmelina/Gmelina_Tree_NoFruit",1.0,0.0,1.0,0.0,precision);
+		up_oldtree_2 <- geometry_properties("old_tree2","",old_tree2_aspect,new_geometry_interaction(true, false,false,[]),false);
+		unity_properties << up_oldtree_2;
+		
+		unity_aspect old_tree3_aspect <- prefab_aspect("temp/Prefab/Tree/12.Gmelina/Gmelina_Tree_NoFruit",1.0,0.0,1.0,0.0,precision);
+		up_oldtree_3 <- geometry_properties("old_tree3","",old_tree3_aspect,new_geometry_interaction(true, false,false,[]),false);
+		unity_properties << up_oldtree_3;
 		
 		unity_aspect road_aspect <- geometry_aspect(0.1, #black, precision);
 		up_road<- geometry_properties("road", "", road_aspect, #collider, false);
@@ -499,6 +541,8 @@ species unity_linker parent: abstract_unity_linker {
 	reflex send_geometries {
 //		do add_geometries_to_send(wildfire, up_fire);
 //		do add_geometries_to_send(alien, up_alien);	
+		do add_geometries_to_send(tree,up_default);
+		do add_geometries_to_send(old_tree,up_oldtree_1);
 	}
 }
 
