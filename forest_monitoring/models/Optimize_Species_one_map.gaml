@@ -1,12 +1,12 @@
 /**
-* Name: optimizespecies
+* Name: OptimizeSpeciesonemap
 * Based on the internal empty template. 
-* Author: lilti
+* Author: Tassathorn Poonsin
 * Tags: 
 */
 
 
-model optimizespecies
+model OptimizeSpeciesonemap
 
 global{
 	image_file fire_image_file <- image_file("../images/fire.png");
@@ -16,14 +16,8 @@ global{
 	
 	int n_years <- 2;
 	int time_to_play <- 300;
-	
-	int init_cycle <- 2;
-	
-//	float used_cycle <- time_to_play / time_per_cycle;
-//	float day_per_time <- (n_years*365)/used_cycle;
-
+	int announce_time <- time_to_play - 60;
 	float day_per_time <- (n_years*365)/time_to_play;
-	
 	
 	float init_height <- 50.0;
 //								Quercus, Debregeasia, Gmelina
@@ -32,12 +26,11 @@ global{
 	list<float> list_of_growth_rate <- [0.523, 0.8155, 0.4537];
 	
 	init{
-//		write "used_cycle " + used_cycle; 
 		write "time_to_play " + time_to_play;
 		write "day_per_second " + day_per_time;
 	}
 }
-	
+
 species icon_everything{
 	string type <- "blank";
 	image_file status_icon;
@@ -65,7 +58,7 @@ species icon_everything{
 species old_tree{
 	int player <- 1;
 	int tree_type <- 0;
-	rgb color <- #brown;
+	rgb color <- #yellow;
 	
 	aspect default{
 		draw shape color:color;
@@ -81,13 +74,11 @@ species tree{
 	rgb color <- rgb(43, 150, 0);
 	int current_time <- 0;
 	int zone <- 1;
+	int number <- 1;
 	
 	float logist_growth (float init_input, float max_height, float growth_rate, int multiple){
 		float height_logist <- (init_input * max_height) / (init_input + (max_height - init_height) * 
 							exp (-((growth_rate * multiple) * ((current_time * n_years / time_to_play) - 0)))) ;
-							
-//		float height_logist <- (init_input * max_height) / (init_input + (max_height - init_height) * 
-//							exp (-((growth_rate * multiple) * (current_time  - 0)))) ;
 		return height_logist;
 	}
 	
@@ -108,9 +99,10 @@ species tree{
 			else if it_state = 3{
 				color <- rgb(32, 112, 0);
 			}
-		}
+		}	
 	}
-
+	
+	
 //	reflex change_color{
 //		if zone = 1{
 //			color <- #black;
@@ -132,7 +124,6 @@ species tree{
 }
 
 species playerable_area{
-	int player <- 1;
 	geometry shape <- rectangle(40#m, 40#m);
 	rgb color <- #white;
 	rgb border_color <- #black;
@@ -143,7 +134,6 @@ species playerable_area{
 }
 
 species tree_area{
-	int player <- 1;
 	geometry shape <- rectangle(35#m, 35#m);
 	rgb color <- #white;
 	rgb border_color <- #black;
@@ -153,9 +143,8 @@ species tree_area{
 	}
 }
 
-species zone_area{
-	int player <- 1;
-	geometry shape <- rectangle(83#m, 75#m); //(82#m, 74#m);
+species map_area{
+	geometry shape <- rectangle(50#m, 50#m); //(82#m, 74#m);
 	rgb color <- #white;
 	rgb border_color <- #black;
 	
@@ -164,7 +153,7 @@ species zone_area{
 	}
 }
 
-species wait_area{
+species tutorial_area{
 	geometry shape <- rectangle(10#m, 10#m);
 	rgb color <- #yellow;
 	
@@ -172,3 +161,5 @@ species wait_area{
 		draw shape color:color border:#black ;
 	}
 }
+
+
