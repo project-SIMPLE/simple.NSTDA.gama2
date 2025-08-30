@@ -3,7 +3,7 @@ model forestmonitoringonemap_model_VR
 import "forest_monitoring_one_map.gaml"
 
 global{
-	int adjust_z <- 3;
+	int adjust_z <- 0;
 	list all_for_send <- [];
 	init{
 //		create unity_player{
@@ -15,44 +15,58 @@ global{
 //			location <- {width/2, height/2, adjust_z};
 //		}
 	}
-	
+
 	action resume_game {
-		if tutorial_finish{
-			add ["Head"::"GameStart", 
-			"Body"::"", 
-			"Trees"::"",
-			"Threats"::""] to:all_for_send;
-			write "send GameStart at cycle = " + cycle;
-			ask unity_player{
-				location <- {width/2, height/2, adjust_z};
-				ask unity_linker {
-					new_player_position[myself.name] <- [myself.location.x *precision,myself.location.y *precision,myself.location.z *precision];
-					move_player_event <- true;
-				}
-			}
-			do send_readID;
-		}
-		else{
-			add ["Head"::"TutorialStart", 
+		if all_player_ready{
+			if tutorial_finish{
+				add ["Head"::"GameStart", 
 				"Body"::"", 
 				"Trees"::"",
 				"Threats"::""] to:all_for_send;
-			write "send TutorialStart at cycle = " + cycle;
-			
-			ask unity_player{
-				location <- {width/2, height/2, adjust_z};
-				ask unity_linker {
-					new_player_position[myself.name] <- [myself.location.x *precision,myself.location.y *precision,myself.location.z *precision];
-					move_player_event <- true;
+				write "send GameStart at cycle = " + cycle;
+				ask unity_player{
+					location <- {width/2, height/2, adjust_z};
+					ask unity_linker {
+						new_player_position[myself.name] <- [myself.location.x *precision,myself.location.y *precision,myself.location.z *precision];
+						move_player_event <- true;
+					}
+				}
+				do send_readID;
+				sum_score_list <- list_with(6,0);
+			}
+			else{
+				add ["Head"::"TutorialStart", 
+					"Body"::"", 
+					"Trees"::"",
+					"Threats"::""] to:all_for_send;
+				write "send TutorialStart at cycle = " + cycle;
+				
+				ask unity_player{
+					location <- {width/2, height/2, adjust_z};
+					ask unity_linker {
+						new_player_position[myself.name] <- [myself.location.x *precision,myself.location.y *precision,myself.location.z *precision];
+						move_player_event <- true;
+					}
+				}
+				if skip_tutorial{
+					do pause;
+					can_start <- true;
+					tutorial_finish <- true;
 				}
 			}
-			if skip_tutorial{
-				do pause;
-				can_start <- true;
-				tutorial_finish <- true;
-			}
 		}
-		
+		else{
+			do prepare_step;
+			add ["Head"::"ReadyCheck", 
+			"Body"::"", 
+			"Trees"::"",
+			"Threats"::""] to:all_for_send;
+			write "send ReadyCheck at cycle = " + cycle;
+			do pause;
+			can_start <- true;
+			ask old_tree {do die;}
+			ask tree {do die;}
+		}
 	}
 	
 	action pause_game {
@@ -65,28 +79,10 @@ global{
 		}
 		tutorial_finish <- false;
 		game_start <- false;
+		all_player_ready <- false;
 	}
-	
-	reflex end_game when:(time_now >= time_to_play*n_teams){
-		do pause_game;
 		
-		time_now <- (time_to_play*n_teams);
-		can_start <- false;
-		tutorial_finish <- true;
-		game_start <- false;
-		end_game <- true;
-		
-	}
-	
-	reflex prepare_step when:(cycle=0){		
-		ask unity_player{
-			add map_player_idint[self.name] to:connect_team_list;
-		}
-		write "connect_team_list " + connect_team_list;
-//		n_teams <- length(connect_team_list);
-	}
-	
-	reflex update_n_remain_tree when:(tutorial_finish = true) and (game_start = true){
+	action update_n_remain_tree {
 		write "n_remain_tree " + n_remain_tree;
 		
 		loop p over:connect_team_list{
@@ -100,11 +96,34 @@ global{
 		}
 
 		loop i over:connect_team_list{
-			sum_score_list[i-1] <- n_remain_tree[i-1][0] + 2*n_remain_tree[i-1][1] + 3*n_remain_tree[i-1][2] ;
+			sum_score_list[i-1] <- 	1*n_remain_tree[i-1][0] + 
+									1.25*n_remain_tree[i-1][1] + 
+									1.5*n_remain_tree[i-1][2] -
+									0.5*(100 - sum(n_remain_tree[i-1]));
 		}
 		
 		write "sum_score_list " + sum_score_list;
 	}
+	
+	action prepare_step {		
+		ask unity_player{
+			add map_player_idint[self.name] to:connect_team_list;
+		}
+		write "connect_team_list " + connect_team_list;
+//		n_teams <- length(connect_team_list);
+	}
+	
+	reflex end_game when:(time_now >= time_to_play*n_teams){
+		do pause_game;
+		
+		time_now <- (time_to_play*n_teams);
+		can_start <- false;
+		tutorial_finish <- true;
+		game_start <- false;
+		end_game <- true;
+	}
+	
+	
 	
 	action send_readID{
 		list<map<string,string>> send_tree_update_readID <- [];
@@ -322,6 +341,8 @@ global{
 			}
 		}
 		
+		do update_n_remain_tree;
+		
 		// Background
 		loop p over:connect_team_list{
 			loop j from:0 to:4{
@@ -406,11 +427,13 @@ global{
 species unity_linker parent: abstract_unity_linker {
 	string player_species <- string(unity_player);
 	int max_num_players  <- 6;
-	int min_num_players  <- 1;
+	int min_num_players  <- 6;
 	unity_property up_oldtree_1;
 	unity_property up_oldtree_2;
 	unity_property up_oldtree_3;
-	unity_property up_default;
+	unity_property up_seeding1;
+	unity_property up_seeding2;
+	unity_property up_seeding3;
 	unity_property up_alien;
 	unity_property up_fire;
 	unity_property up_road;
@@ -438,6 +461,22 @@ species unity_linker parent: abstract_unity_linker {
 			}
 		}	
 	}
+	
+	action PlayerID_Ready(string player_ID, string Ready){
+		write "PlayerID_Ready " + player_ID + " " + Ready;
+		all_player_ready <- true;
+	}
+	
+	action QuestionnaireData(string PlayerID, string Header, string Message){
+		write "QuestionnaireData " + Header + " " + PlayerID + " " + Message;
+		list<string> answer_list <- Message split_with '';
+		if Header = "Before"{
+			write "" + Header + " " + answer_list;
+		}
+		else if Header = "After"{
+			write "" + Header + " " + answer_list;
+		}
+	}
 
 
 	init {
@@ -445,20 +484,28 @@ species unity_linker parent: abstract_unity_linker {
 		player_unity_properties <- [nil,nil,nil,nil,nil,nil];
 	}
 	action define_properties {
-		unity_aspect default_aspect <- prefab_aspect("temp/Prefab/VU2/Gmelina/SeedingGmelina",1.0,0.0,1.0,0.0,precision);
-		up_default <- geometry_properties("default","",default_aspect,new_geometry_interaction(true, false,false,[]),false);
-		unity_properties << up_default;
+		unity_aspect seeding1_aspect <- prefab_aspect("temp/Prefab/VU2/Gmelina/SeedingGmelina",1.0,0.0,1.0,0.0,precision);
+		up_seeding1 <- geometry_properties("seeding1","",seeding1_aspect,new_geometry_interaction(true, false,false,[]),true);
+		unity_properties << up_seeding1;
+		
+		unity_aspect seeding2_aspect <- prefab_aspect("temp/Prefab/VU2/Magnolia/SeedingMagnolia",1.0,0.0,1.0,0.0,precision);
+		up_seeding2 <- geometry_properties("seeding2","",seeding2_aspect,new_geometry_interaction(true, false,false,[]),true);
+		unity_properties << up_seeding2;
+		
+		unity_aspect seeding3_aspect <- prefab_aspect("temp/Prefab/VU2/Phoebe/SeedingPhoebe",1.0,0.0,1.0,0.0,precision);
+		up_seeding3 <- geometry_properties("seeding3","",seeding3_aspect,new_geometry_interaction(true, false,false,[]),true);
+		unity_properties << up_seeding3;
 		
 		unity_aspect old_tree1_aspect <- prefab_aspect("temp/Prefab/Tree/12.Gmelina/Gmelina_Tree_NoFruit",1.0,0.0,1.0,0.0,precision);
-		up_oldtree_1 <- geometry_properties("old_tree1","",old_tree1_aspect,new_geometry_interaction(true, false,false,[]),false);
+		up_oldtree_1 <- geometry_properties("old_tree1","",old_tree1_aspect,new_geometry_interaction(true, false,false,[]),true);
 		unity_properties << up_oldtree_1;
 		
-		unity_aspect old_tree2_aspect <- prefab_aspect("temp/Prefab/Tree/12.Gmelina/Gmelina_Tree_NoFruit",1.0,0.0,1.0,0.0,precision);
-		up_oldtree_2 <- geometry_properties("old_tree2","",old_tree2_aspect,new_geometry_interaction(true, false,false,[]),false);
+		unity_aspect old_tree2_aspect <- prefab_aspect("temp/Prefab/Tree/4.Magnolia/MagnoliaTree_Tall_NoFruit",1.0,0.0,1.0,0.0,precision);
+		up_oldtree_2 <- geometry_properties("old_tree2","",old_tree2_aspect,new_geometry_interaction(true, false,false,[]),true);
 		unity_properties << up_oldtree_2;
 		
-		unity_aspect old_tree3_aspect <- prefab_aspect("temp/Prefab/Tree/12.Gmelina/Gmelina_Tree_NoFruit",1.0,0.0,1.0,0.0,precision);
-		up_oldtree_3 <- geometry_properties("old_tree3","",old_tree3_aspect,new_geometry_interaction(true, false,false,[]),false);
+		unity_aspect old_tree3_aspect <- prefab_aspect("temp/Prefab/Tree/5.Phoebe/PhoebeTree_TallNoFruit",1.0,0.0,1.0,0.0,precision);
+		up_oldtree_3 <- geometry_properties("old_tree3","",old_tree3_aspect,new_geometry_interaction(true, false,false,[]),true);
 		unity_properties << up_oldtree_3;
 		
 		unity_aspect road_aspect <- geometry_aspect(0.1, #black, precision);
@@ -468,8 +515,19 @@ species unity_linker parent: abstract_unity_linker {
 
 	}
 	reflex send_geometries {
-		do add_geometries_to_send(tree,up_default);
-		do add_geometries_to_send(old_tree,up_oldtree_1);
+		list<tree> tree_type1 <- tree where (each.tree_type = 1);
+		list<tree> tree_type2 <- tree where (each.tree_type = 2);
+		list<tree> tree_type3 <- tree where (each.tree_type = 3);
+		do add_geometries_to_send(tree_type1,up_seeding1);
+		do add_geometries_to_send(tree_type2,up_seeding2);
+		do add_geometries_to_send(tree_type3,up_seeding3);
+		
+		list<old_tree> old_tree_type1 <- old_tree where (each.tree_type = 1);
+		list<old_tree> old_tree_type2 <- old_tree where (each.tree_type = 2);
+		list<old_tree> old_tree_type3 <- old_tree where (each.tree_type = 3);
+		do add_geometries_to_send(old_tree_type1,up_oldtree_1);
+		do add_geometries_to_send(old_tree_type2,up_oldtree_2);
+		do add_geometries_to_send(old_tree_type3,up_oldtree_3);
 	}
 }
 

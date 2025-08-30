@@ -32,7 +32,6 @@ global{
 	bool skip_tutorial <- true;
 	bool can_start <- true;
 	bool tutorial_finish <- false;
-	bool all_ready <- false;
 	int time_now <- 0;
 	int init_time <- 0;
 	int count_start <- 0 ;
@@ -106,6 +105,7 @@ global{
 			}
 			else{
 				at_location <- any_location_in(usable_area_for_tree-1);
+				int temp_type <- rnd(1, 3);
 				
 				loop j from:1 to:n_teams{
 					create old_tree{
@@ -116,6 +116,7 @@ global{
 						shape <- circle(size_of_old_tree#cm);
 //						shape <- circle((size_of_old_tree-(10*j))#cm);
 //						color <- player_colors[j-1];
+						tree_type <- temp_type;
 						player <- j;
 						name <- "p" + j + "oldtree" + i;
 						count_create_tree <- count_create_tree + 1;
@@ -241,6 +242,27 @@ experiment init_exp type: gui {
 					draw "Remaining time: - (Tutorial" + (count_start+1) + "...)" 
 					at:{width/4.5, -2} 
 					font:font("Times", 20, #bold+#italic) ;
+				}
+			}
+		}
+		display "Total" type: 2d locked:true{
+			chart "Total seeds" type:histogram reverse_axes:true
+			y_range:[0, (150)]
+			x_serie_labels: [""]
+			
+			style:"3d"
+			series_label_position: xaxis
+			{
+				loop i from:0 to:(length(sum_score_list)-1){
+					data "Team" + (i+1) value:int(sum_score_list[i])
+					color:player_colors[i];
+//					legend: string(int(sum_total_seeds[i])) ;
+				}
+			}
+			graphics Strings {
+				loop i from:0 to:(length(sum_score_list)-1){
+					draw "=> " + int(sum_score_list[i]) at:{420,65 + 36*i} font:font("Times", 16, #bold+#italic) 
+					border:#black color:player_colors[i];
 				}
 			}
 		}

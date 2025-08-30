@@ -4,7 +4,7 @@
 "splashscreen": "./models/snapshots/snapshot.png",
 "model_file_path": "./models/forest_monitoring_one_map-VR.gaml",
 "experiment_name": "vr_xp",
-"minimal_players": "1",
+"minimal_players": "6",
 "maximal_players": "6",
 "selected_monitoring": "gama_screen"
 }

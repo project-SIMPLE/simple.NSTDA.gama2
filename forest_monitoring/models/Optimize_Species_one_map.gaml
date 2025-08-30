@@ -78,7 +78,7 @@ species tree{
 	
 	float logist_growth (float init_input, float max_height, float growth_rate, int multiple){
 		float height_logist <- (init_input * max_height) / (init_input + (max_height - init_height) * 
-							exp (-((growth_rate * multiple) * ((current_time * n_years / time_to_play) - 0)))) ;
+							exp (-((growth_rate * multiple) * ((current_time * n_years / (time_to_play)) - 0)))) ;
 		return height_logist;
 	}
 	
