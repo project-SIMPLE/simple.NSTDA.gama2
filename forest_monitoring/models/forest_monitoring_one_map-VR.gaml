@@ -19,11 +19,11 @@ global{
 	action resume_game {
 		if all_player_ready{
 			if tutorial_finish{
-				add ["Head"::"GameStart", 
+				add ["Head"::"StartGame", 
 				"Body"::"", 
 				"Trees"::"",
 				"Threats"::""] to:all_for_send;
-				write "send GameStart at cycle = " + cycle;
+				write "send StartGame at cycle = " + cycle;
 				ask unity_player{
 					location <- {width/2, height/2, adjust_z};
 					ask unity_linker {
@@ -71,11 +71,11 @@ global{
 	
 	action pause_game {
 		if tutorial_finish{
-			add ["Head"::"GameStop", 
+			add ["Head"::"StopGame", 
 				"Body"::"", 
 				"Trees"::"",
 				"Threats"::""] to:all_for_send;
-			write "send GameStop at cycle = " + cycle;
+			write "send StopGame at cycle = " + cycle;
 		}
 		tutorial_finish <- false;
 		game_start <- false;
