@@ -262,7 +262,6 @@ global{
 		}
 			
 		// Weeds
-		
 			loop i from:0 to:(length(grass_Stime)-1){
 				if (time_now >= grass_Stime[i]) and (time_now < grass_Etime[i]) and (time_now mod 15 = 0){
 					list<int> it_zone;

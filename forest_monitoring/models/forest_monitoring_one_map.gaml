@@ -22,9 +22,9 @@ global{
 	float size_of_tree <- 50.0;
 	float size_of_old_tree <- 100.0;
 	float tree_distance <- 2.0;
-	
+	 
 	list<rgb> player_colors <- [rgb(66, 72, 255), #red, #green, rgb(255, 196, 0), #black, rgb(156, 152, 142)];
-	list<string> player_name <- ["Player_101", "Player_102", "Player_59", "Player_52", "Player_105", "Player_106"];
+	list<string> player_name <- ["Player_101", "Player_102", "Player_103", "Player_104", "Player_59", "Player_52"];
 	map<int, string> map_player_intid <- [1::player_name[0], 2::player_name[1], 3::player_name[2], 4::player_name[3], 5::player_name[4], 6::player_name[5]];
 	map<string, int> map_player_idint <- [player_name[0]::1, player_name[1]::2, player_name[2]::3, player_name[3]::4, player_name[4]::5, player_name[5]::6];
 	list<int> connect_team_list <- [];
