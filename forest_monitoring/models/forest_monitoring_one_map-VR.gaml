@@ -279,10 +279,10 @@ global{
 															"State"::99]) to:send_tree_update_grass;
 									it_can_growth <- "-1";
 									
-									list<tree> temp_list_tree <- tree at_distance (tree_distance)#m where (each.player = p);
+									list<tree> temp_list_tree <- tree at_distance (tree_distance)#m;
 									write "See hereeeeeeee G1 Player" + p + " " 
 										+ self.name + " " + temp_list_tree;
-									ask temp_list_tree{
+									ask temp_list_tree where (each.player = p){
 										add map<string, string>(["PlayerID"::map_player_intid[self.player], 
 																"Name"::self.name, 
 																"State"::99]) to:send_tree_update_grass;
@@ -308,7 +308,7 @@ global{
 									list<tree> temp_list_tree <- tree at_distance (tree_distance)#m;
 									write "See hereeeeeeee G2 Player" + p + " " 
 										+ self.name + " " + temp_list_tree;
-									ask temp_list_tree{
+									ask temp_list_tree where (each.player = p){
 										add map<string, string>(["PlayerID"::map_player_intid[self.player], 
 																"Name"::self.name, 
 																"State"::99]) to:send_tree_update_grass;
