@@ -154,11 +154,11 @@ species map_area{
 }
 
 species tutorial_area{
-	geometry shape <- rectangle(10#m, 10#m);
-	rgb color <- #yellow;
-	
+	rgb color <- #white;
+	rgb border_color <- #black;
+
 	aspect default{
-		draw shape color:color border:#black ;
+		draw shape color:color border:border_color ;
 	}
 }
 

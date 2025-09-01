@@ -28,6 +28,13 @@ global{
 	map<int, string> map_player_intid <- [1::player_name[0], 2::player_name[1], 3::player_name[2], 4::player_name[3], 5::player_name[4], 6::player_name[5]];
 	map<string, int> map_player_idint <- [player_name[0]::1, player_name[1]::2, player_name[2]::3, player_name[3]::4, player_name[4]::5, player_name[5]::6];
 	list<int> connect_team_list <- [];
+	list<int> ready_team_list <- [];
+	list<int> before_Q_team_list <- [];
+	list<int> after_Q_team_list <- [];
+	bool all_player_ready <- false;
+	bool all_player_before_Q <- false;
+	bool all_player_after_Q <- false;
+	bool send_ready <- true;
 	
 	bool skip_tutorial <- true;
 	bool can_start <- true;
@@ -35,9 +42,11 @@ global{
 	int time_now <- 0;
 	int init_time <- 0;
 	int count_start <- 0 ;
-	bool all_player_ready <- false;
 	bool game_start <- false;
 	bool end_game <- false;
+	
+	point tutorial_location;
+	point main_location;
 	
 	action resume_game;
 	action pause_game;
@@ -78,7 +87,18 @@ global{
 		}
 		create map_area{
 			location <- at_location;
-		}		
+		}
+		create tutorial_area{
+			location <- {width/2,-(width/2)+15,0};
+			shape <- rectangle(20#m, 20#m);
+		}
+		create tutorial_area{
+			location <- {width/2,-(width/2)+15,0};
+			shape <- rectangle(10#m, 10#m);
+		}
+		
+		main_location <- playerable_area[0].location;
+		tutorial_location <- tutorial_area[0].location;
 	}
 	
 	action create_tree{
@@ -204,8 +224,8 @@ global{
 	
 	reflex do_pause when: (time_now >= time_to_play*count_start) and (cycle != 0) and not can_start and tutorial_finish{
 		do pause_game;
-		do pause;
-		can_start <- true;
+//		do pause;
+//		can_start <- true;
 	}
 	
 
@@ -222,25 +242,26 @@ experiment init_exp type: gui {
 			species icon_everything;
 			species old_tree;
 			species tree;
+			species tutorial_area;
 			
 			graphics Strings {
 				if (tutorial_finish = true){
 					if not end_game{
 						draw "Remaining time: "+ (((time_to_play*count_start) - time_now) div 60) + " minutes " + 
 						(((time_to_play*count_start) - time_now) mod 60) + " seconds" 
-						at:{width/4.5, -2} 
+						at:{width/4.5, -21} 
 						font:font("Times", 20, #bold+#italic) ;
 					}
 					else{
 						draw "Remaining time: Finished!!!" 
-						at:{width/4.5, -2} 
+						at:{width/4.5, -21} 
 						font:font("Times", 20, #bold+#italic) ;
 					}
 					
 				}
 				else{
 					draw "Remaining time: - (Tutorial" + (count_start+1) + "...)" 
-					at:{width/4.5, -2} 
+					at:{width/4.5, -21} 
 					font:font("Times", 20, #bold+#italic) ;
 				}
 			}
