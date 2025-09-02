@@ -57,6 +57,7 @@ global{
 	list<list<int>> n_remain_tree <- list_with(6, list_with(3, 0));
 	list<int> sum_score_list <- list_with(6,0);
 	
+	int time_interval <- 15;
 	list<int> raining_Stime <- [30,45,120,135,150,285];
 	list<int> raining_Etime <- [45,60,135,150,165,300];
 	
@@ -191,10 +192,19 @@ global{
 						it_state <- 1;
 						player <- j;
 						name <- "p" + j + "tree" + i;
+						name_for_front_tree <- "tree" + i;
 						number <- i;
 						zone <- temp_zone;
 						count_create_tree <- count_create_tree + 1;
 					}
+				}
+				create front_tree{
+					location <- {at_location.x,
+								at_location.y,
+								at_location.z
+								};
+					shape <- circle(size_of_tree#cm);
+					name <- "tree" + i;
 				}
 			}
 		}
@@ -236,13 +246,15 @@ experiment init_exp type: gui {
 		layout
 		toolbars: true tabs: false parameters: false consoles: true navigator: false controls: true tray: false ;
 		display "Main" type: 3d background: rgb(50,50,50) locked:true antialias:true {
+			camera 'default' location: {25.14,12.26,70.0} target: {25.14,12.26,0.0};
 			species map_area;
 			species playerable_area;
 			species tree_area;
+			species tutorial_area;
 			species icon_everything;
 			species old_tree;
 			species tree;
-			species tutorial_area;
+			species front_tree;
 			
 			graphics Strings {
 				if (tutorial_finish = true){

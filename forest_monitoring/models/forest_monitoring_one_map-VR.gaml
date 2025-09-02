@@ -6,14 +6,14 @@ global{
 	int adjust_z <- 0;
 	list all_for_send <- [];
 	init{
-		create unity_player{
-			name <- "Player_104";
-			location <- {width/2, height/2, adjust_z};
-		}
-		create unity_player{
-			name <- "Player_102";
-			location <- {width/2, height/2, adjust_z};
-		}
+//		create unity_player{
+//			name <- "Player_104";
+//			location <- {width/2, height/2, adjust_z};
+//		}
+//		create unity_player{
+//			name <- "Player_102";
+//			location <- {width/2, height/2, adjust_z};
+//		}
 	}
 
 	action resume_game {
@@ -41,13 +41,13 @@ global{
 					"Threats"::""] to:all_for_send;
 				write "send TutorialStart at cycle = " + cycle;
 				
-				ask unity_player{
-					location <- {tutorial_location.x, tutorial_location.y, adjust_z};
-					ask unity_linker {
-						new_player_position[myself.name] <- [myself.location.x *precision,myself.location.y *precision,myself.location.z *precision];
-						move_player_event <- true;
-					}
-				}
+//				ask unity_player{
+//					location <- {tutorial_location.x, tutorial_location.y, adjust_z};
+//					ask unity_linker {
+//						new_player_position[myself.name] <- [myself.location.x *precision,myself.location.y *precision,myself.location.z *precision];
+//						move_player_event <- true;
+//					}
+//				}
 				if skip_tutorial{
 					do pause;
 					can_start <- true;
@@ -74,6 +74,14 @@ global{
 	}
 	
 	action pause_game {
+		ask unity_player{
+					location <- {tutorial_location.x, tutorial_location.y, adjust_z};
+					ask unity_linker {
+						new_player_position[myself.name] <- [myself.location.x *precision,myself.location.y *precision,myself.location.z *precision];
+						move_player_event <- true;
+					}
+				}
+				
 		if tutorial_finish{
 			add ["Head"::"StopGame", 
 				"Body"::"", 
@@ -108,6 +116,14 @@ global{
 		}
 		
 		write "sum_score_list " + sum_score_list;
+		
+		ask front_tree{
+			list<tree> stack_tree <- tree where (each.name_for_front_tree = self.name);
+			list<tree> dead_stack_tree <- tree where (each.name_for_front_tree = self.name 
+													and	each.it_can_growth = "0");
+			tree_ratio <- length(dead_stack_tree)/length(stack_tree);
+			write "temp_tree " + self.name + " " + stack_tree + " " + tree_ratio;			
+		}
 	}
 	
 	action prepare_step {		
@@ -160,15 +176,6 @@ global{
 		ask old_tree where not(each.player in connect_team_list){
 			do die;
 		}	
-		
-//		ask unity_player{
-//			write "move player " + self.name;
-//			location <- main_location + {0, 0, 3};
-//			ask unity_linker {
-//				new_player_position[myself.name] <- [myself.location.x *precision,myself.location.y *precision,myself.location.z *precision];
-//				move_player_event <- true;
-//			}
-//		}	
 	}
 	
 	reflex update_height_and_threats when:(tutorial_finish = true) and (game_start = true){
@@ -180,7 +187,7 @@ global{
 		
 		// Fire
 		loop i from:0 to:(length(fire_Stime)-1){
-			if (time_now >= fire_Stime[i]) and (time_now < fire_Etime[i]) and (time_now mod 15 = 0){
+			if (time_now >= fire_Stime[i]) and (time_now < fire_Etime[i]) and (time_now mod time_interval = 0){
 				point at_location;
 				if fire_type[i] = "F1"{
 					at_location <- any_location_in(usable_area_for_wildfire);
@@ -206,13 +213,14 @@ global{
 				create icon_everything{
 					location <- at_location;
 					type <- "fire";
+					init_time <- time_now;
 				}
 			}
 		}
 		
 		// Alien
 		loop i from:0 to:(length(alien_Stime)-1){
-			if (time_now >= alien_Stime[i]) and (time_now < alien_Etime[i]) and (time_now mod 15 = 0){
+			if (time_now >= alien_Stime[i]) and (time_now < alien_Etime[i]) and (time_now mod time_interval = 0){
 				list<int> it_zone;
 				point at_location;
 				if alien_type[i] = "A1"{
@@ -235,6 +243,7 @@ global{
 							create icon_everything{
 								location <- at_location;
 								type <- "alien";
+								init_time <- time_now;
 							}
 						}
 					}
@@ -259,6 +268,7 @@ global{
 							create icon_everything{
 								location <- at_location;
 								type <- "alien";
+								init_time <- time_now;
 							}
 						}
 					}
@@ -270,7 +280,7 @@ global{
 			
 		// Weeds
 			loop i from:0 to:(length(grass_Stime)-1){
-				if (time_now >= grass_Stime[i]) and (time_now < grass_Etime[i]) and (time_now mod 15 = 0){
+				if (time_now >= grass_Stime[i]) and (time_now < grass_Etime[i]) and (time_now mod time_interval = 0){
 					list<int> it_zone;
 					if grass_type[i] = "G1"{
 						it_zone <- sample(zone_list,1,false);
@@ -449,12 +459,12 @@ species unity_linker parent: abstract_unity_linker {
 	list<point> init_locations <- define_init_locations();
 
 	list<point> define_init_locations {
-		return [main_location + {0, 0, adjust_z},
-			main_location + {0, 0, adjust_z},
-			main_location + {0, 0, adjust_z},
-			main_location + {0, 0, adjust_z},
-			main_location + {0, 0, adjust_z},
-			main_location + {0, 0, adjust_z}
+		return [tutorial_location + {0, 0, adjust_z},
+			tutorial_location + {0, 0, adjust_z},
+			tutorial_location + {0, 0, adjust_z},
+			tutorial_location + {0, 0, adjust_z},
+			tutorial_location + {0, 0, adjust_z},
+			tutorial_location + {0, 0, adjust_z}
 		];
 	}
 	
@@ -480,10 +490,10 @@ species unity_linker parent: abstract_unity_linker {
 			write "All player ready " + (ready_team_list sort_by (each)) + " = " +
 					(connect_team_list sort_by (each));
 			all_player_ready <- true;
-//			ask world{
-//				do pause;
-//				can_start <- true;
-//			}
+			ask world{
+				do pause;
+				can_start <- true;
+			}
 		}
 	}
 	

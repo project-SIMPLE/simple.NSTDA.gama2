@@ -14,8 +14,10 @@ global{
 	image_file rain_image_file <- image_file("../images/rain.png");
 	image_file blank_image_file <- image_file("../images/blank.png");
 	
+	int time_now;
+	int time_interval;
 	int n_years <- 2;
-	int time_to_play <- 300;
+	int time_to_play <- 10;
 	int announce_time <- time_to_play - 60;
 	float day_per_time <- (n_years*365)/time_to_play;
 	
@@ -32,8 +34,13 @@ global{
 }
 
 species icon_everything{
+	int init_time ;
 	string type <- "blank";
 	image_file status_icon;
+	
+	reflex count_down when: (time_now - init_time = 15){
+		do die;
+	}
 	
 	aspect default {
 		switch type{
@@ -65,6 +72,27 @@ species old_tree{
 	}
 }
 
+species front_tree{
+	float tree_ratio ;
+	rgb color <- rgb(151, 255, 110);
+	
+	reflex change_color{
+		if tree_ratio = 0.0{
+			color <- rgb(151, 255, 110);
+		}
+		else if tree_ratio = 1.0{
+			color <- #black;
+		}
+		else {
+			color <- #gray;
+		}
+	}
+	
+	aspect default{
+		draw shape color:color;
+	}
+}
+
 species tree{
 	int player <- 1;
 	int tree_type <- 0;
@@ -75,6 +103,7 @@ species tree{
 	int current_time <- 0;
 	int zone <- 1;
 	int number <- 1;
+	string name_for_front_tree ;
 	
 	float logist_growth (float init_input, float max_height, float growth_rate, int multiple){
 		float height_logist <- (init_input * max_height) / (init_input + (max_height - init_height) * 
