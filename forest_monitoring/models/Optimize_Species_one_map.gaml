@@ -17,7 +17,7 @@ global{
 	int time_now;
 	int time_interval;
 	int n_years <- 2;
-	int time_to_play <- 300;
+	int time_to_play <- 240;
 	int announce_time <- time_to_play - 60;
 	float day_per_time <- (n_years*365)/time_to_play;
 	

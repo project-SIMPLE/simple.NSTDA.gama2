@@ -6,10 +6,10 @@ global{
 	int adjust_z <- 0;
 	list all_for_send <- [];
 	init{
-//		create unity_player{
-//			name <- "Player_104";
-//			location <- {width/2, height/2, adjust_z};
-//		}
+		create unity_player{
+			name <- "Player_104";
+			location <- {width/2, height/2, adjust_z};
+		}
 //		create unity_player{
 //			name <- "Player_102";
 //			location <- {width/2, height/2, adjust_z};
@@ -229,6 +229,7 @@ global{
 			if (time_now >= alien_Stime[i]) and (time_now < alien_Etime[i]) and (time_now mod time_interval = 0){
 				list<int> it_zone;
 				point at_location;
+//				write "alien_type[i]= " + alien_type[i];
 				if alien_type[i] = "A1"{
 					it_zone <- sample(zone_list,1,false);
 					loop j over:it_zone{

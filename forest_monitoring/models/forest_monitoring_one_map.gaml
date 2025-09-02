@@ -36,7 +36,7 @@ global{
 	bool all_player_after_Q <- false;
 	bool send_ready <- true;
 	
-	bool skip_tutorial <- false;
+	bool skip_tutorial <- true;
 	bool can_start <- true;
 	bool tutorial_finish <- false;
 	int time_now <- 0;
@@ -58,20 +58,20 @@ global{
 	list<int> sum_score_list <- list_with(6,0);
 	
 	int time_interval <- 15;
-	list<int> raining_Stime <- [30,45,120,135,150,285];
-	list<int> raining_Etime <- [45,60,135,150,165,300];
+	list<int> raining_Stime <- [15, 90,225];
+	list<int> raining_Etime <- [45,135,240];
 	
-	list<int> alien_Stime <- 	[   0,  15,  30,  45, 120, 135, 150, 165, 180, 240, 255];
-	list<int> alien_Etime <- 	[  15,  30,  45,  60, 135, 150, 165, 180, 195, 255, 270];
-	list<string> alien_type <-	["A1","A1","A2","A2","A2","A2","A2","A1","A1","A2","A2"];
+	list<int> alien_Stime <- 	[   0,  30,  90, 105, 180];
+	list<int> alien_Etime <- 	[  30,  45, 105, 135, 210];
+	list<string> alien_type <-	["A1","A2","A1","A2","A1"];
 	
-	list<int> grass_Stime <- 	[  30,  45,  60, 135, 150, 165, 180, 195, 240, 255];
-	list<int> grass_Etime <- 	[  45,  60,  75, 150, 165, 180, 195, 210, 255, 270];
-	list<string> grass_type <- 	["G2","G2","G1","G2","G2","G1","G1","G1","G2","G2"];
+	list<int> grass_Stime <- 	[  15,  30, 105, 120, 180];
+	list<int> grass_Etime <- 	[  30,  45, 120, 135, 210];
+	list<string> grass_type <- 	["G1","G2","G1","G2","G1"];
 	
-	list<int> fire_Stime <- 	[  75,  90, 105, 195, 210, 225, 240, 255, 270];
-	list<int> fire_Etime <- 	[  90, 105, 120, 210, 225, 240, 255, 270, 285];
-	list<string> fire_type <- 	["F1","F2","F1","F1","F2","F2","F2","F2","F1"];
+	list<int> fire_Stime <- 	[  60,  75, 150, 165, 210];
+	list<int> fire_Etime <- 	[  75,  90, 165, 210, 225];
+	list<string> fire_type <- 	["F1","F2","F1","F2","F1"];
 	
 	list<int> list_of_bg_score <- [-50,41,86,111,131,150+1];
 	list<int> list_of_player_bg <- [2,2,2,2,2,2];
@@ -212,7 +212,7 @@ global{
 		save usable_area_for_tree to:"../includes/export/usable_area_for_tree_with_alltree.shp" format:"shp";
 	}
 	
-	reflex update_time_and_bound when: not paused and tutorial_finish{
+	reflex update_time_and_bound when: not paused and tutorial_finish and game_start{
 		if (gama.machine_time div 1000) - init_time >= 1{
 			init_time <- gama.machine_time div 1000;
 			time_now <- time_now + 1;
@@ -232,7 +232,9 @@ global{
 		do resume_game;
 	}
 	
-	reflex do_pause when: (time_now >= time_to_play*count_start) and (cycle != 0) and not can_start and tutorial_finish{
+//	reflex do_pause when: (time_now >= time_to_play*count_start) 
+	reflex do_pause when: (time_now >= time_to_play) 
+		and (cycle != 0) and not can_start and tutorial_finish{
 		do pause_game;
 //		do pause;
 //		can_start <- true;
@@ -259,9 +261,10 @@ experiment init_exp type: gui {
 			graphics Strings {
 				if (tutorial_finish = true){
 					if not end_game{
-						draw "Remaining time: "+ (((time_to_play*count_start) - time_now) div 60) + " minutes " + 
+//						draw "Remaining time: "+ (((time_to_play*count_start) - time_now) div 60) + " minutes " + 
 //						(((time_to_play*count_start) - time_now) mod 60) + " seconds" 
-						((time_to_play - time_now) mod 60) + " seconds" 
+						draw "Remaining time: "+ (((time_to_play) - time_now) div 60) + " minutes " + 
+						(((time_to_play) - time_now) mod 60) + " seconds"
 						at:{width/4.5, -21} 
 						font:font("Times", 20, #bold+#italic) ;
 					}
