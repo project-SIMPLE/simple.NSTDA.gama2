@@ -514,7 +514,7 @@ species unity_linker parent: abstract_unity_linker {
 				ask world{
 					do pause;
 					can_start <- true;
-//					tutorial_finish <- true;
+					tutorial_finish <- true;
 				}
 			}
 		}

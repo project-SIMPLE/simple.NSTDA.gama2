@@ -36,7 +36,7 @@ global{
 	bool all_player_after_Q <- false;
 	bool send_ready <- true;
 	
-	bool skip_tutorial <- true;
+	bool skip_tutorial <- false;
 	bool can_start <- true;
 	bool tutorial_finish <- false;
 	int time_now <- 0;
