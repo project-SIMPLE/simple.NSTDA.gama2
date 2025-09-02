@@ -93,6 +93,10 @@ global{
 		game_start <- false;
 		all_player_ready <- false;
 //		ready_team_list <- [];
+		time_now <- 0;
+		
+		ask old_tree {do die;}
+		ask tree {do die;}
 	}
 		
 	action update_n_remain_tree {
@@ -122,7 +126,7 @@ global{
 			list<tree> dead_stack_tree <- tree where (each.name_for_front_tree = self.name 
 													and	each.it_can_growth = "0");
 			tree_ratio <- length(dead_stack_tree)/length(stack_tree);
-			write "temp_tree " + self.name + " " + stack_tree + " " + tree_ratio;			
+//			write "temp_tree " + self.name + " " + stack_tree + " " + tree_ratio;			
 		}
 	}
 	
@@ -136,15 +140,17 @@ global{
 //		n_teams <- length(connect_team_list);
 	}
 	
-	reflex end_game when:(time_now >= time_to_play*n_teams){
-		do pause_game;
-		
-		time_now <- (time_to_play*n_teams);
-		can_start <- false;
-		tutorial_finish <- true;
-		game_start <- false;
-		end_game <- true;
-	}
+////	reflex end_game when:(time_now >= time_to_play*n_teams){
+//	reflex end_game when:(time_now > time_to_play){
+//		do pause_game;
+//		
+////		time_now <- (time_to_play*n_teams);
+//		time_now <- (time_to_play);
+//		can_start <- false;
+//		tutorial_finish <- true;
+//		game_start <- false;
+//		end_game <- true;
+//	}
 	
 	
 	

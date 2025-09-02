@@ -73,7 +73,7 @@ global{
 	list<int> fire_Etime <- 	[  90, 105, 120, 210, 225, 240, 255, 270, 285];
 	list<string> fire_type <- 	["F1","F2","F1","F1","F2","F2","F2","F2","F1"];
 	
-	list<int> list_of_bg_score <- [-50,41,86,111,131,150];
+	list<int> list_of_bg_score <- [-50,41,86,111,131,150+1];
 	list<int> list_of_player_bg <- [2,2,2,2,2,2];
 	
 	list<int> zone_list <- [1,2,3,4];
@@ -260,7 +260,8 @@ experiment init_exp type: gui {
 				if (tutorial_finish = true){
 					if not end_game{
 						draw "Remaining time: "+ (((time_to_play*count_start) - time_now) div 60) + " minutes " + 
-						(((time_to_play*count_start) - time_now) mod 60) + " seconds" 
+//						(((time_to_play*count_start) - time_now) mod 60) + " seconds" 
+						((time_to_play - time_now) mod 60) + " seconds" 
 						at:{width/4.5, -21} 
 						font:font("Times", 20, #bold+#italic) ;
 					}
@@ -272,7 +273,7 @@ experiment init_exp type: gui {
 					
 				}
 				else{
-					draw "Remaining time: - (Tutorial" + (count_start+1) + "...)" 
+					draw "Remaining time: - Tutorial" + (count_start+1) + "..." 
 					at:{width/4.5, -21} 
 					font:font("Times", 20, #bold+#italic) ;
 				}
