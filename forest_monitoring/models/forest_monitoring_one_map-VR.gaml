@@ -6,10 +6,10 @@ global{
 	int adjust_z <- 0;
 	list all_for_send <- [];
 	init{
-		create unity_player{
-			name <- "Player_104";
-			location <- {width/2, height/2, adjust_z};
-		}
+//		create unity_player{
+//			name <- "Player_104";
+//			location <- {width/2, height/2, adjust_z};
+//		}
 //		create unity_player{
 //			name <- "Player_102";
 //			location <- {width/2, height/2, adjust_z};
@@ -70,6 +70,7 @@ global{
 //			can_start <- true;
 			ask old_tree {do die;}
 			ask tree {do die;}
+			ask front_tree {do die;}
 		}
 	}
 	
@@ -97,10 +98,11 @@ global{
 		
 		ask old_tree {do die;}
 		ask tree {do die;}
+		ask front_tree {do die;}
 	}
 		
 	action update_n_remain_tree {
-		write "n_remain_tree " + n_remain_tree;
+//		write "n_remain_tree " + n_remain_tree;
 		
 		loop p over:connect_team_list{
 			loop i from:0 to:2{
@@ -108,7 +110,7 @@ global{
 															and (each.player = p) 
 															and (each.it_can_growth != "0"));
 				n_remain_tree[p-1][i] <- length(for_count_tree_state);
-				write "Player" + p + " length state" + (i+1) + " " + n_remain_tree[p-1][i];
+//				write "Player" + p + " length state" + (i+1) + " " + n_remain_tree[p-1][i];
 			}
 		}
 
@@ -119,7 +121,7 @@ global{
 									0.5*(100 - sum(n_remain_tree[i-1]));
 		}
 		
-		write "sum_score_list " + sum_score_list;
+//		write "sum_score_list " + sum_score_list;
 		
 		ask front_tree{
 			list<tree> stack_tree <- tree where (each.name_for_front_tree = self.name);
@@ -221,6 +223,8 @@ global{
 					type <- "fire";
 					init_time <- time_now;
 				}
+//				write "send_tree_update_threats " + send_tree_update_threats;
+				write "it fireeee!"  + " at time " + time_now +"s" + " type " + fire_type[i];
 			}
 		}
 		
@@ -280,7 +284,7 @@ global{
 						}
 					}
 				}
-				write "send_tree_update_threats " + send_tree_update_threats;
+//				write "send_tree_update_threats " + send_tree_update_threats;
 				write "it_zone " + it_zone + " at time " + time_now +"s" + " type " + alien_type[i];
 			}
 		}
@@ -304,8 +308,6 @@ global{
 									
 									list<tree> temp_list_tree <- tree at_distance (tree_distance)#m 
 																		where (each.it_can_growth = "1");
-									write "See hereeeeeeee G1 Player" + p + " " 
-										+ self.name + " " + temp_list_tree;
 									ask temp_list_tree where (each.player = p){
 										add map<string, string>(["PlayerID"::map_player_intid[self.player], 
 																"Name"::self.name, 
@@ -331,8 +333,6 @@ global{
 									
 									list<tree> temp_list_tree <- tree at_distance (tree_distance)#m 
 																		where (each.it_can_growth = "1");
-									write "See hereeeeeeee G2 Player" + p + " " 
-										+ self.name + " " + temp_list_tree;
 									ask temp_list_tree where (each.player = p){
 										add map<string, string>(["PlayerID"::map_player_intid[self.player], 
 																"Name"::self.name, 
@@ -343,7 +343,7 @@ global{
 							}
 						}
 					}
-					write "send_tree_update_grass " + send_tree_update_grass;
+//					write "send_tree_update_grass " + send_tree_update_grass;
 					write "it_zone " + it_zone + " at time " + time_now +"s" + " type " + grass_type[i];
 				}
 			}
@@ -356,12 +356,12 @@ global{
 			
 			if (height >= (h_max*0.5)) and (height < (h_max*0.8)) and (it_state = 1){
 				it_state <- 2;
-				write "Tree: " + self.name + " State -> 2 (it_type=" + self.tree_type +")";
+//				write "Tree: " + self.name + " State -> 2 (it_type=" + self.tree_type +")";
 				add map<string, string>(["PlayerID"::map_player_intid[self.player], "Name"::self.name, "State"::it_state]) to:send_tree_update_grow;
 			}
 			else if (height >= (h_max*0.8)) and (height <= (h_max)) and (it_state = 2){
 				it_state <- 3;
-				write "Tree: " + self.name + " State -> 3 (it_type=" + self.tree_type +")";
+//				write "Tree: " + self.name + " State -> 3 (it_type=" + self.tree_type +")";
 				add map<string, string>(["PlayerID"::map_player_intid[self.player], "Name"::self.name, "State"::it_state]) to:send_tree_update_grow;
 			}
 		}
@@ -419,12 +419,14 @@ global{
 					"Body"::"Start", 
 					"Trees"::"", 
 					"Threats"::""] to:all_for_send;	
+				write "it rainnnnn" + " at time " + time_now +"s" + " type Rain Start" ;
 			}
 			else if (time_now = raining_Etime[i]){
 				add ["Head"::"Rain", 
 					"Body"::"Stop", 
 					"Trees"::"", 
 					"Threats"::""] to:all_for_send;	
+				write "it rainnnnn" + " at time " + time_now +"s" + " type Rain End" ;
 			}
 		}
 		
@@ -439,7 +441,7 @@ global{
 	}
 	
 	reflex send_message_to_unity{
-		write "all_for_send " + all_for_send;
+//		write "all_for_send " + all_for_send;
 		if not empty(all_for_send){
 			ask unity_linker {
 				do send_message players: unity_player as list mes: ["ListOfMessage"::all_for_send];
@@ -478,11 +480,11 @@ species unity_linker parent: abstract_unity_linker {
 	action ChangeTreeState(string tree_Name, string status){
 		list<string> split_tree_ID ;
 		list<string> playerID ;
-		write "ChangeTreeState: " + tree_Name + " it_can_growth " + status;
+//		write "ChangeTreeState: " + tree_Name + " it_can_growth " + status;
 		ask tree where ((each.name = tree_Name)){
 			if it_can_growth in ["-1", "1"]{
 				it_can_growth <- status;
-				write "(ReceiveMessage) Tree: " + self.name + " it_can_growth " + status;
+//				write "(ReceiveMessage) Tree: " + self.name + " it_can_growth " + status;
 			}
 		}	
 	}

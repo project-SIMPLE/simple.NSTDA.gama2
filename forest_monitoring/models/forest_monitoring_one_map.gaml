@@ -58,20 +58,21 @@ global{
 	list<int> sum_score_list <- list_with(6,0);
 	
 	int time_interval <- 15;
+	
 	list<int> raining_Stime <- [15, 90,225];
 	list<int> raining_Etime <- [45,135,240];
 	
-	list<int> alien_Stime <- 	[   0,  30,  90, 105, 180];
-	list<int> alien_Etime <- 	[  30,  45, 105, 135, 210];
-	list<string> alien_type <-	["A1","A2","A1","A2","A1"];
+	list<int> alien_Stime <- 	[   0,  15,  90, 180];
+	list<int> alien_Etime <- 	[  15,  45, 135, 210];
+	list<string> alien_type <-	["A1","A2","A2","A1"];
 	
-	list<int> grass_Stime <- 	[  15,  30, 105, 120, 180];
-	list<int> grass_Etime <- 	[  30,  45, 120, 135, 210];
-	list<string> grass_type <- 	["G1","G2","G1","G2","G1"];
+	list<int> grass_Stime <- 	[  15,  30, 105, 180];
+	list<int> grass_Etime <- 	[  30,  45, 135, 210];
+	list<string> grass_type <- 	["G1","G2","G2","G1"];
 	
-	list<int> fire_Stime <- 	[  60,  75, 150, 165, 210];
-	list<int> fire_Etime <- 	[  75,  90, 165, 210, 225];
-	list<string> fire_type <- 	["F1","F2","F1","F2","F1"];
+	list<int> fire_Stime <- 	[  45,  60,  75, 150, 165, 210];
+	list<int> fire_Etime <- 	[  60,  75,  90, 165, 210, 225];
+	list<string> fire_type <- 	["F1","F2","F1","F1","F2","F1"];
 	
 	list<int> list_of_bg_score <- [-50,41,86,111,131,150+1];
 	list<int> list_of_player_bg <- [2,2,2,2,2,2];
@@ -233,7 +234,7 @@ global{
 	}
 	
 //	reflex do_pause when: (time_now >= time_to_play*count_start) 
-	reflex do_pause when: (time_now >= time_to_play) 
+	reflex do_pause when: (time_now >= time_to_play+1) 
 		and (cycle != 0) and not can_start and tutorial_finish{
 		do pause_game;
 //		do pause;
@@ -284,7 +285,7 @@ experiment init_exp type: gui {
 		}
 		display "Total" type: 2d locked:true{
 			chart "Total seeds" type:histogram reverse_axes:true
-			y_range:[0, (150)]
+			y_range:[-50, 150]
 			x_serie_labels: [""]
 			
 			style:"3d"
