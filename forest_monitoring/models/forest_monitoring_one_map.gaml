@@ -36,7 +36,7 @@ global{
 	bool all_player_after_Q <- false;
 	bool send_ready <- true;
 	
-	bool skip_tutorial <- true;
+	bool skip_tutorial <- false;
 	bool can_start <- true;
 	bool tutorial_finish <- false;
 	int time_now <- 0;
@@ -44,6 +44,7 @@ global{
 	int count_start <- 0 ;
 	bool game_start <- false;
 	bool end_game <- false;
+	bool next_time <- false;
 	
 	point tutorial_location;
 	point main_location;
@@ -56,6 +57,9 @@ global{
 	
 	list<list<int>> n_remain_tree <- list_with(6, list_with(3, 0));
 	list<int> sum_score_list <- list_with(6,0);
+	int upper_bound <- 50;
+//	list tree_name <- ['Qu','Sa','Ma','Pho','De','Di','Os','Phy','Ca','Gm'];
+	list tree_name <- ['Gm','Ma','Pho'];
 	
 	int time_interval <- 15;
 	
@@ -217,6 +221,7 @@ global{
 		if (gama.machine_time div 1000) - init_time >= 1{
 			init_time <- gama.machine_time div 1000;
 			time_now <- time_now + 1;
+			next_time <- true;
 			write "time_now " + time_now + "s  at cycle = " + cycle;
 		}
 	}
@@ -246,7 +251,7 @@ global{
 
 experiment init_exp type: gui {
 	output{
-		layout
+		layout vertical([horizontal([0::1, 1::1])::1, horizontal([2::1, 3::1, 4::1, 5::1, 6::1, 7::1])::1]) 
 		toolbars: true tabs: false parameters: false consoles: true navigator: false controls: true tray: false ;
 		display "Main" type: 3d background: rgb(50,50,50) locked:true antialias:true {
 			camera 'default' location: {25.14,12.26,70.0} target: {25.14,12.26,0.0};
@@ -254,10 +259,10 @@ experiment init_exp type: gui {
 			species playerable_area;
 			species tree_area;
 			species tutorial_area;
-			species icon_everything;
 			species old_tree;
 			species tree;
 			species front_tree;
+			species icon_everything;
 			
 			graphics Strings {
 				if (tutorial_finish = true){
@@ -301,6 +306,95 @@ experiment init_exp type: gui {
 				loop i from:0 to:(length(sum_score_list)-1){
 					draw "=> " + int(sum_score_list[i]) at:{420,65 + 36*i} font:font("Times", 16, #bold+#italic) 
 					border:#black color:player_colors[i];
+				}
+			}
+		}
+		display "His_Team1" type: 2d locked:true{ 		
+			chart "Team1" type:histogram 
+			x_serie_labels: ["Species"] 				
+			y_range:[0, 5 + upper_bound] 		
+			style:"3d" 			  
+			series_label_position: xaxis {
+				loop j from:0 to:(length(tree_name)-1){
+					data "" + tree_name[j] value: length(tree where ((each.tree_type = j+1) 
+															and (each.player = 1) 
+															and (each.it_can_growth != "0")))
+					color:player_colors[0] ;
+				}
+			}
+		}	
+		
+		display "His_Team2" type: 2d locked:true{ 		
+			chart "Team2" type:histogram 
+			x_serie_labels: ["Species"] 				
+			y_range:[0, 5 + upper_bound] 		
+			style:"3d" 			  
+			series_label_position: xaxis {
+				loop j from:0 to:(length(tree_name)-1){
+					data "" + tree_name[j] value: length(tree where ((each.tree_type = j+1) 
+															and (each.player = 2) 
+															and (each.it_can_growth != "0"))) 
+					color:player_colors[1] ;
+				}
+			}
+		}
+		
+		display "His_Team3" type: 2d locked:true{ 		
+			chart "Team3" type:histogram 
+			x_serie_labels: ["Species"] 				
+			y_range:[0, 5 + upper_bound] 		
+			style:"3d" 			  
+			series_label_position: xaxis {
+				loop j from:0 to:(length(tree_name)-1){
+					data "" + tree_name[j] value: length(tree where ((each.tree_type = j+1) 
+															and (each.player = 3) 
+															and (each.it_can_growth != "0"))) 
+					color:player_colors[2] ;
+				}
+			}
+		}
+		
+		display "His_Team4" type: 2d locked:true{ 		
+			chart "Team4" type:histogram 
+			x_serie_labels: ["Species"] 				
+			y_range:[0, 5 + upper_bound] 		
+			style:"3d" 			  
+			series_label_position: xaxis {
+				loop j from:0 to:(length(tree_name)-1){
+					data "" + tree_name[j] value: length(tree where ((each.tree_type = j+1) 
+															and (each.player = 4) 
+															and (each.it_can_growth != "0")))
+					color:player_colors[3] ;
+				}
+			}
+		}
+		
+		display "His_Team5" type: 2d locked:true{ 		
+			chart "Team5" type:histogram 
+			x_serie_labels: ["Species"] 				
+			y_range:[0, 5 + upper_bound] 		
+			style:"3d" 			  
+			series_label_position: xaxis {
+				loop j from:0 to:(length(tree_name)-1){
+					data "" + tree_name[j] value: length(tree where ((each.tree_type = j+1) 
+															and (each.player = 5) 
+															and (each.it_can_growth != "0")))
+					color:player_colors[4] ;
+				}
+			}
+		}
+		
+		display "His_Team6" type: 2d locked:true{ 		
+			chart "Team6" type:histogram 
+			x_serie_labels: ["Species"] 				
+			y_range:[0, 5 + upper_bound] 		
+			style:"3d" 			  
+			series_label_position: xaxis {
+				loop j from:0 to:(length(tree_name)-1){
+					data "" + tree_name[j] value: length(tree where ((each.tree_type = j+1) 
+															and (each.player = 6) 
+															and (each.it_can_growth != "0")))
+					color:player_colors[5] ;
 				}
 			}
 		}

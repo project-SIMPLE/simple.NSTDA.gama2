@@ -9,8 +9,10 @@
 model OptimizeSpeciesonemap
 
 global{
-	image_file fire_image_file <- image_file("../images/fire.png");
-	image_file alien_image_file <- image_file("../images/alien.png");
+//	image_file fire_image_file <- image_file("../images/fire.png");
+//	image_file alien_image_file <- image_file("../images/alien.png");
+	image_file fire_image_file <- gif_file("../images/fire1.gif");
+	image_file alien_image_file <- gif_file("../images/alien1.gif");
 	image_file rain_image_file <- image_file("../images/rain.png");
 	image_file blank_image_file <- image_file("../images/blank.png");
 	
@@ -58,7 +60,8 @@ species icon_everything{
 			}
 		}
 		
-		draw status_icon size:{1.25,1.25};
+//		draw status_icon size:{1.25,1.25};
+		draw status_icon size:{10.0,10.0};
 	}
 }
 
