@@ -17,8 +17,10 @@ global{
 	float height <- shape.height;
 	
 	int n_teams <- 6;
-	int n_tree <- 100;
-	int n_old_tree <- 10;
+//	int n_tree <- 100;
+	list<int> n_tree <- [10,10,10,10,10,10,10,10,10,10];
+//	int n_old_tree <- 10;
+	list<int> n_old_tree <- [1,1,1,1,1,1,1,1,1,1];
 	float size_of_tree <- 50.0;
 	float size_of_old_tree <- 100.0;
 	float tree_distance <- 2.0;
@@ -57,9 +59,8 @@ global{
 	
 	list<list<int>> n_remain_tree <- list_with(6, list_with(3, 0));
 	list<int> sum_score_list <- list_with(6,0);
-	int upper_bound <- 50;
-//	list tree_name <- ['Qu','Sa','Ma','Pho','De','Di','Os','Phy','Ca','Gm'];
-	list tree_name <- ['Gm','Ma','Pho'];
+	list<int> total_score_list <- list_with(6,0);
+	int upper_bound <- 150;
 	
 	int time_interval <- 15;
 	
@@ -119,36 +120,42 @@ global{
 		
 		point at_location ;
 		int count_create_tree <- 0;
-		loop i from:0 to:(n_old_tree-1){
-			if count_create_tree > 0{
-				ask old_tree[count_create_tree-1]{
-					usable_area_for_tree <- usable_area_for_tree - (self.shape + tree_distance);
-				}
-			}
-			if (usable_area_for_tree = nil) {
-				write 'Geometry not enough when n=' + count_create_tree;
-				break;
-			}
-			else{
-				at_location <- any_location_in(usable_area_for_tree-1);
-				int temp_type <- rnd(1, 3);
-				
-				loop j from:1 to:n_teams{
-					create old_tree{
-						location <- {at_location.x,
-									at_location.y,
-									at_location.z
-									};
-						shape <- circle(size_of_old_tree#cm);
-//						shape <- circle((size_of_old_tree-(10*j))#cm);
-//						color <- player_colors[j-1];
-						tree_type <- temp_type;
-						player <- j;
-						name <- "p" + j + "oldtree" + i;
-						count_create_tree <- count_create_tree + 1;
+		int count_label_tree <- 0;
+//		loop i from:0 to:(n_old_tree-1){
+		loop i from:0 to:(length(n_old_tree)-1){
+			loop cnt from:1 to:n_old_tree[i]{
+				if count_create_tree > 0{
+					ask old_tree[count_create_tree-1]{
+						usable_area_for_tree <- usable_area_for_tree - (self.shape + tree_distance);
 					}
 				}
-				
+				if (usable_area_for_tree = nil) {
+					write 'Geometry not enough when n=' + count_create_tree;
+					break;
+				}
+				else{
+					at_location <- any_location_in(usable_area_for_tree-1);
+//					int temp_type <- rnd(1, 3);
+					
+					loop j from:1 to:n_teams{
+						create old_tree{
+							location <- {at_location.x,
+										at_location.y,
+										at_location.z
+										};
+							shape <- circle(size_of_old_tree#cm);
+	//						shape <- circle((size_of_old_tree-(10*j))#cm);
+	//						color <- player_colors[j-1];
+//							tree_type <- temp_type;
+							tree_type <- i+1;
+							player <- j;
+							name <- "p" + j + "oldtree" + count_label_tree;
+							count_create_tree <- count_create_tree + 1;
+						}
+					}
+					
+				}
+				count_label_tree <- count_label_tree + 1;
 			}
 		}
 
@@ -158,59 +165,64 @@ global{
 
 			
 		count_create_tree <- 0;
-		loop i from:0 to:(n_tree-1){
-			if count_create_tree > 0{
-				ask tree[count_create_tree-1] {
-					usable_area_for_tree <- usable_area_for_tree - (self.shape + tree_distance);
+		count_label_tree <- 0;
+		loop i from:0 to:(length(n_tree)-1){
+			loop cnt from:1 to:n_tree[i]{
+				if count_create_tree > 0{
+					ask tree[count_create_tree-1] {
+						usable_area_for_tree <- usable_area_for_tree - (self.shape + tree_distance);
+					}
 				}
-			}
-			if (usable_area_for_tree = nil) {
-				write 'Geometry not enough when n=' + count_create_tree;
-				break;
-			}
-			else{
-				at_location <- any_location_in(usable_area_for_tree);
-				int temp_type <- rnd(1, 3);
-				int temp_zone;
-				
-				if (at_location.x <= (width/2)) and (at_location.y <= (height/2)){
-					temp_zone <- 1 ;
+				if (usable_area_for_tree = nil) {
+					write 'Geometry not enough when n=' + count_create_tree;
+					break;
 				}
-				else if (at_location.x > (width/2)) and (at_location.y <= (height/2)){
-					temp_zone <- 2 ;
-				}
-				else if (at_location.x <= (width/2)) and (at_location.y > (height/2)){
-					temp_zone <- 3 ;
-				}
-				else if (at_location.x > (width/2)) and (at_location.y > (height/2)){
-					temp_zone <- 4 ;
-				}
-				
-				loop j from:1 to:n_teams{
-					create tree{
+				else{
+					at_location <- any_location_in(usable_area_for_tree);
+//					int temp_type <- rnd(1, 3);
+					int temp_zone;
+					
+					if (at_location.x <= (width/2)) and (at_location.y <= (height/2)){
+						temp_zone <- 1 ;
+					}
+					else if (at_location.x > (width/2)) and (at_location.y <= (height/2)){
+						temp_zone <- 2 ;
+					}
+					else if (at_location.x <= (width/2)) and (at_location.y > (height/2)){
+						temp_zone <- 3 ;
+					}
+					else if (at_location.x > (width/2)) and (at_location.y > (height/2)){
+						temp_zone <- 4 ;
+					}
+					
+					loop j from:1 to:n_teams{
+						create tree{
+							location <- {at_location.x,
+										at_location.y,
+										at_location.z
+										};
+							shape <- circle(size_of_tree#cm);
+//							tree_type <- temp_type;
+							tree_type <- i+1;
+							it_state <- 1;
+							player <- j;
+							name <- "p" + j + "tree" + count_label_tree;
+							name_for_front_tree <- "tree" + count_label_tree;
+							number <- count_label_tree;
+							zone <- temp_zone;
+							count_create_tree <- count_create_tree + 1;
+						}
+					}
+					create front_tree{
 						location <- {at_location.x,
 									at_location.y,
 									at_location.z
 									};
 						shape <- circle(size_of_tree#cm);
-						tree_type <- temp_type;
-						it_state <- 1;
-						player <- j;
-						name <- "p" + j + "tree" + i;
-						name_for_front_tree <- "tree" + i;
-						number <- i;
-						zone <- temp_zone;
-						count_create_tree <- count_create_tree + 1;
+						name <- "tree" + count_label_tree;
 					}
 				}
-				create front_tree{
-					location <- {at_location.x,
-								at_location.y,
-								at_location.z
-								};
-					shape <- circle(size_of_tree#cm);
-					name <- "tree" + i;
-				}
+				count_label_tree <- count_label_tree + 1;
 			}
 		}
 		usable_area_for_tree <- usable_area_for_tree - (tree[count_create_tree-1].shape + tree_distance);
@@ -254,7 +266,8 @@ experiment init_exp type: gui {
 		layout vertical([horizontal([0::1, 1::1])::1, horizontal([2::1, 3::1, 4::1, 5::1, 6::1, 7::1])::1]) 
 		toolbars: true tabs: false parameters: false consoles: true navigator: false controls: true tray: false ;
 		display "Main" type: 3d background: rgb(50,50,50) locked:true antialias:true {
-			camera 'default' location: {25.14,12.26,70.0} target: {25.14,12.26,0.0};
+//			camera 'default' location: {25.14,12.26,70.0} target: {25.14,12.26,0.0};
+			camera 'default' location: {25.14,12.2616,92.8721} target: {25.14,12.26,0.0};
 			species map_area;
 			species playerable_area;
 			species tree_area;
@@ -290,29 +303,28 @@ experiment init_exp type: gui {
 		}
 		display "Total" type: 2d locked:true{
 			chart "Total seeds" type:histogram reverse_axes:true
-			y_range:[-50, 150]
+			y_range:[-50, 150*count_start]
 			x_serie_labels: [""]
-			
 			style:"3d"
 			series_label_position: xaxis
 			{
 				loop i from:0 to:(length(sum_score_list)-1){
-					data "Team" + (i+1) value:int(sum_score_list[i])
+					data "Team" + (i+1) value:int(total_score_list[i]+sum_score_list[i])
 					color:player_colors[i];
 //					legend: string(int(sum_total_seeds[i])) ;
 				}
 			}
-			graphics Strings {
-				loop i from:0 to:(length(sum_score_list)-1){
-					draw "=> " + int(sum_score_list[i]) at:{420,65 + 36*i} font:font("Times", 16, #bold+#italic) 
-					border:#black color:player_colors[i];
-				}
-			}
+//			graphics Strings {
+//				loop i from:0 to:(length(sum_score_list)-1){
+//					draw "=> " + int(total_score_list[i]+sum_score_list[i]) at:{40,14} font:font("Times", 16, #bold+#italic) 
+//					border:#black color:player_colors[i];
+//				}
+//			}
 		}
 		display "His_Team1" type: 2d locked:true{ 		
 			chart "Team1" type:histogram 
 			x_serie_labels: ["Species"] 				
-			y_range:[0, 5 + upper_bound] 		
+			y_range:[0, 10] 		
 			style:"3d" 			  
 			series_label_position: xaxis {
 				loop j from:0 to:(length(tree_name)-1){
@@ -327,7 +339,7 @@ experiment init_exp type: gui {
 		display "His_Team2" type: 2d locked:true{ 		
 			chart "Team2" type:histogram 
 			x_serie_labels: ["Species"] 				
-			y_range:[0, 5 + upper_bound] 		
+			y_range:[0, 10] 		
 			style:"3d" 			  
 			series_label_position: xaxis {
 				loop j from:0 to:(length(tree_name)-1){
@@ -342,7 +354,7 @@ experiment init_exp type: gui {
 		display "His_Team3" type: 2d locked:true{ 		
 			chart "Team3" type:histogram 
 			x_serie_labels: ["Species"] 				
-			y_range:[0, 5 + upper_bound] 		
+			y_range:[0, 10] 		
 			style:"3d" 			  
 			series_label_position: xaxis {
 				loop j from:0 to:(length(tree_name)-1){
@@ -357,7 +369,7 @@ experiment init_exp type: gui {
 		display "His_Team4" type: 2d locked:true{ 		
 			chart "Team4" type:histogram 
 			x_serie_labels: ["Species"] 				
-			y_range:[0, 5 + upper_bound] 		
+			y_range:[0, 10] 		
 			style:"3d" 			  
 			series_label_position: xaxis {
 				loop j from:0 to:(length(tree_name)-1){
@@ -372,7 +384,7 @@ experiment init_exp type: gui {
 		display "His_Team5" type: 2d locked:true{ 		
 			chart "Team5" type:histogram 
 			x_serie_labels: ["Species"] 				
-			y_range:[0, 5 + upper_bound] 		
+			y_range:[0, 10] 		
 			style:"3d" 			  
 			series_label_position: xaxis {
 				loop j from:0 to:(length(tree_name)-1){
@@ -387,7 +399,7 @@ experiment init_exp type: gui {
 		display "His_Team6" type: 2d locked:true{ 		
 			chart "Team6" type:histogram 
 			x_serie_labels: ["Species"] 				
-			y_range:[0, 5 + upper_bound] 		
+			y_range:[0, 10] 		
 			style:"3d" 			  
 			series_label_position: xaxis {
 				loop j from:0 to:(length(tree_name)-1){

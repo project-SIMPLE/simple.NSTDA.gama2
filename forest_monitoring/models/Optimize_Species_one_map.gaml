@@ -21,17 +21,16 @@ global{
 	int n_years <- 2;
 	int time_to_play <- 240;
 	int announce_time <- time_to_play - 60;
-	float day_per_time <- (n_years*365)/time_to_play;
 	
 	float init_height <- 50.0;
-//								Quercus, Debregeasia, Gmelina
-	list<int> list_of_height <- [1000, 500, 2500]; 
-	list<int> list_of_max_height_in_n_years <- [130, 181, 120]; 
-	list<float> list_of_growth_rate <- [0.523, 0.8155, 0.4537];
 	
+	list tree_name <- ['Qu','Sa','Ma','Pho','De','Di','Os','Phy','Ca','Gm'];
+	list<int> list_of_height <- [1000,3500,2500,1500,500,1500,800,2000,2500,2500]; 
+	list<int> list_of_max_height_in_n_years <- [130, 234, 211, 118, 181, 157, 133, 180, 183, 120]; 
+	list<float> list_of_growth_rate <- [0.523,0.798,0.7543,0.4552,0.8155,0.6093,0.55,0.6761,0.6761,0.4537];	
+		
 	init{
 		write "time_to_play " + time_to_play;
-		write "day_per_second " + day_per_time;
 	}
 }
 
@@ -108,31 +107,33 @@ species tree{
 	int number <- 1;
 	string name_for_front_tree ;
 	
-	float logist_growth (float init_input, float max_height, float growth_rate, int multiple){
+	float logist_growth (float init_input, float max_height, float growth_rate){
+//		growth_rate <- growth_rate + rnd (-0.1, 0.1) * growth_rate;
+		
 		float height_logist <- (init_input * max_height) / (init_input + (max_height - init_height) * 
-							exp (-((growth_rate * multiple) * ((current_time * n_years / (time_to_play)) - 0)))) ;
+							exp (-((growth_rate) * ((current_time * n_years / (time_to_play)) - 0)))) ;
 		return height_logist;
 	}
 	
-	reflex change_color{
-		if it_can_growth = "0"{
-			color <- #black;
-		}
-		else if it_can_growth = "-1"{
-			color <- #purple;
-		}
-		else if it_can_growth = "1"{
-			if it_state = 1{
-				color <- rgb(151, 255, 110);
-			}
-			else if it_state = 2{
-				color <- rgb(50, 176, 0);
-			}
-			else if it_state = 3{
-				color <- rgb(32, 112, 0);
-			}
-		}	
-	}
+//	reflex change_color{
+//		if it_can_growth = "0"{
+//			color <- #black;
+//		}
+//		else if it_can_growth = "-1"{
+//			color <- #purple;
+//		}
+//		else if it_can_growth = "1"{
+//			if it_state = 1{
+//				color <- rgb(151, 255, 110);
+//			}
+//			else if it_state = 2{
+//				color <- rgb(50, 176, 0);
+//			}
+//			else if it_state = 3{
+//				color <- rgb(32, 112, 0);
+//			}
+//		}	
+//	}
 	
 	
 //	reflex change_color{
