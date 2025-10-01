@@ -37,6 +37,7 @@ global{
 	bool all_player_before_Q <- false;
 	bool all_player_after_Q <- false;
 	bool send_ready <- true;
+	int create_tree_cycle <- int(#infinity);
 	
 	bool skip_tutorial <- false;
 	bool can_start <- true;
@@ -79,6 +80,11 @@ global{
 	list<int> fire_Etime <- 	[  60,  75,  90, 165, 210, 225];
 	list<string> fire_type <- 	["F1","F2","F1","F1","F2","F1"];
 	
+//	-50 -> 40	bg1
+//	 41 -> 85	bg2
+//	 86 -> 110	bg3
+// 	111 -> 130	bg4
+//	131 -> 150	bg5
 	list<int> list_of_bg_score <- [-50,41,86,111,131,150+1];
 	list<int> list_of_player_bg <- [2,2,2,2,2,2];
 	
@@ -137,7 +143,7 @@ global{
 					at_location <- any_location_in(usable_area_for_tree-1);
 //					int temp_type <- rnd(1, 3);
 					
-					loop j from:1 to:n_teams{
+					loop p over:connect_team_list{
 						create old_tree{
 							location <- {at_location.x,
 										at_location.y,
@@ -148,11 +154,28 @@ global{
 	//						color <- player_colors[j-1];
 //							tree_type <- temp_type;
 							tree_type <- i+1;
-							player <- j;
-							name <- "p" + j + "oldtree" + count_label_tree;
+							player <- p;
+							name <- "p" + p + "oldtree" + count_label_tree;
 							count_create_tree <- count_create_tree + 1;
 						}
 					}
+					
+//					loop j from:1 to:n_teams{
+//						create old_tree{
+//							location <- {at_location.x,
+//										at_location.y,
+//										at_location.z
+//										};
+//							shape <- circle(size_of_old_tree#cm);
+//	//						shape <- circle((size_of_old_tree-(10*j))#cm);
+//	//						color <- player_colors[j-1];
+////							tree_type <- temp_type;
+//							tree_type <- i+1;
+//							player <- j;
+//							name <- "p" + j + "oldtree" + count_label_tree;
+//							count_create_tree <- count_create_tree + 1;
+//						}
+//					}
 					
 				}
 				count_label_tree <- count_label_tree + 1;
@@ -195,7 +218,7 @@ global{
 						temp_zone <- 4 ;
 					}
 					
-					loop j from:1 to:n_teams{
+					loop p over:connect_team_list{
 						create tree{
 							location <- {at_location.x,
 										at_location.y,
@@ -205,14 +228,33 @@ global{
 //							tree_type <- temp_type;
 							tree_type <- i+1;
 							it_state <- 1;
-							player <- j;
-							name <- "p" + j + "tree" + count_label_tree;
+							player <- p;
+							name <- "p" + p + "tree" + count_label_tree;
 							name_for_front_tree <- "tree" + count_label_tree;
 							number <- count_label_tree;
 							zone <- temp_zone;
 							count_create_tree <- count_create_tree + 1;
 						}
 					}
+					
+//					loop j from:1 to:n_teams{
+//						create tree{
+//							location <- {at_location.x,
+//										at_location.y,
+//										at_location.z
+//										};
+//							shape <- circle(size_of_tree#cm);
+////							tree_type <- temp_type;
+//							tree_type <- i+1;
+//							it_state <- 1;
+//							player <- j;
+//							name <- "p" + j + "tree" + count_label_tree;
+//							name_for_front_tree <- "tree" + count_label_tree;
+//							number <- count_label_tree;
+//							zone <- temp_zone;
+//							count_create_tree <- count_create_tree + 1;
+//						}
+//					}
 					create front_tree{
 						location <- {at_location.x,
 									at_location.y,
@@ -227,6 +269,8 @@ global{
 		}
 		usable_area_for_tree <- usable_area_for_tree - (tree[count_create_tree-1].shape + tree_distance);
 		save usable_area_for_tree to:"../includes/export/usable_area_for_tree_with_alltree.shp" format:"shp";
+		create_tree_cycle <- cycle;
+		write "Create tree at cycle = " + create_tree_cycle + " = " + cycle;
 	}
 	
 	reflex update_time_and_bound when: not paused and tutorial_finish and game_start{
@@ -242,7 +286,7 @@ global{
 		if tutorial_finish{
 			count_start <- count_start + 1 ;
 			init_time <- gama.machine_time div 1000;
-			do create_tree;
+//			do create_tree;
 			game_start <- true;
 		}
 		
@@ -251,7 +295,7 @@ global{
 	}
 	
 //	reflex do_pause when: (time_now >= time_to_play*count_start) 
-	reflex do_pause when: (time_now >= time_to_play+1) 
+	reflex do_pause when: (time_now >= time_to_play+2) 
 		and (cycle != 0) and not can_start and tutorial_finish{
 		do pause_game;
 //		do pause;
@@ -279,7 +323,8 @@ experiment init_exp type: gui {
 			
 			graphics Strings {
 				if (tutorial_finish = true){
-					if not end_game{
+//					if not end_game{
+					if (time_now <= time_to_play){
 //						draw "Remaining time: "+ (((time_to_play*count_start) - time_now) div 60) + " minutes " + 
 //						(((time_to_play*count_start) - time_now) mod 60) + " seconds" 
 						draw "Remaining time: "+ (((time_to_play) - time_now) div 60) + " minutes " + 

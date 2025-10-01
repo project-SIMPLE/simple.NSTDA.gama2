@@ -29,14 +29,23 @@ global{
 				"Trees"::"",
 				"Threats"::""] to:all_for_send;
 				write "send StartGame at cycle = " + cycle;
+				
 				ask unity_player{
-					location <- {main_location.x, main_location.y, adjust_z};
 					ask unity_linker {
-						new_player_position[myself.name] <- [myself.location.x *precision,myself.location.y *precision,myself.location.z *precision];
-						move_player_event <- true;
+						new_player_position[myself.name] <- [main_location.location.x *precision,main_location.location.y *precision,main_location.location.z *precision];
+//						move_player_event <- true;
 					}
 				}
-				do send_readID;
+//				ask unity_player{
+//					location <- {main_location.x, main_location.y, adjust_z};
+//					ask unity_linker {
+//						new_player_position[myself.name] <- [myself.location.x *precision,myself.location.y *precision,myself.location.z *precision];
+//						move_player_event <- true;
+//					}
+//				}
+				
+				do create_tree;
+//				do send_readID;
 				loop i from:0 to:(length(total_score_list)-1){
 					total_score_list[i] <- total_score_list[i] + sum_score_list[i];
 				}
@@ -50,12 +59,20 @@ global{
 				write "send TutorialStart at cycle = " + cycle;
 				
 				ask unity_player{
-					location <- {tutorial_location.x, tutorial_location.y, adjust_z};
 					ask unity_linker {
-						new_player_position[myself.name] <- [myself.location.x *precision,myself.location.y *precision,myself.location.z *precision];
-						move_player_event <- true;
+						new_player_position[myself.name] <- [tutorial_location.location.x *precision,tutorial_location.location.y *precision,tutorial_location.location.z *precision];
+//						move_player_event <- true;
 					}
 				}
+//				
+//				ask unity_player{
+//					location <- {tutorial_location.x, tutorial_location.y + 4.5, adjust_z};
+//					ask unity_linker {
+//						new_player_position[myself.name] <- [myself.location.x *precision,myself.location.y *precision,myself.location.z *precision];
+//						move_player_event <- true;
+//					}
+//				}
+				
 				if skip_tutorial{
 					do pause;
 					can_start <- true;
@@ -85,18 +102,40 @@ global{
 				ask old_tree {do die;}
 				ask tree {do die;}
 				ask front_tree {do die;}
+				
+				tutorial_finish <- false;
 			}
 		}
 	}
 	
 	action pause_game {
-		ask unity_player{
-			location <- {tutorial_location.x, tutorial_location.y, adjust_z};
-			ask unity_linker {
-				new_player_position[myself.name] <- [myself.location.x *precision,myself.location.y *precision,myself.location.z *precision];
-				move_player_event <- true;
-			}
-		}
+//		write " ";
+//		write "-------------------------------------------";
+//		ask unity_player{
+//			write self.name + " before location " + self.location;
+//		}
+//		
+//		ask unity_player{
+//			ask unity_linker {
+//				new_player_position[myself.name] <- [tutorial_location.location.x *precision,tutorial_location.location.y *precision,tutorial_location.location.z *precision];
+//				write myself.name + " new_player_position " + new_player_position[myself.name];
+//				write "All player " + new_player_position;
+//				move_player_event <- true;
+//			}
+//		}
+//		
+//		ask unity_player{
+//			write self.name + " after location " + self.location;
+//		}
+//		write "-------------------------------------------";
+				
+//		ask unity_player{
+//			location <- {tutorial_location.x, tutorial_location.y + 4.5, adjust_z};
+//			ask unity_linker {
+//				new_player_position[myself.name] <- [myself.location.x *precision,myself.location.y *precision,myself.location.z *precision];
+//				move_player_event <- true;
+//			}
+//		}
 		
 		if tutorial_finish{
 			list<map<string,string>> send_final_score <- [];
@@ -133,9 +172,9 @@ global{
 				"Threats"::""] to:all_for_send;
 			write "send StopGame at cycle = " + cycle;
 		}
-		tutorial_finish <- false;
-		game_start <- false;
+//		tutorial_finish <- false;
 		all_player_ready <- false;
+		game_start <- false;
 //		ready_team_list <- [];
 		time_now <- 0;
 
@@ -198,9 +237,14 @@ global{
 //		end_game <- true;
 //	}
 	
-	
-	
 	action send_readID{
+//		ask tree where not(each.player in connect_team_list){
+//			do die;
+//		}
+//		ask old_tree where not(each.player in connect_team_list){
+//			do die;
+//		}	
+		
 		list<map<string,string>> send_tree_update_readID <- [];
 		ask tree{
 			add map<string, string>(["PlayerID"::map_player_intid[self.player], 
@@ -221,16 +265,14 @@ global{
 				"Threats"::""] to:all_for_send;
 				
 		write "Send ReadID at cycle = " + cycle;
-		
-		ask tree where not(each.player in connect_team_list){
-			do die;
-		}
-		ask old_tree where not(each.player in connect_team_list){
-			do die;
-		}	
 	}
 	
-	reflex update_height_and_threats when:(tutorial_finish = true) and (game_start = true) and next_time{
+	reflex for_send_readID when: cycle = (create_tree_cycle+1){
+//	reflex for_send_readID when: time_now = 1{
+		do send_readID;
+	}
+	
+	reflex update_height_and_threats when:(tutorial_finish = true) and (game_start = true) and next_time and (time_now <= time_to_play){
 		list<map<string,string>> send_tree_update_grass <- [];
 		list<map<string,string>> send_tree_update_threats <- [];
 		list<map<string,string>> send_tree_update_grow <- [];
@@ -239,7 +281,7 @@ global{
 		
 		// Fire
 		loop i from:0 to:(length(fire_Stime)-1){
-			if (time_now >= fire_Stime[i]) and (time_now < fire_Etime[i]) and (time_now mod time_interval = 0){
+			if (time_now >= fire_Stime[i]) and (time_now < fire_Etime[i]) and (time_now mod time_interval = 1){
 				point at_location;
 				if fire_type[i] = "F1"{
 					at_location <- any_location_in(usable_area_for_wildfire);
@@ -274,7 +316,7 @@ global{
 		
 		// Alien
 		loop i from:0 to:(length(alien_Stime)-1){
-			if (time_now >= alien_Stime[i]) and (time_now < alien_Etime[i]) and (time_now mod time_interval = 0){
+			if (time_now >= alien_Stime[i]) and (time_now < alien_Etime[i]) and (time_now mod time_interval = 1){
 				list<int> it_zone;
 				point at_location;
 //				write "alien_type[i]= " + alien_type[i];
@@ -285,8 +327,8 @@ global{
 															and (each.zone = j)
 															and (each.it_can_growth != "0"));
 						ask sample(for_rnd_tree,1,false){
-							at_location <- {self.location.x + rnd(-tree_distance/2, tree_distance/2), 
-											self.location.y + rnd(-tree_distance/2, tree_distance/2), 
+							at_location <- {self.location.x + rnd_choice([(-1)::0.5,(1)::0.5]) + rnd(0.5, tree_distance/1.5), 
+											self.location.y + rnd_choice([(-1)::0.5,(1)::0.5]) + rnd(0.5, tree_distance/1.5), 
 											self.location.z};
 							loop p over:connect_team_list{
 								add map<string, string>(["Name"::"Alien", 
@@ -310,11 +352,11 @@ global{
 															and (each.zone = j)
 															and (each.it_can_growth != "0"));
 						ask sample(for_rnd_tree,2,false){
-							at_location <- {self.location.x + rnd(-tree_distance/2, tree_distance/2), 
-											self.location.y + rnd(-tree_distance/2, tree_distance/2), 
+							at_location <- {self.location.x + rnd_choice([(-1)::0.5,(1)::0.5]) + rnd(0.5, tree_distance/1.5), 
+											self.location.y + rnd_choice([(-1)::0.5,(1)::0.5]) + rnd(0.5, tree_distance/1.5), 
 											self.location.z};
 							loop p over:connect_team_list{
-								add map<string, string>(["Name"::"Alien", 
+								add map<string, string>(["Name"::"Alien2", 
 									"x"::at_location.x, 
 									"y"::at_location.z, 
 									"z"::-at_location.y,
@@ -335,7 +377,7 @@ global{
 			
 		// Weeds
 			loop i from:0 to:(length(grass_Stime)-1){
-				if (time_now >= grass_Stime[i]) and (time_now < grass_Etime[i]) and (time_now mod time_interval = 0){
+				if (time_now >= grass_Stime[i]) and (time_now < grass_Etime[i]) and (time_now mod time_interval = 1){
 					list<int> it_zone;
 					if grass_type[i] = "G1"{
 						it_zone <- sample(zone_list,1,false);
@@ -529,12 +571,12 @@ species unity_linker parent: abstract_unity_linker {
 	list<point> init_locations <- define_init_locations();
 
 	list<point> define_init_locations {
-		return [tutorial_location + {0, 0, adjust_z},
-			tutorial_location + {0, 0, adjust_z},
-			tutorial_location + {0, 0, adjust_z},
-			tutorial_location + {0, 0, adjust_z},
-			tutorial_location + {0, 0, adjust_z},
-			tutorial_location + {0, 0, adjust_z}
+		return [tutorial_location + {0,4.5, adjust_z},
+			tutorial_location + {0, 4.5, adjust_z},
+			tutorial_location + {0, 4.5, adjust_z},
+			tutorial_location + {0, 4.5, adjust_z},
+			tutorial_location + {0, 4.5, adjust_z},
+			tutorial_location + {0, 4.5, adjust_z}
 		];
 	}
 	
@@ -551,25 +593,42 @@ species unity_linker parent: abstract_unity_linker {
 	}
 	
 	action PlayerID_Ready(string player_ID, string Ready){
-		write "PlayerID_Ready " + player_ID + " " + Ready;
-		if not (map_player_idint[player_ID] in ready_team_list){
-			add map_player_idint[player_ID] to:ready_team_list;
-		}
-		
-		if (ready_team_list sort_by (each)) = (connect_team_list sort_by (each)){
-			write "All player ready " + (ready_team_list sort_by (each)) + " = " +
-					(connect_team_list sort_by (each));
-			all_player_ready <- true;
-			ask world{
-				do pause;
-				can_start <- true;
+		if not tutorial_finish{
+			write "PlayerID_Ready " + player_ID + " " + Ready;
+			
+			write "PlayerID_Ready " + player_ID + " " + Ready + " move to tutorial zone";
+			new_player_position[player_ID] <- [tutorial_location.location.x *precision,tutorial_location.location.y *precision,tutorial_location.location.z *precision];
+			
+			if not (map_player_idint[player_ID] in ready_team_list){
+				add map_player_idint[player_ID] to:ready_team_list;
 			}
+			
+			if (ready_team_list sort_by (each)) = (connect_team_list sort_by (each)){
+				write "All player ready " + (ready_team_list sort_by (each)) + " = " +
+						(connect_team_list sort_by (each));
+				all_player_ready <- true;
+				ask world{
+	//				do create_tree;
+					do pause;
+					can_start <- true;
+				}
+			}
+		}
+		else{
+			write "PlayerID_Ready " + player_ID + " " + Ready + " move to tutorial zone";
+			new_player_position[player_ID] <- [tutorial_location.location.x *precision,tutorial_location.location.y *precision,tutorial_location.location.z *precision];
 		}
 	}
 	
 	action QuestionnaireData(string PlayerID, string Header, string Message){
 		write "QuestionnaireData " + Header + " " + PlayerID + " " + Message;
-		list<string> answer_list <- Message split_with '';
+//		list<string> answer_list <- Message split_with '';
+
+		list<string> answer_list ;
+		loop i over: container(Message){
+			add i to: answer_list;
+		}
+		
 		if Header = "Before"{
 			write "" + Header + " " + answer_list;
 			
@@ -787,6 +846,10 @@ species unity_player parent: abstract_unity_player{
 			draw player_perception_cone() color: rgb(color, 0.5);
 		}
 	}
+	
+//	reflex write_location{
+//		write self.name + " at location " + self.location;
+//	}
 }
 
 experiment vr_xp parent:init_exp autorun: false type: unity {
@@ -820,6 +883,7 @@ experiment vr_xp parent:init_exp autorun: false type: unity {
 				 if (t - t_ref) > 500 {
 					 ask unity_linker {
 						 move_player_event <- true;
+						 write "move player from user";
 					 }
 					 t_ref <- t;
 				 }
