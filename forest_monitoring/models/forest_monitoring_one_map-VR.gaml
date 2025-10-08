@@ -18,7 +18,26 @@ global{
 //		create unity_player{
 //			self.name <- "Player_102";
 //			self.location <- {width/2, height/2, adjust_z};
-//		}
+//		}	
+	}
+	
+	reflex check_location when: (tutorial_finish = true) and (game_start = false){
+		ask unity_player{
+			if self.shape overlaps (tutorial_area[1].shape + 1){
+//				write self.name + " correct location in tutorial_area[1]";
+			}
+			else{
+				write self.name + " not in tutorial_area[1]";
+//				ask unity_linker {
+//					new_player_position[myself.name] <- [tutorial_location.location.x *precision,(tutorial_location.location.y + 4.5) *precision,tutorial_location.location.z *precision];
+//				}
+				location <- {tutorial_location.x, tutorial_location.y + 4.5, adjust_z};
+				ask unity_linker {
+					new_player_position[myself.name] <- [myself.location.x *precision,myself.location.y *precision,myself.location.z *precision];
+					move_player_event <- true;
+				}
+			}
+		}
 	}
 
 	action resume_game {
@@ -30,19 +49,19 @@ global{
 				"Threats"::""] to:all_for_send;
 				write "send StartGame at cycle = " + cycle;
 				
-				ask unity_player{
-					ask unity_linker {
-						new_player_position[myself.name] <- [main_location.location.x *precision,main_location.location.y *precision,main_location.location.z *precision];
-//						move_player_event <- true;
-					}
-				}
 //				ask unity_player{
-//					location <- {main_location.x, main_location.y, adjust_z};
 //					ask unity_linker {
-//						new_player_position[myself.name] <- [myself.location.x *precision,myself.location.y *precision,myself.location.z *precision];
-//						move_player_event <- true;
+//						new_player_position[myself.name] <- [main_location.location.x *precision,main_location.location.y *precision,main_location.location.z *precision];
+////						move_player_event <- true;
 //					}
 //				}
+				ask unity_player{
+					location <- {main_location.x, main_location.y, adjust_z};
+					ask unity_linker {
+						new_player_position[myself.name] <- [myself.location.x *precision,myself.location.y *precision,myself.location.z *precision];
+						move_player_event <- true;
+					}
+				}
 				
 				do create_tree;
 //				do send_readID;
@@ -58,20 +77,20 @@ global{
 					"Threats"::""] to:all_for_send;
 				write "send TutorialStart at cycle = " + cycle;
 				
-				ask unity_player{
-					ask unity_linker {
-						new_player_position[myself.name] <- [tutorial_location.location.x *precision,tutorial_location.location.y *precision,tutorial_location.location.z *precision];
-//						move_player_event <- true;
-					}
-				}
-//				
 //				ask unity_player{
-//					location <- {tutorial_location.x, tutorial_location.y + 4.5, adjust_z};
 //					ask unity_linker {
-//						new_player_position[myself.name] <- [myself.location.x *precision,myself.location.y *precision,myself.location.z *precision];
-//						move_player_event <- true;
+//						new_player_position[myself.name] <- [tutorial_location.location.x *precision,(tutorial_location.location.y + 4.5) *precision,tutorial_location.location.z *precision];
+////						move_player_event <- true;
 //					}
 //				}
+//				
+				ask unity_player{
+					location <- {tutorial_location.x, tutorial_location.y + 4.5, adjust_z};
+					ask unity_linker {
+						new_player_position[myself.name] <- [myself.location.x *precision,myself.location.y *precision,myself.location.z *precision];
+						move_player_event <- true;
+					}
+				}
 				
 				if skip_tutorial{
 					do pause;
@@ -597,7 +616,17 @@ species unity_linker parent: abstract_unity_linker {
 			write "PlayerID_Ready " + player_ID + " " + Ready;
 			
 			write "PlayerID_Ready " + player_ID + " " + Ready + " move to tutorial zone";
-			new_player_position[player_ID] <- [tutorial_location.location.x *precision,tutorial_location.location.y *precision,tutorial_location.location.z *precision];
+			
+			ask unity_player where (each.name = player_ID){
+				location <- {tutorial_location.x, tutorial_location.y + 4.5, adjust_z};
+				ask unity_linker {
+					new_player_position[myself.name] <- [myself.location.x *precision,myself.location.y *precision,myself.location.z *precision];
+					move_player_event <- true;
+				}
+			}
+				
+//			new_player_position[player_ID] <- [tutorial_location.location.x *precision,(tutorial_location.location.y + 4.5) *precision,tutorial_location.location.z *precision];
+//			move_player_event <- true;
 			
 			if not (map_player_idint[player_ID] in ready_team_list){
 				add map_player_idint[player_ID] to:ready_team_list;
@@ -616,7 +645,16 @@ species unity_linker parent: abstract_unity_linker {
 		}
 		else{
 			write "PlayerID_Ready " + player_ID + " " + Ready + " move to tutorial zone";
-			new_player_position[player_ID] <- [tutorial_location.location.x *precision,tutorial_location.location.y *precision,tutorial_location.location.z *precision];
+			
+			ask unity_player where (each.name = player_ID){
+				location <- {tutorial_location.x, tutorial_location.y + 4.5, adjust_z};
+				ask unity_linker {
+					new_player_position[myself.name] <- [myself.location.x *precision,myself.location.y *precision,myself.location.z *precision];
+					move_player_event <- true;
+				}
+			}
+			
+//			new_player_position[player_ID] <- [tutorial_location.location.x *precision,(tutorial_location.location.y + 4.5) *precision,tutorial_location.location.z *precision];
 		}
 	}
 	
