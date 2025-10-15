@@ -33,6 +33,7 @@ global{
 	list<int> ready_team_list <- [];
 	list<int> before_Q_team_list <- [];
 	list<int> after_Q_team_list <- [];
+	list<list<list<string>>> for_save_answer <- list_with(6, list_with(2, []));
 	bool all_player_ready <- false;
 	bool all_player_before_Q <- false;
 	bool all_player_after_Q <- false;
@@ -283,7 +284,8 @@ global{
 	}
 	
 	reflex do_resume when: not paused and can_start{
-		if tutorial_finish{
+		if all_player_ready and tutorial_finish {
+			write "Increase count_start ~~~~~~~~~~~~~~~~~~~";
 			count_start <- count_start + 1 ;
 			init_time <- gama.machine_time div 1000;
 //			do create_tree;
@@ -302,6 +304,9 @@ global{
 //		can_start <- true;
 	}
 	
+	reflex write{
+		write "count_start " + count_start;
+	}
 
 }
 

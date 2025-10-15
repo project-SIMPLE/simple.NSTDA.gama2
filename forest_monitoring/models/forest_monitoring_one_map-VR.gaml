@@ -123,6 +123,7 @@ global{
 				ask front_tree {do die;}
 				
 				tutorial_finish <- false;
+				for_save_answer <- list_with(6, list_with(2, []));
 			}
 		}
 	}
@@ -556,6 +557,50 @@ global{
 			all_for_send <- [];
 		}
 	}
+	
+	action save_Questionnaire_answer_to_csv{
+		if count_start = 1{
+			list header <- ["round", "team", "no.", "before/after", "answer"];
+			write header;
+			save header to: "../results/Questionnaire_answers.csv" header:false format:"csv" rewrite:true;
+		}	
+		
+		loop p over:connect_team_list{
+			if not empty(for_save_answer[map_player_idint[map_player_intid[p]]-1][0]){
+				loop i from:0 to: length(for_save_answer[map_player_idint[map_player_intid[p]]-1][0])-1{
+					list temp <- [];
+					add count_start to:temp;
+					add ("team"+p) to:temp;
+					add (i+1) to:temp;
+					add "before" to:temp;
+					add for_save_answer[map_player_idint[map_player_intid[p]]-1][0][i] to:temp;
+					
+					write temp;
+					save temp to: "../results/Questionnaire_answers.csv" header:false format:"csv" rewrite:false;
+				}
+			}
+			else{
+				write "The questionnaire (before) is empty.";
+			}
+			
+			if not empty(for_save_answer[map_player_idint[map_player_intid[p]]-1][1]){
+				loop i from:0 to: length(for_save_answer[map_player_idint[map_player_intid[p]]-1][1])-1{
+					list temp <- [];
+					add count_start to:temp;
+					add ("team"+p) to:temp;
+					add (i+1) to:temp;
+					add "after" to:temp;
+					add for_save_answer[map_player_idint[map_player_intid[p]]-1][1][i] to:temp;
+					
+					write temp;
+					save temp to: "../results/Questionnaire_answers.csv" header:false format:"csv" rewrite:false;
+				}	
+			}
+			else{
+				write "The questionnaire (after) is empty.";
+			}
+		}
+	}
 }
 
 
@@ -672,7 +717,11 @@ species unity_linker parent: abstract_unity_linker {
 			
 			if not (map_player_idint[PlayerID] in before_Q_team_list){
 				add map_player_idint[PlayerID] to:before_Q_team_list;	
+				loop i over: answer_list{
+					add i to: for_save_answer[map_player_idint[PlayerID]-1][0];
+				}
 			}
+			write for_save_answer;
 			
 			if (before_Q_team_list sort_by (each)) = (connect_team_list sort_by (each)){
 				write "All player before Q " + (before_Q_team_list sort_by (each)) + " = " +
@@ -690,13 +739,19 @@ species unity_linker parent: abstract_unity_linker {
 			
 			if not (map_player_idint[PlayerID] in after_Q_team_list){
 				add map_player_idint[PlayerID] to:after_Q_team_list;	
+				loop i over: answer_list{
+					add i to: for_save_answer[map_player_idint[PlayerID]-1][1];
+				}
 			}
+			write for_save_answer;
 			
 			if (after_Q_team_list sort_by (each)) = (connect_team_list sort_by (each)){
 				write "All player after Q " + (after_Q_team_list sort_by (each)) + " = " +
 					(connect_team_list sort_by (each));
 				all_player_after_Q <- true;
 				ask world{
+					do save_Questionnaire_answer_to_csv;
+					write "save_Questionnaire_answer_to_csvvvvvvvvvvvvvvvvvvvvvvvvvvvv";
 					do pause;
 					can_start <- true;
 				}
