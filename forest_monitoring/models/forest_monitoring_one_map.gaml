@@ -17,18 +17,18 @@ global{
 	float height <- shape.height;
 	
 	int n_teams <- 6;
-//	int n_tree <- 100;
 	list<int> n_tree <- [10,10,10,10,10,10,10,10,10,10];
-//	int n_old_tree <- 10;
 	list<int> n_old_tree <- [1,1,1,1,1,1,1,1,1,1];
 	float size_of_tree <- 50.0;
 	float size_of_old_tree <- 100.0;
 	float tree_distance <- 2.0;
 	 
+	list<string> color_list <- ["Blue", "Red", 'Green', "Yellow", "Black", "White"];
 	list<rgb> player_colors <- [rgb(66, 72, 255), #red, #green, rgb(255, 196, 0), #black, rgb(156, 152, 142)];
 	list<string> player_name <- ["Player_101", "Player_102", "Player_103", "Player_104", "Player_59", "Player_52"];
 	map<int, string> map_player_intid <- [1::player_name[0], 2::player_name[1], 3::player_name[2], 4::player_name[3], 5::player_name[4], 6::player_name[5]];
 	map<string, int> map_player_idint <- [player_name[0]::1, player_name[1]::2, player_name[2]::3, player_name[3]::4, player_name[4]::5, player_name[5]::6];
+	map<string, int> map_player_colorint <- [color_list[0]::1, color_list[1]::2, color_list[2]::3, color_list[3]::4, color_list[4]::5, color_list[5]::6];
 	list<int> connect_team_list <- [];
 	list<int> ready_team_list <- [];
 	list<int> before_Q_team_list <- [];
@@ -47,14 +47,15 @@ global{
 	int init_time <- 0;
 	int count_start <- 0 ;
 	bool game_start <- false;
-	bool end_game <- false;
 	bool next_time <- false;
 	
+	point result_location;
 	point tutorial_location;
 	point main_location;
 	
 	action resume_game;
 	action pause_game;
+	action remove_threat(int p, string threat);
 	
 	geometry usable_area_for_wildfire ;
 	geometry usable_area_for_tree;
@@ -62,6 +63,7 @@ global{
 	list<list<int>> n_remain_tree <- list_with(6, list_with(3, 0));
 	list<int> sum_score_list <- list_with(6,0);
 	list<int> total_score_list <- list_with(6,0);
+	float alpha <- 0.5;
 	int upper_bound <- 150;
 	
 	int time_interval <- 15;
@@ -69,9 +71,9 @@ global{
 	list<int> raining_Stime <- [15, 90,225];
 	list<int> raining_Etime <- [45,135,240];
 	
-	list<int> alien_Stime <- 	[   0,  15,  90, 180];
-	list<int> alien_Etime <- 	[  15,  45, 135, 210];
-	list<string> alien_type <-	["A1","A2","A2","A1"];
+	list<int> alien_Stime <- 	[   0,  15,  30,  90, 105, 120, 165, 180, 195];
+	list<int> alien_Etime <- 	[  15,  30,  45, 105, 120, 135, 180, 195, 210];
+	list<string> alien_type <-	["A2","A1","A2","A2","A1","A2","A1","A2","A1"];
 	
 	list<int> grass_Stime <- 	[  15,  30, 105, 180];
 	list<int> grass_Etime <- 	[  30,  45, 135, 210];
@@ -86,7 +88,12 @@ global{
 //	 86 -> 110	bg3
 // 	111 -> 130	bg4
 //	131 -> 150	bg5
-	list<int> list_of_bg_score <- [-50,41,86,111,131,150+1];
+//	list<int> list_of_bg_score <- [-50,41,86,111,131,150+1];
+
+//	[-100, -33] bg1
+//	( -33,  33] bg2
+//	(  33, 100] bg3
+	list<int> list_of_bg_score <- [-100,-33,33,100+1];
 	list<int> list_of_player_bg <- [2,2,2,2,2,2];
 	
 	list<int> zone_list <- [1,2,3,4];
@@ -110,9 +117,20 @@ global{
 			location <- {width/2,-(width/2)+15,0};
 			shape <- rectangle(10#m, 10#m);
 		}
+		create tutorial_area{
+			location <- {width/2,-(width/2)+15,-200};
+			shape <- rectangle(10#m, 10#m);
+		}
 		
 		main_location <- playerable_area[0].location;
 		tutorial_location <- tutorial_area[0].location;
+		result_location <- tutorial_area[2].location;
+		
+		loop i from:0 to:5{
+			create reset{
+				location <- {width + 6, 4 + (8*i)}; 
+			}
+		}
 	}
 	
 	action create_tree{
@@ -124,11 +142,12 @@ global{
 		
 		ask old_tree {do die;}
 		ask tree {do die;}
+		ask front_tree {do die;}
 		
 		point at_location ;
 		int count_create_tree <- 0;
 		int count_label_tree <- 0;
-//		loop i from:0 to:(n_old_tree-1){
+		
 		loop i from:0 to:(length(n_old_tree)-1){
 			loop cnt from:1 to:n_old_tree[i]{
 				if count_create_tree > 0{
@@ -142,7 +161,6 @@ global{
 				}
 				else{
 					at_location <- any_location_in(usable_area_for_tree-1);
-//					int temp_type <- rnd(1, 3);
 					
 					loop p over:connect_team_list{
 						create old_tree{
@@ -151,33 +169,12 @@ global{
 										at_location.z
 										};
 							shape <- circle(size_of_old_tree#cm);
-	//						shape <- circle((size_of_old_tree-(10*j))#cm);
-	//						color <- player_colors[j-1];
-//							tree_type <- temp_type;
 							tree_type <- i+1;
 							player <- p;
 							name <- "p" + p + "oldtree" + count_label_tree;
 							count_create_tree <- count_create_tree + 1;
 						}
 					}
-					
-//					loop j from:1 to:n_teams{
-//						create old_tree{
-//							location <- {at_location.x,
-//										at_location.y,
-//										at_location.z
-//										};
-//							shape <- circle(size_of_old_tree#cm);
-//	//						shape <- circle((size_of_old_tree-(10*j))#cm);
-//	//						color <- player_colors[j-1];
-////							tree_type <- temp_type;
-//							tree_type <- i+1;
-//							player <- j;
-//							name <- "p" + j + "oldtree" + count_label_tree;
-//							count_create_tree <- count_create_tree + 1;
-//						}
-//					}
-					
 				}
 				count_label_tree <- count_label_tree + 1;
 			}
@@ -186,8 +183,6 @@ global{
 		usable_area_for_tree <- usable_area_for_tree - (old_tree[count_create_tree-1].shape + tree_distance);
 		save usable_area_for_tree to:"../includes/export/usable_area_for_tree_with_oldtree.shp" format:"shp";
 		
-
-			
 		count_create_tree <- 0;
 		count_label_tree <- 0;
 		loop i from:0 to:(length(n_tree)-1){
@@ -203,7 +198,6 @@ global{
 				}
 				else{
 					at_location <- any_location_in(usable_area_for_tree);
-//					int temp_type <- rnd(1, 3);
 					int temp_zone;
 					
 					if (at_location.x <= (width/2)) and (at_location.y <= (height/2)){
@@ -226,7 +220,6 @@ global{
 										at_location.z
 										};
 							shape <- circle(size_of_tree#cm);
-//							tree_type <- temp_type;
 							tree_type <- i+1;
 							it_state <- 1;
 							player <- p;
@@ -238,24 +231,6 @@ global{
 						}
 					}
 					
-//					loop j from:1 to:n_teams{
-//						create tree{
-//							location <- {at_location.x,
-//										at_location.y,
-//										at_location.z
-//										};
-//							shape <- circle(size_of_tree#cm);
-////							tree_type <- temp_type;
-//							tree_type <- i+1;
-//							it_state <- 1;
-//							player <- j;
-//							name <- "p" + j + "tree" + count_label_tree;
-//							name_for_front_tree <- "tree" + count_label_tree;
-//							number <- count_label_tree;
-//							zone <- temp_zone;
-//							count_create_tree <- count_create_tree + 1;
-//						}
-//					}
 					create front_tree{
 						location <- {at_location.x,
 									at_location.y,
@@ -285,10 +260,8 @@ global{
 	
 	reflex do_resume when: not paused and can_start{
 		if all_player_ready and tutorial_finish {
-			write "Increase count_start ~~~~~~~~~~~~~~~~~~~";
 			count_start <- count_start + 1 ;
 			init_time <- gama.machine_time div 1000;
-//			do create_tree;
 			game_start <- true;
 		}
 		
@@ -296,18 +269,11 @@ global{
 		do resume_game;
 	}
 	
-//	reflex do_pause when: (time_now >= time_to_play*count_start) 
+
 	reflex do_pause when: (time_now >= time_to_play+2) 
 		and (cycle != 0) and not can_start and tutorial_finish{
 		do pause_game;
-//		do pause;
-//		can_start <- true;
 	}
-	
-	reflex write{
-		write "count_start " + count_start;
-	}
-
 }
 
 experiment init_exp type: gui {
@@ -315,7 +281,6 @@ experiment init_exp type: gui {
 		layout vertical([horizontal([0::1, 1::1])::1, horizontal([2::1, 3::1, 4::1, 5::1, 6::1, 7::1])::1]) 
 		toolbars: true tabs: false parameters: false consoles: true navigator: false controls: true tray: false ;
 		display "Main" type: 3d background: rgb(50,50,50) locked:true antialias:true {
-//			camera 'default' location: {25.14,12.26,70.0} target: {25.14,12.26,0.0};
 			camera 'default' location: {25.14,12.2616,92.8721} target: {25.14,12.26,0.0};
 			species map_area;
 			species playerable_area;
@@ -325,15 +290,63 @@ experiment init_exp type: gui {
 			species tree;
 			species front_tree;
 			species icon_everything;
+			species reset;
+			
+			event #mouse_down {
+				int temp_team1 <- 1;
+				int temp_team2 <- 2;
+				if (#user_location distance_to reset[0] < 3) and not paused{
+					ask world{
+						//write "Reset Player_101" ;
+						do remove_threat(temp_team1, "Fire");
+						write map_player_intid[temp_team1] + " remove Fire";
+						
+//						//write "Reset Player_51" ;
+//						do resend_command_to_unity("Player_51");
+					}
+				}
+				else if (#user_location distance_to reset[1] < 3) and not paused{
+					ask world{
+						//write "Reset Player_102" ;
+						do remove_threat(temp_team1, "Aliens");
+						write map_player_intid[temp_team1] + " remove Aliens";
+					}
+				}
+				else if (#user_location distance_to reset[2] < 3) and not paused{
+					ask world{
+						//write "Reset Player_103" ;
+						do remove_threat(temp_team1, "Grasses");
+						write map_player_intid[temp_team1] + " remove Grasses";
+					}
+				}
+				else if (#user_location distance_to reset[3] < 3) and not paused{
+					ask world{
+						//write "Reset Player_104" ;
+						do remove_threat(temp_team2, "Fire");
+						write map_player_intid[temp_team2] + " remove Fire";
+					}
+				}
+				else if (#user_location distance_to reset[4] < 3) and not paused{
+					ask world{
+						//write "Reset Player_105" ;
+						do remove_threat(temp_team2, "Aliens");
+						write map_player_intid[temp_team2] + " remove Aliens";
+					}
+				}
+				else if (#user_location distance_to reset[5] < 3) and not paused{
+					ask world{
+						//write "Reset Player_106" ;
+						do remove_threat(temp_team2, "Grasses");
+						write map_player_intid[temp_team2] + " remove Grasses";
+					}
+				}
+			}
 			
 			graphics Strings {
-				if (tutorial_finish = true){
-//					if not end_game{
+				if (tutorial_finish and game_start){
 					if (time_now <= time_to_play){
-//						draw "Remaining time: "+ (((time_to_play*count_start) - time_now) div 60) + " minutes " + 
-//						(((time_to_play*count_start) - time_now) mod 60) + " seconds" 
-						draw "Remaining time: "+ (((time_to_play) - time_now) div 60) + " minutes " + 
-						(((time_to_play) - time_now) mod 60) + " seconds"
+						draw "Remaining time: "+ ((time_to_play - time_now) div 60) + " minutes " + 
+						((time_to_play - time_now) mod 60) + " seconds"
 						at:{width/4.5, -21} 
 						font:font("Times", 20, #bold+#italic) ;
 					}
@@ -345,15 +358,21 @@ experiment init_exp type: gui {
 					
 				}
 				else{
-					draw "Remaining time: - Tutorial" + (count_start+1) + "..." 
+					draw "Remaining time: - (Tutorial " + (count_start+1) + ")..." 
 					at:{width/4.5, -21} 
 					font:font("Times", 20, #bold+#italic) ;
+				}
+				loop i from:0 to:5{
+					draw "Team" + (i+1) + " " + color_list[i] +  ": " 
+						at:{width+1, 2 + (8*i)} 
+						font:font("Times", 12, #bold+#italic) 
+						color:player_colors[i];		
 				}
 			}
 		}
 		display "Total" type: 2d locked:true{
 			chart "Total seeds" type:histogram reverse_axes:true
-			y_range:[-50, 150*count_start]
+			y_range:[-50, 150*(count_start+1)]
 			x_serie_labels: [""]
 			style:"3d"
 			series_label_position: xaxis
@@ -361,15 +380,17 @@ experiment init_exp type: gui {
 				loop i from:0 to:(length(sum_score_list)-1){
 					data "Team" + (i+1) value:int(total_score_list[i]+sum_score_list[i])
 					color:player_colors[i];
-//					legend: string(int(sum_total_seeds[i])) ;
+
 				}
 			}
-//			graphics Strings {
-//				loop i from:0 to:(length(sum_score_list)-1){
-//					draw "=> " + int(total_score_list[i]+sum_score_list[i]) at:{40,14} font:font("Times", 16, #bold+#italic) 
-//					border:#black color:player_colors[i];
-//				}
-//			}
+			graphics Strings {
+				loop i from:0 to:(length(sum_score_list)-1){
+					draw "=> " + int(total_score_list[i]+sum_score_list[i]) 
+						at:{width/1.3, 13 + 6.3*i} 
+						font:font("Times", 16, #bold+#italic) 
+						border:#black color:player_colors[i];
+				}
+			}
 		}
 		display "His_Team1" type: 2d locked:true{ 		
 			chart "Team1" type:histogram 

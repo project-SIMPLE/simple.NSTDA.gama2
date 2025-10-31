@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>GAMA WebSocket Control</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <style>
+      body { background:#f5f7fa; }
+      .card { border-radius:1rem; box-shadow:0 2px 8px rgba(0,0,0,.08); }
+      #log  { font-family:monospace; white-space:pre-wrap; background:#111; color:#0f0; height:300px; overflow:auto; border-radius:.5rem; padding:10px; }
+      .team-card input { display:none; }
+      .team-card label {
+        cursor:pointer; border:2px solid transparent; border-radius:.75rem; padding:16px;
+        width:100%; text-align:center; font-weight:600; color:#fff;
+      }
+      .team-card input:checked + label { border-color:#000; outline:3px solid rgba(0,0,0,.15); }
+    </style>
+  </head>
+  <body>
+    <div class="container py-4">
+
+      <!-- ========== STEP 1: Team Select ========== -->
+      <div id="step1" class="card p-4 mb-4">
+        <h1 class="mb-3 fw-bold text-primary text-center">Choose your team</h1>
+        <p class="text-center text-muted mb-4">Select a team and click <strong>Next</strong>.</p>
+
+        <div class="row g-3">
+          <!-- Blue -->
+          <div class="col-6 col-md-4 team-card">
+            <input type="radio" id="team_blue" name="team" value="Blue" />
+            <label for="team_blue" style="background:#1d4ed8">Blue</label>
+          </div>
+          <!-- Red -->
+          <div class="col-6 col-md-4 team-card">
+            <input type="radio" id="team_red" name="team" value="Red" />
+            <label for="team_red" style="background:#dc2626">Red</label>
+          </div>
+          <!-- Green -->
+          <div class="col-6 col-md-4 team-card">
+            <input type="radio" id="team_green" name="team" value="Green" />
+            <label for="team_green" style="background:#16a34a">Green</label>
+          </div>
+          <!-- Yellow -->
+          <div class="col-6 col-md-4 team-card">
+            <input type="radio" id="team_yellow" name="team" value="Yellow" />
+            <label for="team_yellow" style="background:#eab308">Yellow</label>
+          </div>
+          <!-- Black -->
+          <div class="col-6 col-md-4 team-card">
+            <input type="radio" id="team_black" name="team" value="Black" />
+            <label for="team_black" style="background:#111827">Black</label>
+          </div>
+          <!-- White -->
+          <div class="col-6 col-md-4 team-card">
+            <input type="radio" id="team_white" name="team" value="White" />
+            <label for="team_white" style="background:#9ca3af; color:#000; font-weight:700">White</label>
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-end mt-4">
+          <button id="nextBtn" class="btn btn-primary" disabled>Next</button>
+        </div>
+      </div>
+
+      <!-- ========== STEP 2: Control UI ========== -->
+      <h1 id="appTitle" class="mb-4 fw-bold text-center text-primary d-none">🌐 GAMA WebSocket Control</h1>
+
+      <div id="controlCard" class="card p-4 mb-4 d-none">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <div class="d-flex align-items-center gap-3">
+            <div>
+              <span class="fw-semibold me-2">Status:</span>
+              <span id="badge" class="badge text-bg-secondary">Disconnected</span>
+            </div>
+            <div>
+              <span class="fw-semibold me-2">Team:</span>
+              <span id="teamBadge" class="badge text-bg-dark">-</span>
+              <button id="changeTeam" class="btn btn-sm btn-outline-secondary ms-2">Change team</button>
+            </div>
+          </div>
+          <div class="d-flex gap-2">
+            <button id="conn" class="btn btn-primary">Connect</button>
+            <button id="disc" class="btn btn-outline-danger" disabled>Disconnect</button>
+          </div>
+        </div>
+
+        <div class="d-flex gap-2 mb-3">
+          <button class="btn btn-danger" id="btn_fire"  disabled>Reset Fire</button>
+          <button class="btn btn-warning" id="btn_alien" disabled>Reset Alien</button>
+          <button class="btn btn-success" id="btn_grass" disabled>Reset Grass</button>
+        </div>
+
+        <h6 class="fw-semibold mb-2">Log</h6>
+        <div id="log">(no messages yet)</div>
+      </div>
+    </div>
+
+    <script>
+      // ---------- Step management ----------
+      const step1       = document.getElementById("step1");
+      const appTitle    = document.getElementById("appTitle");
+      const controlCard = document.getElementById("controlCard");
+      const nextBtn     = document.getElementById("nextBtn");
+      const teamBadge   = document.getElementById("teamBadge");
+      const changeTeam  = document.getElementById("changeTeam");
+      let selectedTeam  = null;
+
+      // Restore team from localStorage if exists
+      const savedTeam = localStorage.getItem("team");
+      if (savedTeam) {
+        selectedTeam = savedTeam;
+        enterControlUI(savedTeam);
+      }
+
+      // Enable Next when a team is picked
+      document.querySelectorAll('input[name="team"]').forEach(r => {
+        r.addEventListener("change", () => { nextBtn.disabled = false; });
+      });
+
+      nextBtn.onclick = () => {
+        const picked = document.querySelector('input[name="team"]:checked');
+        if (!picked) return;
+        selectedTeam = picked.value;
+        localStorage.setItem("team", selectedTeam);
+        enterControlUI(selectedTeam);
+      };
+
+      changeTeam.onclick = () => {
+        // go back to step 1
+        localStorage.removeItem("team");
+        selectedTeam = null;
+        step1.classList.remove("d-none");
+        appTitle.classList.add("d-none");
+        controlCard.classList.add("d-none");
+      };
+
+      function enterControlUI(teamName) {
+        // update UI
+        step1.classList.add("d-none");
+        appTitle.classList.remove("d-none");
+        controlCard.classList.remove("d-none");
+        teamBadge.textContent = teamName;
+
+        // set badge color per team
+        const map = {
+          Blue:   "primary",
+          Red:    "danger",
+          Green:  "success",
+          Yellow: "warning",
+          Black:  "dark",
+          White:  "light"
+        };
+        teamBadge.className = "badge text-bg-" + (map[teamName] || "secondary");
+      }
+
+      // ---------- WebSocket Control ----------
+      let sock;
+      const logBox = document.getElementById("log");
+      const badge  = document.getElementById("badge");
+      const btns   = [
+        document.getElementById("btn_fire"),
+        document.getElementById("btn_alien"),
+        document.getElementById("btn_grass"),
+      ];
+
+      const log = (m, color="lime") => {
+        const t = new Date().toLocaleTimeString();
+        logBox.innerHTML += `<span style="color:${color}">[${t}] ${m}</span><br>`;
+        logBox.scrollTop = logBox.scrollHeight;
+      };
+      const setStatus  = (text, cls) => { badge.textContent = text; badge.className = "badge text-bg-" + cls; };
+      const setEnabled = (enabled) => btns.forEach(b => b.disabled = !enabled);
+
+      document.getElementById("conn").onclick = () => {
+        const scheme = location.protocol === "https:" ? "wss://" : "ws://";
+        const url = scheme + location.host + "/ws";
+        sock = new WebSocket(url);
+
+        sock.onopen = () => {
+          setStatus("Connected","success");
+          setEnabled(true);
+          document.getElementById("disc").disabled = false;
+          log("✅ connected (team: " + (selectedTeam || "-") + ")", "cyan");
+        };
+        sock.onmessage = (e) => log("<- " + e.data);
+        sock.onclose = () => {
+          setStatus("Disconnected","secondary");
+          setEnabled(false);
+          document.getElementById("disc").disabled = true;
+          log("❌ disconnected","red");
+        };
+        sock.onerror = (e) => log("⚠️ error " + (e.message || ""), "orange");
+      };
+
+      document.getElementById("disc").onclick = () => {
+        if (sock) {
+          sock.close();
+          log("🔌 manually disconnected","red");
+        }
+      };
+
+      function sendAction(name) {
+        //const msg = {name, payload: { team: selectedTeam || null } };
+        //sock.send(JSON.stringify(msg));
+        //log("-> " + JSON.stringify(msg), "yellow");
+
+        const msg =
+            "type=" + "RemoveThreat" +
+            ";team=" + selectedTeam +
+            ";threat=" + name;
+        sock.send(msg);
+        log("-> " + msg, "yellow");
+      }
+
+      document.getElementById("btn_fire").onclick  = () => sendAction("Fire");
+      document.getElementById("btn_alien").onclick = () => sendAction("Aliens");
+      document.getElementById("btn_grass").onclick = () => sendAction("Grasses");
+    </script>
+  </body>
+</html>

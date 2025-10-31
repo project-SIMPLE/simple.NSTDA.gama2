@@ -9,12 +9,11 @@
 model OptimizeSpeciesonemap
 
 global{
-//	image_file fire_image_file <- image_file("../images/fire.png");
-//	image_file alien_image_file <- image_file("../images/alien.png");
 	image_file fire_image_file <- gif_file("../images/fire1.gif");
 	image_file alien_image_file <- gif_file("../images/alien1.gif");
 	image_file rain_image_file <- image_file("../images/rain.png");
 	image_file blank_image_file <- image_file("../images/blank.png");
+	image_file reset_image <- image_file("../images/reset.png");
 	
 	int time_now;
 	int time_interval;
@@ -31,6 +30,13 @@ global{
 		
 	init{
 		write "time_to_play " + time_to_play;
+	}
+}
+
+species reset {
+	image_file img <- reset_image;
+	aspect default {
+		draw img size:{10,6};
 	}
 }
 
@@ -59,7 +65,6 @@ species icon_everything{
 			}
 		}
 		
-//		draw status_icon size:{1.25,1.25};
 		draw status_icon size:{10.0,10.0};
 	}
 }
@@ -108,7 +113,7 @@ species tree{
 	string name_for_front_tree ;
 	
 	float logist_growth (float init_input, float max_height, float growth_rate){
-//		growth_rate <- growth_rate + rnd (-0.1, 0.1) * growth_rate;
+		growth_rate <- growth_rate + rnd (-0.1, 0.1) * growth_rate;
 		
 		float height_logist <- (init_input * max_height) / (init_input + (max_height - init_height) * 
 							exp (-((growth_rate) * ((current_time * n_years / (time_to_play)) - 0)))) ;
