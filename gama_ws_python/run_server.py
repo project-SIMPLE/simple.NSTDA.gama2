@@ -13,7 +13,7 @@ def get_local_ip():
         s.close()
     return ip
 
-def find_free_port(start=8000, max_tries=20):
+def find_free_port(start=8000, max_tries=50):
     for port in range(start, start + max_tries):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             try:

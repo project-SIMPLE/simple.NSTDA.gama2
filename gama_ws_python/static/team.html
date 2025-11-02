@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Team | GAMA Control</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <style>
+    body { background:#f5f7fa; }
+    .card { border-radius:1rem; box-shadow:0 2px 8px rgba(0,0,0,.08); }
+
+    /* ---------- Header layout: responsive grid ---------- */
+    .header-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: .75rem;
+    }
+    @media (min-width: 768px) {
+      .header-grid {
+        grid-template-columns: auto auto;
+        align-items: center;
+        justify-content: start;
+        column-gap: 1rem;
+      }
+    }
+
+    /* Team box */
+    #teamFrame {
+      border: 3px solid;
+      background: #fff;
+      border-radius: 1rem;
+      box-shadow: 0 2px 10px rgba(0,0,0,.06);
+    }
+    .team-name {
+      margin: 0;
+      font-size: clamp(1.25rem, 6vw, 2rem);
+      line-height: 1.15;
+    }
+
+    /* Status box */
+    .status-box {
+      display: inline-flex;
+      align-items: center;
+      gap: .6rem;
+    }
+    @media (max-width: 767.98px) {
+      .status-box {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: .5rem;
+      }
+      #reconn { width: 100%; }
+    }
+
+    /* Action buttons */
+    .actions { display: grid; gap: .5rem; }
+    @media (min-width: 768px) {
+      .actions { display: flex; gap: .5rem; flex-wrap: wrap; }
+      .actions .btn { min-width: 14rem; }
+    }
+    .btn .icon { font-size: 1.15em; line-height: 1; margin-right: .35rem; }
+    .coins-line { display:flex; align-items:center; gap:.5rem; }
+  </style>
+</head>
+<body>
+<div class="container py-4">
+  <div class="card p-4">
+
+    <!-- ========== Header ========== -->
+    <div class="header-grid mb-2">
+      <div id="teamFrame" class="p-3">
+        <h3 id="teamTitle" class="team-name">Team</h3>
+      </div>
+
+      <div class="status-box">
+        <span class="fw-semibold">Status:</span>
+        <span id="badge" class="badge text-bg-secondary">Disconnected</span>
+        <button id="reconn" class="btn btn-outline-primary" disabled>Re-connect</button>
+      </div>
+    </div>
+
+    <hr/>
+
+    <!-- ========== Coins ========== -->
+    <div class="coins-line mb-3">
+      <span class="fw-semibold">Coins:</span>
+      <span id="coins" class="badge text-bg-dark">0</span>
+    </div>
+
+    <!-- ========== Actions ========== -->
+    <div class="actions mb-2">
+      <button class="btn btn-danger"  id="btn_fire"><span class="icon">🔥</span>Reset Fire (cost 3)</button>
+      <button class="btn btn-warning" id="btn_alien"><span class="icon">👽</span>Reset Alien (cost 2)</button>
+      <button class="btn btn-success" id="btn_grass"><span class="icon">🌿</span>Reset Grass (cost 1)</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Modal -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Confirm reset</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p class="mb-1">Threat: <strong id="cfThreat">-</strong></p>
+        <p class="mb-1">Cost: <span class="badge text-bg-dark" id="cfCost">0</span></p>
+        <p class="text-muted small mb-0">Your coins: <span id="cfCoins">0</span></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="cfConfirmBtn">Confirm</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toasts -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3" id="toasts"></div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+/* -------- Team -------- */
+const qp   = new URLSearchParams(location.search);
+const TEAM = qp.get("team") || "Unknown";
+document.getElementById("teamTitle").textContent = `Team ${TEAM}`;
+
+/* -------- Buttons & Costs -------- */
+const btnFire  = document.getElementById("btn_fire");
+const btnAlien = document.getElementById("btn_alien");
+const btnGrass = document.getElementById("btn_grass");
+const reconnBtn= document.getElementById("reconn");
+const badge    = document.getElementById("badge");
+const coinsEl  = document.getElementById("coins");
+const COST     = { Fire:3, Alien:2, Grass:1 };
+
+/* Team frame color */
+const TEAM_COLOR = {
+  Blue:   "#1d4ed8",
+  Red:    "#dc2626",
+  Green:  "#16a34a",
+  Yellow: "#eab308",
+  Black:  "#111827",
+  White:  "#9ca3af"
+};
+const frame = document.getElementById("teamFrame");
+frame.style.borderColor = TEAM_COLOR[TEAM] || "#6c757d";
+
+/* -------- Server coins (no localStorage) -------- */
+let coinsLoaded = false;
+let currentCoins = 0;
+
+function setCoins(val){
+  currentCoins = Math.max(0, val|0);
+  coinsEl.textContent = String(currentCoins);
+  updateActionButtons();
+}
+
+async function fetchCoins(){
+  try {
+    const res = await fetch(`/api/coins/${encodeURIComponent(TEAM)}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    setCoins(data.coins ?? 0);
+    coinsLoaded = true;
+  } catch (e) {
+    showToast("Failed to load coins from server.", "danger");
+    coinsLoaded = false;
+    setCoins(0);
+  } finally {
+    updateActionButtons();
+  }
+}
+
+async function decrementCoins(cost, action){
+  const res = await fetch("/api/coins/decrement", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ team: TEAM, cost, action })
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const data = await res.json();
+  if (!data.ok) throw new Error("Server rejected decrement");
+  setCoins(data.coins ?? 0);
+  return data.coins ?? 0;
+}
+
+/* -------- Toasts -------- */
+const toasts = document.getElementById("toasts");
+function showToast(msg, variant="primary") {
+  const el = document.createElement("div");
+  el.className = `toast align-items-center text-bg-${variant} border-0`;
+  el.innerHTML = `<div class="d-flex"><div class="toast-body">${msg}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>`;
+  toasts.appendChild(el);
+  const t = new bootstrap.Toast(el, { delay: 2200 }); t.show();
+  el.addEventListener("hidden.bs.toast", () => el.remove());
+}
+
+/* -------- Haptics (mobile vibration) -------- */
+function buzzSuccess(){ if (navigator.vibrate) navigator.vibrate(60); }
+function buzzWarn(){ if (navigator.vibrate) navigator.vibrate([30, 40, 30]); }
+
+/* -------- WS state -------- */
+let sock = null;
+let bridgeReady = false; // Browser ↔ Bridge
+let gamaReady   = false; // Bridge ↔ GAMA
+
+const STATUS = { DISCONNECTED:"Disconnected", CONNECTING:"Connecting", WAITING:"Waiting GAMA", CONNECTED:"Connected" };
+function setBadge(text, cls){ badge.textContent = text; badge.className = "badge text-bg-" + cls; }
+function isSockOpen(){ return sock && sock.readyState === 1; }
+
+/* Enable/disable + color buttons by coins & connection */
+function updateActionButtons(){
+  const canSend = gamaReady && isSockOpen();
+  const setBtnState = (btn, baseClass, cost) => {
+    const enough = currentCoins >= cost;
+    const on = canSend && coinsLoaded && enough;
+    btn.disabled = !on;
+    btn.classList.remove("btn-secondary","btn-danger","btn-warning","btn-success");
+    btn.classList.add(on ? baseClass : "btn-secondary");
+  };
+  setBtnState(btnFire,  "btn-danger",  COST.Fire);
+  setBtnState(btnAlien, "btn-warning", COST.Alien);
+  setBtnState(btnGrass, "btn-success", COST.Grass);
+
+  reconnBtn.disabled = isSockOpen();
+}
+
+function refreshUI(){
+  if (!bridgeReady) { setBadge(STATUS.DISCONNECTED, "secondary"); }
+  else if (bridgeReady && !gamaReady){ setBadge(STATUS.WAITING, "warning"); }
+  else if (bridgeReady && gamaReady){ setBadge(STATUS.CONNECTED, "success"); }
+  updateActionButtons();
+}
+
+/* WS connect */
+function connectWS(){
+  if (isSockOpen()) return;
+  bridgeReady = false; gamaReady = false; refreshUI();
+  showToast("Connecting to bridge...", "secondary");
+
+  const scheme = location.protocol === "https:" ? "wss://" : "ws://";
+  const url = scheme + location.host + "/ws";
+  sock = new WebSocket(url);
+
+  sock.onopen = () => {
+    bridgeReady = true; gamaReady = false;
+    showToast("Bridge connected. Waiting for GAMA...", "info");
+    refreshUI();
+  };
+  sock.onclose = () => {
+    bridgeReady = false; gamaReady = false;
+    showToast("Disconnected", "secondary");
+    refreshUI();
+  };
+  sock.onerror = () => {
+    bridgeReady = false; gamaReady = false;
+    showToast("Connection error", "danger");
+    refreshUI();
+  };
+  sock.onmessage = (e) => {
+    try {
+      const obj = JSON.parse(e.data);
+      if (obj?.error === "gama_unreachable") {
+        gamaReady = false;
+        showToast("GAMA not reachable. Retrying...", "warning");
+        refreshUI();
+        return;
+      }
+      if (obj?.info === "gama_connected") {
+        gamaReady = true;
+        showToast("Bridge connected to GAMA", "success");
+        refreshUI();
+        return;
+      }
+    } catch { /* normal string from GAMA */ }
+  };
+}
+
+/* -------- Confirm Modal -------- */
+const confirmModalEl = document.getElementById('confirmModal');
+const confirmModal   = new bootstrap.Modal(confirmModalEl);
+const cfThreatEl     = document.getElementById('cfThreat');
+const cfCostEl       = document.getElementById('cfCost');
+const cfCoinsEl      = document.getElementById('cfCoins');
+const cfConfirmBtn   = document.getElementById('cfConfirmBtn');
+let pending = null;
+
+function openConfirm(threat, cost){
+  pending = { threat, cost };
+  cfThreatEl.textContent = threat;
+  cfCostEl.textContent   = String(cost);
+  cfCoinsEl.textContent  = String(currentCoins);
+  confirmModal.show();
+}
+
+/* -------- Actions -------- */
+function sendReset(threat){
+  if (!gamaReady || !isSockOpen()) { showToast("Not connected to GAMA", "warning"); buzzWarn(); return false; }
+  const msg = `type=RemoveThreat;team=${TEAM};threat=${threat}`;
+  try { sock.send(msg); showToast(`Sent reset "${threat}"`, "info"); return true; }
+  catch { showToast("Failed to send", "danger"); return false; }
+}
+
+cfConfirmBtn.onclick = async () => {
+  if (!pending) return;
+  const { threat, cost } = pending;
+
+  if (!gamaReady || !isSockOpen()){
+    showToast("Not connected to GAMA", "warning");
+    buzzWarn();
+    return;
+  }
+  if (currentCoins < cost){
+    showToast(`Not enough coins (${currentCoins}/${cost})`, "warning");
+    buzzWarn();
+    return;
+  }
+
+  if (!sendReset(threat)) return;
+  try {
+    const left = await decrementCoins(cost, threat);
+    showToast(`Coins deducted (-${cost}). Remaining: ${left}`, "success");
+    buzzSuccess();
+    confirmModal.hide();
+    pending = null;
+  } catch (e) {
+    showToast("Failed to update coins on server.", "danger");
+  }
+};
+
+/* Hook buttons */
+btnFire.onclick  = () => openConfirm("Fire",    COST.Fire);
+btnAlien.onclick = () => openConfirm("Aliens",  COST.Alien);
+btnGrass.onclick = () => openConfirm("Grasses", COST.Grass);
+
+/* -------- Init: load coins, open WS -------- */
+(async function init(){
+  await fetchCoins();
+  connectWS();
+  updateActionButtons();
+})();
+reconnBtn.onclick = () => { if (!isSockOpen()) connectWS(); };
+</script>
+</body>
+</html>
