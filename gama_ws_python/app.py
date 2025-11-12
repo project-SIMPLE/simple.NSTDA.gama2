@@ -40,6 +40,9 @@ def save_coins(state: Dict[str, int]):
 
 COINS = load_coins()
 
+# ---------- per-team async locks (prevent double-spend) ----------
+team_locks = {t: asyncio.Lock() for t in TEAMS}  # NEW
+
 # ---------- simple CSV logger for actions ----------
 def init_log_file():
     if not os.path.exists(LOG_FILE):
@@ -105,6 +108,7 @@ async def api_set_one(req: Request):
 
 @app.post("/api/coins/decrement")
 async def api_decrement(req: Request):
+    # CHANGED: ทำให้ตัดเหรียญแบบอะตอมมิกด้วย per-team lock และตรวจยอดก่อนตัด
     data = await req.json()
     team = data.get("team")
     cost = int(max(0, data.get("cost", 0)))
@@ -113,11 +117,37 @@ async def api_decrement(req: Request):
     if team not in TEAMS:
         return JSONResponse({"error":"unknown_team"}, status_code=400)
 
-    COINS[team] = max(0, COINS.get(team, 0) - cost)
-    save_coins(COINS)
+    lock = team_locks[team]
+    async with lock:
+        current = COINS.get(team, 0)
+        if current < cost:
+            # ไม่พอ -> ไม่ตัด และส่งยอดจริงกลับ
+            return {"ok": False, "error": "insufficient_coins", "team": team, "coins": current}
+        COINS[team] = current - cost
+        save_coins(COINS)
 
     client_ip = req.client.host if req.client else "-"
     append_action_log(team, action or f"decrement_{cost}", client_ip)
+
+    return {"ok": True, "team": team, "coins": COINS[team]}
+
+@app.post("/api/coins/refund")
+async def api_refund(req: Request):
+    # NEW: endpoint คืนเหรียญ กรณีตัดสำเร็จแล้วส่งไป GAMA ไม่สำเร็จ
+    data = await req.json()
+    team = data.get("team")
+    amount = int(max(0, data.get("amount", 0)))
+
+    if team not in TEAMS:
+        return JSONResponse({"error":"unknown_team"}, status_code=400)
+
+    lock = team_locks[team]
+    async with lock:
+        COINS[team] = COINS.get(team, 0) + amount
+        save_coins(COINS)
+
+    client_ip = req.client.host if req.client else "-"
+    append_action_log(team, f"refund_{amount}", client_ip)
 
     return {"ok": True, "team": team, "coins": COINS[team]}
 

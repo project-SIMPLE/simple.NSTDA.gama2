@@ -12,7 +12,83 @@ global{
 		}
 	}
 	
+	action resend_command_to_unity (string player_name_ID){
+		int player_ID <- -1;
+		loop i from:0 to:length(unity_player) - 1{
+			ask unity_player[i] {
+				if self.name = player_name_ID{
+					player_ID <- i;
+				}
+			}
+		}
+			
+		if all_player_ready{
+			if tutorial_finish{
+				ask unity_linker {
+					do send_message players: unity_player[player_ID] as list 
+						mes: ["ListOfMessage"::["Head"::"StartGame", 
+												"Body"::"", 
+												"Trees"::"",
+												"Threats"::""]];
+				}
+				write "Resend StartGame at cycle = " + cycle + " for player " + player_name_ID;
+				
+				ask unity_player[player_ID]{
+					location <- {main_location.x, main_location.y, adjust_z};
+					ask unity_linker {
+						new_player_position[myself.name] <- [myself.location.x *precision,
+															myself.location.y *precision,
+															myself.location.z *precision];
+						move_player_event <- true;
+					}
+				}
+//-----------------------------------------------------------------------------------------*********
+				do create_tree;
+
+				loop i from:0 to:(length(total_score_list)-1){
+					total_score_list[i] <- total_score_list[i] + sum_score_list[i];
+				}
+				sum_score_list <- list_with(6,0);
+//-----------------------------------------------------------------------------------------*********
+			}
+			else{
+				ask unity_linker {
+					do send_message players: unity_player[player_ID] as list 
+						mes: ["ListOfMessage"::["Head"::"TutorialStart", 
+												"Body"::"", 
+												"Trees"::"",
+												"Threats"::""]];
+				}
+				write "Resend TutorialStart at cycle = " + cycle + " for player " + player_name_ID;
+			}
+		}
+		else{
+			ask unity_linker {
+				do send_message players: unity_player[player_ID] as list 
+					mes: ["ListOfMessage"::["Head"::"ReadyCheck", 
+											"Body"::"", 
+											"Trees"::"",
+											"Threats"::""]];
+			}
+			write "Resend ReadyCheck at cycle = " + cycle + " for player " + player_name_ID;
+			
+			ask unity_player[player_ID]{
+				self.correct_location <- false;
+				location <- {result_location.x, result_location.y, result_location.z + adjust_z};
+				ask unity_linker {
+					new_player_position[myself.name] <- [myself.location.x *precision,
+														myself.location.y *precision,
+														myself.location.z *precision];
+					move_player_event <- true;
+				}
+			}			
+		}
+	}
+	
 	reflex check_location when: (tutorial_finish = true) and (game_start = false){
+		ask unity_player where not(each.shape overlaps (tutorial_area[2].shape + 1)){
+				self.correct_location <- false;
+		}
 		ask unity_player where (each.correct_location = false){
 			if self.shape overlaps (tutorial_area[2].shape + 1){
 				write self.name + " correct location in tutorial_area[2]";
@@ -95,7 +171,8 @@ global{
 				
 				ask unity_player{
 					self.correct_location <- false;
-					location <- {tutorial_location.x, tutorial_location.y + adjust_y, adjust_z};
+//					location <- {tutorial_location.x, tutorial_location.y + adjust_y, adjust_z};
+					location <- {result_location.x, result_location.y, result_location.z + adjust_z};
 					ask unity_linker {
 						new_player_position[myself.name] <- [myself.location.x *precision,
 															myself.location.y *precision,
@@ -115,6 +192,8 @@ global{
 		list<map<string,string>> send_final_score <- [];
 		list<map<string,string>> send_tree_update_environment <- [];
 		
+		do update_n_remain_tree;
+		
 		// score
 		loop p over:connect_team_list{
 			add map<string, string>(["PlayerID"::map_player_intid[p], 
@@ -130,7 +209,7 @@ global{
 					add map<string, string>(["PlayerID"::map_player_intid[p], 
 											"Name"::string(j+1), 
 											"State"::""]) to:send_tree_update_environment;
-					write "Player " + map_player_intid[p] + " send " + string("Environment"+(j+1)) ;
+					write "Player " + map_player_intid[p] + " change environment to " + string("Environment"+(j+1)) ;
 				}
 			}
 		}
@@ -175,6 +254,16 @@ global{
 									(0			*n_remain_tree[p-1][0]) + 
 									(alpha		*n_remain_tree[p-1][1]) + 
 									((2*alpha)	*n_remain_tree[p-1][2]);
+			
+			loop j from:0 to:(length(tree_name)-1){
+				n_remain_tree_all[p-1][j] <- length(tree where ((each.tree_type = j+1) 
+															and (each.player = p) 
+															and (each.it_can_growth != "0")));
+			}
+			ask Server{
+				do send to: "All" contents:["team"::color_list[p-1], "score"::n_remain_tree_all[p-1]] ;
+				write "Send score for team= " + color_list[p-1] + " score= " + n_remain_tree_all[p-1];
+			}
 		}
 		
 		ask front_tree{
@@ -588,7 +677,6 @@ species Server skills: [network] parallel: false {
 		    
 			do send to: mm.sender contents: ("Team " + team + " has completed removing " + threat + "!");
 		}
-
 	}
 }
 
@@ -623,12 +711,12 @@ species unity_linker parent: abstract_unity_linker {
 	list<point> init_locations <- define_init_locations();
 
 	list<point> define_init_locations {
-		return [tutorial_location + {0,adjust_y, adjust_z},
-			tutorial_location + {0, adjust_y, adjust_z},
-			tutorial_location + {0, adjust_y, adjust_z},
-			tutorial_location + {0, adjust_y, adjust_z},
-			tutorial_location + {0, adjust_y, adjust_z},
-			tutorial_location + {0, adjust_y, adjust_z}
+		return [result_location + {0,adjust_y, adjust_z},
+			result_location + {0, adjust_y, adjust_z},
+			result_location + {0, adjust_y, adjust_z},
+			result_location + {0, adjust_y, adjust_z},
+			result_location + {0, adjust_y, adjust_z},
+			result_location + {0, adjust_y, adjust_z}
 		];
 	}
 	
@@ -641,31 +729,36 @@ species unity_linker parent: abstract_unity_linker {
 	}
 	
 	action PlayerID_Ready(string player_ID, string Ready){					
-//		ask unity_player where (each.name = player_ID){
-//			location <- {tutorial_location.x, tutorial_location.y + adjust_y, adjust_z};
-//			ask unity_linker {
-//				new_player_position[myself.name] <- [myself.location.x *precision,
-//													myself.location.y *precision,
-//													myself.location.z *precision];
-//				move_player_event <- true;
-//			}
-//		}
-//		write "PlayerID_Ready " + player_ID + " " + Ready + " move to tutorial zone";
-		write "PlayerID_Ready " + player_ID + " " + Ready + "Readyyyyyyyyy";
-		
-		if not (map_player_idint[player_ID] in ready_team_list){
-			add map_player_idint[player_ID] to:ready_team_list;
-		}
-		
-		if (ready_team_list sort_by (each)) = (connect_team_list sort_by (each)){
-			write "All player ready " + (ready_team_list sort_by (each)) + " = " +
-					(connect_team_list sort_by (each));
-			all_player_ready <- true;
-			ask world{
-				do pause;
-				can_start <- true;
+		if Ready = "Ready1"{
+			write "PlayerID_Ready " + player_ID + " " + Ready + "Readyyyyyyyyy";
+			
+			if not (map_player_idint[player_ID] in ready_team_list){
+				add map_player_idint[player_ID] to:ready_team_list;
+			}
+			
+			if (ready_team_list sort_by (each)) = (connect_team_list sort_by (each)){
+				write "All player ready " + (ready_team_list sort_by (each)) + " = " +
+						(connect_team_list sort_by (each));
+				all_player_ready <- true;
+				ask world{
+					do pause;
+					can_start <- true;
+				}
 			}
 		}
+		else if Ready = "Ready2"{
+			ask unity_player where (each.name = player_ID){
+				location <- {tutorial_location.x, tutorial_location.y + adjust_y, adjust_z};
+				ask unity_linker {
+					new_player_position[myself.name] <- [myself.location.x *precision,
+														myself.location.y *precision,
+														myself.location.z *precision];
+					move_player_event <- true;
+				}
+			}
+			write "PlayerID_Ready " + player_ID + " " + Ready + " move to tutorial zone";
+		}
+		
 	}
 	
 	action QuestionnaireData(string PlayerID, string Header, string Message){

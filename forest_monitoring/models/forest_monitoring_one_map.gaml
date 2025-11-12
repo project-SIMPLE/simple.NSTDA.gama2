@@ -56,11 +56,13 @@ global{
 	action resume_game;
 	action pause_game;
 	action remove_threat(int p, string threat);
+	action resend_command_to_unity (string player_name_ID);
 	
 	geometry usable_area_for_wildfire ;
 	geometry usable_area_for_tree;
 	
 	list<list<int>> n_remain_tree <- list_with(6, list_with(3, 0));
+	list<list<int>> n_remain_tree_all <- list_with(6, list_with(10, 0));
 	list<int> sum_score_list <- list_with(6,0);
 	list<int> total_score_list <- list_with(6,0);
 	float alpha <- 0.5;
@@ -279,7 +281,7 @@ global{
 experiment init_exp type: gui {
 	output{
 		layout vertical([horizontal([0::1, 1::1])::1, horizontal([2::1, 3::1, 4::1, 5::1, 6::1, 7::1])::1]) 
-		toolbars: true tabs: false parameters: false consoles: true navigator: false controls: true tray: false ;
+		toolbars: false tabs: false parameters: false consoles: true navigator: false controls: true tray: false ;
 		display "Main" type: 3d background: rgb(50,50,50) locked:true antialias:true {
 			camera 'default' location: {25.14,12.2616,92.8721} target: {25.14,12.26,0.0};
 			species map_area;
@@ -298,46 +300,49 @@ experiment init_exp type: gui {
 				if (#user_location distance_to reset[0] < 3) and not paused{
 					ask world{
 						//write "Reset Player_101" ;
-						do remove_threat(temp_team1, "Fire");
-						write map_player_intid[temp_team1] + " remove Fire";
-						
-//						//write "Reset Player_51" ;
-//						do resend_command_to_unity("Player_51");
+						do resend_command_to_unity("Player_101");
+//						do remove_threat(temp_team1, "Fire");
+//						write map_player_intid[temp_team1] + " remove Fire";
 					}
 				}
 				else if (#user_location distance_to reset[1] < 3) and not paused{
 					ask world{
 						//write "Reset Player_102" ;
-						do remove_threat(temp_team1, "Aliens");
-						write map_player_intid[temp_team1] + " remove Aliens";
+						do resend_command_to_unity("Player_102");
+//						do remove_threat(temp_team1, "Aliens");
+//						write map_player_intid[temp_team1] + " remove Aliens";
 					}
 				}
 				else if (#user_location distance_to reset[2] < 3) and not paused{
 					ask world{
 						//write "Reset Player_103" ;
-						do remove_threat(temp_team1, "Grasses");
-						write map_player_intid[temp_team1] + " remove Grasses";
+						do resend_command_to_unity("Player_103");
+//						do remove_threat(temp_team1, "Grasses");
+//						write map_player_intid[temp_team1] + " remove Grasses";
 					}
 				}
 				else if (#user_location distance_to reset[3] < 3) and not paused{
 					ask world{
 						//write "Reset Player_104" ;
-						do remove_threat(temp_team2, "Fire");
-						write map_player_intid[temp_team2] + " remove Fire";
+						do resend_command_to_unity("Player_104");
+//						do remove_threat(temp_team2, "Fire");
+//						write map_player_intid[temp_team2] + " remove Fire";
 					}
 				}
 				else if (#user_location distance_to reset[4] < 3) and not paused{
 					ask world{
 						//write "Reset Player_105" ;
-						do remove_threat(temp_team2, "Aliens");
-						write map_player_intid[temp_team2] + " remove Aliens";
+						do resend_command_to_unity("Player_105");
+//						do remove_threat(temp_team2, "Aliens");
+//						write map_player_intid[temp_team2] + " remove Aliens";
 					}
 				}
 				else if (#user_location distance_to reset[5] < 3) and not paused{
 					ask world{
 						//write "Reset Player_106" ;
-						do remove_threat(temp_team2, "Grasses");
-						write map_player_intid[temp_team2] + " remove Grasses";
+						do resend_command_to_unity("Player_106");
+//						do remove_threat(temp_team2, "Grasses");
+//						write map_player_intid[temp_team2] + " remove Grasses";
 					}
 				}
 			}
@@ -372,7 +377,7 @@ experiment init_exp type: gui {
 		}
 		display "Total" type: 2d locked:true{
 			chart "Total seeds" type:histogram reverse_axes:true
-			y_range:[-50, 150*(count_start+1)]
+			y_range:[-100, 100*(count_start+1)]
 			x_serie_labels: [""]
 			style:"3d"
 			series_label_position: xaxis
