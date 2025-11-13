@@ -9,8 +9,8 @@
 model OptimizeSpeciesonemap
 
 global{
-	image_file fire_image_file <- gif_file("../images/fire1.gif");
-	image_file alien_image_file <- gif_file("../images/alien1.gif");
+	image_file fire_image_file <- gif_file("../images/simple_fire.PNG");
+	image_file alien_image_file <- gif_file("../images/simple_alien.PNG");
 	image_file rain_image_file <- image_file("../images/rain.png");
 	image_file blank_image_file <- image_file("../images/blank.png");
 	image_file reset_image <- image_file("../images/reset.png");

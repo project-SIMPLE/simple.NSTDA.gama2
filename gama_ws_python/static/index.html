@@ -55,15 +55,7 @@
     <!-- Top controls -->
     <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
       <h5 class="mb-0 me-auto">Coins per team</h5>
-
-      <!-- Auto refresh controls -->
-      <div class="d-flex align-items-center gap-2">
-        <label for="refreshSec" class="form-label mb-0 small text-muted">Auto-refresh (s)</label>
-        <!-- default 20s -->
-        <input id="refreshSec" type="number" class="form-control form-control-sm" value="20" min="3" step="1" style="width:80px"/>
-        <button id="applyRefresh" class="btn btn-sm btn-outline-primary">Apply</button>
-        <button id="stopRefresh" class="btn btn-sm btn-outline-secondary">Stop</button>
-      </div>
+      <!-- (Removed auto-refresh controls) -->
     </div>
 
     <div id="rows" class="vstack gap-2 mb-3"></div>
@@ -103,13 +95,7 @@ const linksBox  = document.getElementById('links');
 const submitBtn = document.getElementById('submitBtn');
 const resetAllBtn = document.getElementById('resetAllBtn');
 const statusTxt = document.getElementById('statusText');
-const refreshSecInput = document.getElementById('refreshSec');
-const applyRefreshBtn = document.getElementById('applyRefresh');
-const stopRefreshBtn  = document.getElementById('stopRefresh');
 
-let refreshTimer = null;
-
-/* ---------- Toast helper ---------- */
 const toasts = document.getElementById("toasts");
 function showToast(msg, variant="primary") {
   const el = document.createElement("div");
@@ -313,25 +299,6 @@ resetAllBtn.onclick = async () => {
   statusTxt.classList.remove("text-success");
   statusTxt.classList.add("text-muted");
 };
-
-/* ---------- Auto-refresh ---------- */
-function getRefreshSeconds(){ return Math.max(3, parseInt(refreshSecInput.value || "20", 10)); }
-function startAutoRefresh(sec){
-  stopAutoRefresh();
-  refreshTimer = setInterval(async () => {
-    const data = await fetchAllCoins();
-    if (!data) return;
-    refs.forEach(({team, num}) => {
-      if (document.activeElement === num) return;
-      num.value = String(Math.max(0, parseInt(data[team] || 0, 10)));
-    });
-    validateAnyPositive();
-    renderTeamLinks(Object.values(data).some(v => parseInt(v||0,10) > 0));
-  }, Math.max(3, sec) * 1000);
-}
-function stopAutoRefresh(){ if (refreshTimer) { clearInterval(refreshTimer); refreshTimer = null; } }
-applyRefreshBtn.onclick = () => { startAutoRefresh(getRefreshSeconds()); showToast(`Auto-refresh every ${getRefreshSeconds()}s.`, "info"); };
-stopRefreshBtn.onclick  = () => { stopAutoRefresh(); showToast("Auto-refresh stopped.", "secondary"); };
 
 /* ---------- Init flow ---------- */
 (async function init(){

@@ -163,7 +163,6 @@ frame.style.borderColor = TEAM_COLOR[TEAM] || "#6c757d";
 /* -------- Server coins (no localStorage) -------- */
 let coinsLoaded = false;
 let currentCoins = 0;
-let coinsSyncTimer = null;   // NEW: auto-sync timer
 
 function setCoins(val){
   currentCoins = Math.max(0, val|0);
@@ -187,7 +186,7 @@ async function fetchCoins(){
   }
 }
 
-/* CHANGED: ไม่โยน error เมื่อ ok=false แต่คืนสถานะให้ผู้เรียก + อัปเดตยอดตามเซิร์ฟเวอร์ */
+/* ทำให้ decrement คืนค่าผลลัพธ์ และอัปเดตยอดตามเซิร์ฟเวอร์ */
 async function decrementCoins(cost, action){
   const res = await fetch("/api/coins/decrement", {
     method: "POST",
@@ -199,10 +198,10 @@ async function decrementCoins(cost, action){
   if (data && typeof data.coins !== "undefined") {
     setCoins(data.coins);
   }
-  return data; // {ok:true/false, coins, error?}
+  return data;
 }
 
-/* NEW: refund endpoint */
+/* refund endpoint */
 async function refundCoins(amount){
   try {
     const res = await fetch("/api/coins/refund", {
@@ -215,7 +214,6 @@ async function refundCoins(amount){
     if (data && typeof data.coins !== "undefined") setCoins(data.coins);
     return data;
   } catch(e){
-    // ไม่ต้องโชว์ error หนัก ๆ เพื่อความลื่นไหล
     showToast("Refund failed, please sync.", "warning");
     return null;
   }
@@ -232,12 +230,8 @@ function showToast(msg, variant="primary") {
   el.addEventListener("hidden.bs.toast", () => el.remove());
 }
 
-/* -------- Haptics (mobile vibration) -------- */
-function buzzSuccess(){ if (navigator.vibrate) navigator.vibrate(60); }
-function buzzWarn(){ if (navigator.vibrate) navigator.vibrate([30, 40, 30]); }
-
 /* -------- ECharts: init + updater (NEW) -------- */
-const BAR_LABELS = ['Qu','Sa','Ma','Pho','De','Di','Os','Phy','Ca','Gm']; // ✅ ชื่อแท่งตั้งแต่แรก
+const BAR_LABELS = ['Qu','Sa','Ma','Pho','De','Di','Os','Phy','Ca','Gm'];
 let chart = null;
 
 function ensureChart(){
@@ -388,6 +382,15 @@ function connectWS(){
     // 2) ถ้าไม่ใช่ JSON ลอง parse รูปแบบ {team=Blue, score=[...]}
     if (!obj) obj = parseGamaKVMessage(e.data);
 
+    // --- NEW: real-time coins broadcast from server ---
+    if (obj && obj.type === "coins_update") {
+      if (obj.team === TEAM && typeof obj.coins === "number") {
+        setCoins(obj.coins);              // อัปเดตยอดทันที
+      }
+      return; // จบที่นี่ ไม่ต้องไหลต่อ
+    }
+    // ---------------------------------------------------
+
     // 3) ถ้าเป็น score_update และทีมตรงกัน → วาดกราฟ
     if (obj && obj.type === "score_update" && obj.team === TEAM && Array.isArray(obj.scores)) {
       updateChart(obj.scores);
@@ -431,18 +434,17 @@ function openConfirm(threat, cost){
 
 /* -------- Actions -------- */
 function sendReset(threat){
-  if (!gamaReady || !isSockOpen()) { showToast("Not connected to GAMA", "warning"); buzzWarn(); return false; }
+  if (!gamaReady || !isSockOpen()) { showToast("Not connected to GAMA", "warning"); return false; }
   const msg = `type=RemoveThreat;team=${TEAM};threat=${threat}`;
   try { sock.send(msg); showToast(`Sent reset "${threat}"`, "info"); return true; }
   catch { showToast("Failed to send", "danger"); return false; }
 }
 
-/* CHANGED: ลำดับใหม่ — decrement ก่อน แล้วค่อยส่งไป GAMA; ถ้าส่งล้มเหลวให้ refund */
+/* decrement ก่อน แล้วค่อยส่งไป GAMA; ถ้าส่งล้มเหลวให้ refund */
 cfConfirmBtn.onclick = async () => {
   if (!pending) return;
   const { threat, cost } = pending;
 
-  // ตัดเฉพาะจากเซิร์ฟเวอร์ก่อน (กันแข่งหลายอุปกรณ์)
   let dec;
   try {
     dec = await decrementCoins(cost, threat);
@@ -452,26 +454,19 @@ cfConfirmBtn.onclick = async () => {
   }
 
   if (!dec?.ok){
-    // เหรียญไม่พอ/หรือถูกใช้ไปแล้วที่เครื่องอื่น -> อัปเดตยอดล่าสุดและแจ้งเตือน
     const serverCoins = typeof dec?.coins === "number" ? dec.coins : currentCoins;
     showToast(`Not enough coins. You have ${serverCoins}.`, "warning");
-    buzzWarn();
     return;
   }
 
-  // ตัดสำเร็จ -> ส่งคำสั่งไป GAMA
   const sent = sendReset(threat);
   if (!sent){
-    // ส่งไม่สำเร็จ -> คืนเหรียญ
     await refundCoins(cost);
     showToast("Action failed. Refunded coins.", "warning");
-    buzzWarn();
     return;
   }
 
-  // สำเร็จครบ
   showToast(`Coins deducted (-${cost}). Remaining: ${currentCoins}`, "success");
-  buzzSuccess();
   confirmModal.hide();
   pending = null;
 };
@@ -483,14 +478,10 @@ btnGrass.onclick = () => openConfirm("Grasses", COST.Grass);
 
 /* -------- Init: load coins, open WS -------- */
 (async function init(){
-  await fetchCoins();
-  connectWS();
+  await fetchCoins();   // โหลดยอดครั้งแรก
+  connectWS();          // ต่อ WS เพื่อรับ coins_update แบบเรียลไทม์
   updateActionButtons();
-  ensureChart(); // prepare chart with labels & zeros
-
-  // NEW: auto-sync coins ทุก 2 วินาที (กัน UI ค้างต่างอุปกรณ์)
-  if (coinsSyncTimer) clearInterval(coinsSyncTimer);
-  coinsSyncTimer = setInterval(fetchCoins, 2000);
+  ensureChart();        // เตรียมกราฟ
 })();
 reconnBtn.onclick = () => { if (!isSockOpen()) connectWS(); };
 </script>
