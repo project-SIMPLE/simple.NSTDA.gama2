@@ -1,7 +1,7 @@
 {
 "type": "json_settings",
 "name": "Forest monitoring",
-"splashscreen": "./splashscreen/IMG_3343.jpeg",
+"splashscreen": "learning-packages/forest_monitoring/splashscreen/IMG_3343.jpeg",
 "model_file_path": "./models/forest_monitoring_one_map-VR.gaml",
 "experiment_name": "vr_xp",
 "minimal_players": "0",
