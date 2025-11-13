@@ -25,7 +25,7 @@ global{
 	 
 	list<string> color_list <- ["Blue", "Red", 'Green', "Yellow", "Black", "White"];
 	list<rgb> player_colors <- [rgb(66, 72, 255), #red, #green, rgb(255, 196, 0), #black, rgb(156, 152, 142)];
-	list<string> player_name <- ["Player_101", "Player_102", "Player_103", "Player_104", "Player_59", "Player_52"];
+	list<string> player_name <- ["Player_101", "Player_102", "Player_103", "Player_57", "Player_59", "Player_52"];
 	map<int, string> map_player_intid <- [1::player_name[0], 2::player_name[1], 3::player_name[2], 4::player_name[3], 5::player_name[4], 6::player_name[5]];
 	map<string, int> map_player_idint <- [player_name[0]::1, player_name[1]::2, player_name[2]::3, player_name[3]::4, player_name[4]::5, player_name[5]::6];
 	map<string, int> map_player_colorint <- [color_list[0]::1, color_list[1]::2, color_list[2]::3, color_list[3]::4, color_list[4]::5, color_list[5]::6];
@@ -300,49 +300,37 @@ experiment init_exp type: gui {
 				if (#user_location distance_to reset[0] < 3) and not paused{
 					ask world{
 						//write "Reset Player_101" ;
-						do resend_command_to_unity("Player_101");
-//						do remove_threat(temp_team1, "Fire");
-//						write map_player_intid[temp_team1] + " remove Fire";
+						do resend_command_to_unity(player_name[0]);
 					}
 				}
 				else if (#user_location distance_to reset[1] < 3) and not paused{
 					ask world{
 						//write "Reset Player_102" ;
-						do resend_command_to_unity("Player_102");
-//						do remove_threat(temp_team1, "Aliens");
-//						write map_player_intid[temp_team1] + " remove Aliens";
+						do resend_command_to_unity(player_name[1]);
 					}
 				}
 				else if (#user_location distance_to reset[2] < 3) and not paused{
 					ask world{
 						//write "Reset Player_103" ;
-						do resend_command_to_unity("Player_103");
-//						do remove_threat(temp_team1, "Grasses");
-//						write map_player_intid[temp_team1] + " remove Grasses";
+						do resend_command_to_unity(player_name[2]);
 					}
 				}
 				else if (#user_location distance_to reset[3] < 3) and not paused{
 					ask world{
 						//write "Reset Player_104" ;
-						do resend_command_to_unity("Player_104");
-//						do remove_threat(temp_team2, "Fire");
-//						write map_player_intid[temp_team2] + " remove Fire";
+						do resend_command_to_unity(player_name[3]);
 					}
 				}
 				else if (#user_location distance_to reset[4] < 3) and not paused{
 					ask world{
 						//write "Reset Player_105" ;
-						do resend_command_to_unity("Player_105");
-//						do remove_threat(temp_team2, "Aliens");
-//						write map_player_intid[temp_team2] + " remove Aliens";
+						do resend_command_to_unity(player_name[4]);
 					}
 				}
 				else if (#user_location distance_to reset[5] < 3) and not paused{
 					ask world{
 						//write "Reset Player_106" ;
-						do resend_command_to_unity("Player_106");
-//						do remove_threat(temp_team2, "Grasses");
-//						write map_player_intid[temp_team2] + " remove Grasses";
+						do resend_command_to_unity(player_name[5]);
 					}
 				}
 			}

@@ -490,7 +490,7 @@ btnGrass.onclick = () => openConfirm("Grasses", COST.Grass);
 
   // NEW: auto-sync coins ทุก 2 วินาที (กัน UI ค้างต่างอุปกรณ์)
   if (coinsSyncTimer) clearInterval(coinsSyncTimer);
-  coinsSyncTimer = setInterval(fetchCoins, 1000);
+  coinsSyncTimer = setInterval(fetchCoins, 2000);
 })();
 reconnBtn.onclick = () => { if (!isSockOpen()) connectWS(); };
 </script>

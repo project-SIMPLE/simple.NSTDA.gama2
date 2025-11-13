@@ -21,17 +21,19 @@ global{
 				}
 			}
 		}
+		
+		write "resend for player " + player_ID;
 			
 		if all_player_ready{
 			if tutorial_finish{
 				ask unity_linker {
 					do send_message players: unity_player[player_ID] as list 
-						mes: ["ListOfMessage"::["Head"::"StartGame", 
+						mes: ["ListOfMessage"::[["Head"::"StartGame", 
 												"Body"::"", 
 												"Trees"::"",
-												"Threats"::""]];
+												"Threats"::""]]];
 				}
-				write "Resend StartGame at cycle = " + cycle + " for player " + player_name_ID;
+				write "Resend StartGame at cycle = " + cycle + " for player " + unity_player[player_ID].name;
 				
 				ask unity_player[player_ID]{
 					location <- {main_location.x, main_location.y, adjust_z};
@@ -42,35 +44,38 @@ global{
 						move_player_event <- true;
 					}
 				}
-//-----------------------------------------------------------------------------------------*********
-				do create_tree;
-
-				loop i from:0 to:(length(total_score_list)-1){
-					total_score_list[i] <- total_score_list[i] + sum_score_list[i];
-				}
-				sum_score_list <- list_with(6,0);
-//-----------------------------------------------------------------------------------------*********
 			}
 			else{
 				ask unity_linker {
 					do send_message players: unity_player[player_ID] as list 
-						mes: ["ListOfMessage"::["Head"::"TutorialStart", 
+						mes: ["ListOfMessage"::[["Head"::"TutorialStart", 
 												"Body"::"", 
 												"Trees"::"",
-												"Threats"::""]];
+												"Threats"::""]]];
 				}
-				write "Resend TutorialStart at cycle = " + cycle + " for player " + player_name_ID;
+				write "Resend TutorialStart at cycle = " + cycle + " for player " + unity_player[player_ID].name;
+				
+				ask unity_player[player_ID]{
+					self.correct_location <- false;
+					location <- {result_location.x, result_location.y, result_location.z + adjust_z};
+					ask unity_linker {
+						new_player_position[myself.name] <- [myself.location.x *precision,
+															myself.location.y *precision,
+															myself.location.z *precision];
+						move_player_event <- true;
+					}
+				}	
 			}
 		}
 		else{
 			ask unity_linker {
 				do send_message players: unity_player[player_ID] as list 
-					mes: ["ListOfMessage"::["Head"::"ReadyCheck", 
+					mes: ["ListOfMessage"::[["Head"::"ReadyCheck", 
 											"Body"::"", 
 											"Trees"::"",
-											"Threats"::""]];
+											"Threats"::""]]];
 			}
-			write "Resend ReadyCheck at cycle = " + cycle + " for player " + player_name_ID;
+			write "Resend ReadyCheck at cycle = " + cycle + " for player " + unity_player[player_ID].name;
 			
 			ask unity_player[player_ID]{
 				self.correct_location <- false;
@@ -912,16 +917,16 @@ species unity_linker parent: abstract_unity_linker {
 			do add_geometries_to_send(tree_type1,up_seeding3);
 		}
 		if not empty(tree_type2){
-			do add_geometries_to_send(tree_type2,up_seeding3);
+			do add_geometries_to_send(tree_type2,up_seeding4);
 		}
 		if not empty(tree_type3){
-			do add_geometries_to_send(tree_type3,up_seeding3);
+			do add_geometries_to_send(tree_type3,up_seeding3); //True
 		}
 		if not empty(tree_type4){
-			do add_geometries_to_send(tree_type4,up_seeding4);
+			do add_geometries_to_send(tree_type4,up_seeding4); //True
 		}
 		if not empty(tree_type5){
-			do add_geometries_to_send(tree_type5,up_seeding3);
+			do add_geometries_to_send(tree_type5,up_seeding4);
 		}
 		if not empty(tree_type6){
 			do add_geometries_to_send(tree_type6,up_seeding3);
@@ -930,13 +935,13 @@ species unity_linker parent: abstract_unity_linker {
 			do add_geometries_to_send(tree_type7,up_seeding3);
 		}
 		if not empty(tree_type8){
-			do add_geometries_to_send(tree_type8,up_seeding3);
+			do add_geometries_to_send(tree_type8,up_seeding10);
 		}
 		if not empty(tree_type9){
-			do add_geometries_to_send(tree_type9,up_seeding3);
+			do add_geometries_to_send(tree_type9,up_seeding10);
 		}
 		if not empty(tree_type10){
-			do add_geometries_to_send(tree_type10,up_seeding10);
+			do add_geometries_to_send(tree_type10,up_seeding10); //True
 		}
 		
 		list<old_tree> old_tree_type1 <- old_tree where (each.tree_type = 1);
