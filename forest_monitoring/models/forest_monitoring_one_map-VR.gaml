@@ -202,15 +202,15 @@ global{
 		// score
 		loop p over:connect_team_list{
 			add map<string, string>(["PlayerID"::map_player_intid[p], 
-										"Name"::sum_score_list[p-1], 
+										"Name"::sum(n_remain_tree[p-1]), 
 										"State"::""]) to:send_final_score;
 		}
 		
 		// Background
 		loop p over:connect_team_list{
 			loop j from:0 to:(length(list_of_bg_score)-2){
-				if (sum_score_list[p-1] >= list_of_bg_score[j]) and 
-					(sum_score_list[p-1] < list_of_bg_score[j+1]){
+				if (sum(n_remain_tree[p-1]) >= list_of_bg_score[j]) and 
+					(sum(n_remain_tree[p-1]) < list_of_bg_score[j+1]){
 					add map<string, string>(["PlayerID"::map_player_intid[p], 
 											"Name"::string(j+1), 
 											"State"::""]) to:send_tree_update_environment;
@@ -255,19 +255,24 @@ global{
 		}
 
 		loop p over:connect_team_list{
-			sum_score_list[p-1] <- 	((-2*alpha)	*(100 - sum(n_remain_tree[p-1]))) +
-									(0			*n_remain_tree[p-1][0]) + 
-									(alpha		*n_remain_tree[p-1][1]) + 
-									((2*alpha)	*n_remain_tree[p-1][2]);
+//			sum_score_list[p-1] <- 	((-2*alpha)	*(100 - sum(n_remain_tree[p-1]))) +
+//									(0			*n_remain_tree[p-1][0]) + 
+//									(alpha		*n_remain_tree[p-1][1]) + 
+//									((2*alpha)	*n_remain_tree[p-1][2]);
 			
+			sum_score_list[p-1] <- 	(0	*(100 - sum(n_remain_tree[p-1]))) +
+									(1	*n_remain_tree[p-1][0]) + 
+									(2	*n_remain_tree[p-1][1]) + 
+									(3	*n_remain_tree[p-1][2]);
+									
 			loop j from:0 to:(length(tree_name)-1){
 				n_remain_tree_all[p-1][j] <- length(tree where ((each.tree_type = j+1) 
 															and (each.player = p) 
 															and (each.it_can_growth != "0")));
 			}
 			ask Server{
-				do send to: "All" contents:["team"::color_list[p-1], "score"::n_remain_tree_all[p-1]] ;
-				write "Send score for team= " + color_list[p-1] + " score= " + n_remain_tree_all[p-1];
+				do send to: "All" contents:["type"::"score_update", "team"::color_list[p-1], "score"::n_remain_tree_all[p-1]] ;
+				write "Send score for type= score_update team= " + color_list[p-1] + " score= " + n_remain_tree_all[p-1];
 			}
 		}
 		
@@ -491,8 +496,8 @@ global{
 		// Background
 		loop p over:connect_team_list{
 			loop j from:0 to:(length(list_of_bg_score)-2){
-				if (sum_score_list[p-1] >= list_of_bg_score[j]) and 
-					(sum_score_list[p-1] < list_of_bg_score[j+1]) and
+				if (sum(n_remain_tree[p-1]) >= list_of_bg_score[j]) and 
+					(sum(n_remain_tree[p-1]) < list_of_bg_score[j+1]) and
 					(j != list_of_player_bg[p-1]){
 					add map<string, string>(["PlayerID"::map_player_intid[p], 
 											"Name"::string(j+1), 

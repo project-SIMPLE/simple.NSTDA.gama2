@@ -25,6 +25,7 @@ global{
 	 
 	list<string> color_list <- ["Blue", "Red", 'Green', "Yellow", "Black", "White"];
 	list<rgb> player_colors <- [rgb(66, 72, 255), #red, #green, rgb(255, 196, 0), #black, rgb(156, 152, 142)];
+	list<rgb> state_colors <- [rgb(151, 255, 110), rgb(50, 176, 0), rgb(32, 112, 0)];
 	list<string> player_name <- ["Player_101", "Player_102", "Player_103", "Player_57", "Player_59", "Player_52"];
 	map<int, string> map_player_intid <- [1::player_name[0], 2::player_name[1], 3::player_name[2], 4::player_name[3], 5::player_name[4], 6::player_name[5]];
 	map<string, int> map_player_idint <- [player_name[0]::1, player_name[1]::2, player_name[2]::3, player_name[3]::4, player_name[4]::5, player_name[5]::6];
@@ -95,7 +96,8 @@ global{
 //	[-100, -33] bg1
 //	( -33,  33] bg2
 //	(  33, 100] bg3
-	list<int> list_of_bg_score <- [-100,-33,33,100+1];
+//	list<int> list_of_bg_score <- [-100,-33,33,100+1];
+	list<int> list_of_bg_score <- [0,50,75,100+1];
 	list<int> list_of_player_bg <- [2,2,2,2,2,2];
 	
 	list<int> zone_list <- [1,2,3,4];
@@ -378,7 +380,10 @@ experiment init_exp type: gui {
 			}
 			graphics Strings {
 				loop i from:0 to:(length(sum_score_list)-1){
-					draw "=> " + int(total_score_list[i]+sum_score_list[i]) 
+					draw "=> " + int(total_score_list[i]+sum_score_list[i]) + 
+						"(" + 
+						int(sum_score_list[i]) + 
+						")"
 						at:{width/1.3, 13 + 6.3*i} 
 						font:font("Times", 16, #bold+#italic) 
 						border:#black color:player_colors[i];
@@ -388,14 +393,15 @@ experiment init_exp type: gui {
 		display "His_Team1" type: 2d locked:true{ 		
 			chart "Team1" type:histogram 
 			x_serie_labels: ["Species"] 				
-			y_range:[0, 10] 		
+			y_range:[0, 3] 		
 			style:"3d" 			  
 			series_label_position: xaxis {
-				loop j from:0 to:(length(tree_name)-1){
-					data "" + tree_name[j] value: length(tree where ((each.tree_type = j+1) 
-															and (each.player = 1) 
-															and (each.it_can_growth != "0")))
-					color:player_colors[0] ;
+				data "D" value: sum(n_remain_tree[0])
+				color:#black ;
+					
+				loop j from:0 to:2{
+					data "S" + j value: n_remain_tree[0][j]
+					color:state_colors[j] ;
 				}
 			}
 		}	
@@ -406,12 +412,13 @@ experiment init_exp type: gui {
 			y_range:[0, 10] 		
 			style:"3d" 			  
 			series_label_position: xaxis {
-				loop j from:0 to:(length(tree_name)-1){
-					data "" + tree_name[j] value: length(tree where ((each.tree_type = j+1) 
-															and (each.player = 2) 
-															and (each.it_can_growth != "0"))) 
-					color:player_colors[1] ;
-				}
+				data "D" value: sum(n_remain_tree[1])
+				color:#black ;
+					
+				loop j from:0 to:2{
+					data "S" + j value: n_remain_tree[1][j]
+					color:state_colors[j] ;
+				}	
 			}
 		}
 		
@@ -421,11 +428,12 @@ experiment init_exp type: gui {
 			y_range:[0, 10] 		
 			style:"3d" 			  
 			series_label_position: xaxis {
-				loop j from:0 to:(length(tree_name)-1){
-					data "" + tree_name[j] value: length(tree where ((each.tree_type = j+1) 
-															and (each.player = 3) 
-															and (each.it_can_growth != "0"))) 
-					color:player_colors[2] ;
+				data "D" value: sum(n_remain_tree[2])
+				color:#black ;
+					
+				loop j from:0 to:2{
+					data "S" + j value: n_remain_tree[2][j]
+					color:state_colors[j] ;
 				}
 			}
 		}
@@ -436,11 +444,12 @@ experiment init_exp type: gui {
 			y_range:[0, 10] 		
 			style:"3d" 			  
 			series_label_position: xaxis {
-				loop j from:0 to:(length(tree_name)-1){
-					data "" + tree_name[j] value: length(tree where ((each.tree_type = j+1) 
-															and (each.player = 4) 
-															and (each.it_can_growth != "0")))
-					color:player_colors[3] ;
+				data "D" value: sum(n_remain_tree[3])
+				color:#black ;
+					
+				loop j from:0 to:2{
+					data "S" + j value: n_remain_tree[3][j]
+					color:state_colors[j] ;
 				}
 			}
 		}
@@ -451,11 +460,12 @@ experiment init_exp type: gui {
 			y_range:[0, 10] 		
 			style:"3d" 			  
 			series_label_position: xaxis {
-				loop j from:0 to:(length(tree_name)-1){
-					data "" + tree_name[j] value: length(tree where ((each.tree_type = j+1) 
-															and (each.player = 5) 
-															and (each.it_can_growth != "0")))
-					color:player_colors[4] ;
+				data "D" value: sum(n_remain_tree[4])
+				color:#black ;
+					
+				loop j from:0 to:2{
+					data "S" + j value: n_remain_tree[4][j]
+					color:state_colors[j] ;
 				}
 			}
 		}
@@ -466,11 +476,12 @@ experiment init_exp type: gui {
 			y_range:[0, 10] 		
 			style:"3d" 			  
 			series_label_position: xaxis {
-				loop j from:0 to:(length(tree_name)-1){
-					data "" + tree_name[j] value: length(tree where ((each.tree_type = j+1) 
-															and (each.player = 6) 
-															and (each.it_can_growth != "0")))
-					color:player_colors[5] ;
+				data "D" value: sum(n_remain_tree[5])
+				color:#black ;
+					
+				loop j from:0 to:2{
+					data "S" + j value: n_remain_tree[5][j]
+					color:state_colors[j] ;
 				}
 			}
 		}

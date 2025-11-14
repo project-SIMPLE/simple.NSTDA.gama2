@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 import uvicorn, os, json, socket, asyncio, re
-from typing import Dict, Set, List
+from typing import Dict, Set, List, Tuple, Optional
 import websockets
 from datetime import datetime
 
@@ -11,10 +11,11 @@ HOST = "0.0.0.0"
 PORT = int(os.environ.get("PORT", "8000"))
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
 COINS_FILE = os.path.join(os.path.dirname(__file__), "coins.json")
-SCORES_FILE = os.path.join(os.path.dirname(__file__), "scores.json")   # NEW
+SCORES_FILE = os.path.join(os.path.dirname(__file__), "scores.json")   # keep scores persistent
 TEAMS = ["Blue","Red","Green","Yellow","Black","White"]
 
 RESET_ON_START = os.environ.get("RESET_COINS_ON_START", "1") != "0"
+RESET_SCORES_ON_START = os.environ.get("RESET_SCORES_ON_START", "1") != "0"   # <-- NEW
 
 GAMA_HOST = os.environ.get("GAMA_IP_ADDRESS", "localhost")
 GAMA_PORT = int(os.environ.get("GAMA_WS_PORT", "3001"))
@@ -23,6 +24,32 @@ LOG_FILE = os.path.join(os.path.dirname(__file__), "gama_actions.csv")
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+# ---------- helpers ----------
+def atomic_write_json(path: str, obj: dict):
+    tmp = path + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(obj, f, ensure_ascii=False, indent=2)
+        f.flush()
+        os.fsync(f.fileno())
+    os.replace(tmp, path)
+
+def _zeros10() -> List[int]:
+    return [0] * 10
+
+def _norm10_int_0_10(values: List) -> List[int]:
+    """Make sure list length = 10, each int in [0,10]."""
+    out: List[int] = []
+    for x in list(values)[:10]:
+        try:
+            v = int(round(float(x)))
+        except Exception:
+            v = 0
+        v = max(0, min(10, v))
+        out.append(v)
+    if len(out) < 10:
+        out += [0] * (10 - len(out))
+    return out
 
 # ---------- coins state with simple JSON persistence ----------
 def load_coins() -> Dict[str, int]:
@@ -35,23 +62,12 @@ def load_coins() -> Dict[str, int]:
             pass
     return {t: 0 for t in TEAMS}
 
-def atomic_write_json(path: str, obj: dict):
-    tmp = path + ".tmp"
-    with open(tmp, "w", encoding="utf-8") as f:
-        json.dump(obj, f, ensure_ascii=False, indent=2)
-        f.flush()
-        os.fsync(f.fileno())
-    os.replace(tmp, path)
-
 def save_coins(state: Dict[str, int]):
     atomic_write_json(COINS_FILE, state)
 
-COINS = load_coins()
+COINS: Dict[str, int] = load_coins()
 
-# ---------- scores state with JSON persistence (NEW) ----------
-def _zeros10() -> List[int]:
-    return [0]*10
-
+# ---------- scores state with JSON persistence ----------
 def load_scores() -> Dict[str, List[int]]:
     if os.path.exists(SCORES_FILE):
         try:
@@ -60,22 +76,7 @@ def load_scores() -> Dict[str, List[int]]:
             out = {}
             for t in TEAMS:
                 arr = data.get(t, [])
-                # เก็บแค่ตัวเลข 10 ตัว (ถ้าน้อยกว่าเติม 0; มากกว่าตัด)
-                nums = []
-                for x in arr:
-                    try:
-                        n = int(x)
-                    except Exception:
-                        try:
-                            n = int(float(x))
-                        except Exception:
-                            n = 0
-                    nums.append(n)
-                if len(nums) < 10:
-                    nums += [0]*(10-len(nums))
-                elif len(nums) > 10:
-                    nums = nums[:10]
-                out[t] = nums
+                out[t] = _norm10_int_0_10(arr)
             return out
         except Exception:
             pass
@@ -84,14 +85,14 @@ def load_scores() -> Dict[str, List[int]]:
 def save_scores(state: Dict[str, List[int]]):
     atomic_write_json(SCORES_FILE, state)
 
-SCORES = load_scores()
+SCORES: Dict[str, List[int]] = load_scores()
 
 # ---------- per-team & global locks ----------
-team_locks = {t: asyncio.Lock() for t in TEAMS}   # coins lock per team
+team_locks = {t: asyncio.Lock() for t in TEAMS}   # coins per team
 coins_lock = asyncio.Lock()
-scores_locks = {t: asyncio.Lock() for t in TEAMS} # scores lock per team  (NEW)
+scores_locks = {t: asyncio.Lock() for t in TEAMS} # scores per team
 
-# ---------- browser WS pool (for broadcast coins/score updates) ----------
+# ---------- browser WS pool (for broadcast) ----------
 BROWSER_SOCKETS: Set[WebSocket] = set()
 BROWSER_SOCKETS_LOCK = asyncio.Lock()
 
@@ -109,8 +110,9 @@ async def _broadcast(payload: dict):
 async def broadcast_coins_update(team: str):
     await _broadcast({"type": "coins_update", "team": team, "coins": COINS.get(team, 0)})
 
-async def broadcast_score_update(team: str):  # NEW
-    await _broadcast({"type": "score_update", "team": team, "scores": SCORES.get(team, _zeros10())})
+async def broadcast_scores_update(team: str):
+    # NOTE: ใช้ชนิด "scores_update" ให้ตรงกับฝั่งเว็บ
+    await _broadcast({"type": "scores_update", "team": team, "scores": SCORES.get(team, _zeros10())})
 
 # ---------- simple CSV logger for actions ----------
 def init_log_file():
@@ -130,15 +132,22 @@ def append_action_log(team: str, action: str, client_ip: str = "-"):
 async def reset_on_startup():
     global COINS, SCORES
     init_log_file()
+
+    # รีเซ็ต coins
     if RESET_ON_START:
         COINS = {t: 0 for t in TEAMS}
         save_coins(COINS)
-        # คะแนนไม่รีเซ็ตตาม flag coins (คงไว้) แต่ถ้าอยากรีเซ็ตให้ uncomment สองบรรทัดล่าง
-        # SCORES = {t: _zeros10() for t in TEAMS}
-        # save_scores(SCORES)
         print("💾 Reset all coins to 0 at server startup")
     else:
         print("↩️  Skipped reset on startup (RESET_COINS_ON_START=0)")
+
+    # รีเซ็ต scores (NEW)
+    if RESET_SCORES_ON_START:
+        SCORES = {t: _zeros10() for t in TEAMS}
+        save_scores(SCORES)
+        print("💾 Reset all scores to zeros at server startup")
+    else:
+        print("↩️  Skipped scores reset on startup (RESET_SCORES_ON_START=0)")
 
 # ---------- pages ----------
 @app.get("/", response_class=HTMLResponse)
@@ -157,7 +166,7 @@ def api_get_all():
 @app.get("/api/coins/{team}")
 def api_get_team(team: str):
     if team not in TEAMS:
-        return JSONResponse({"error":"unknown_team"}, status_code=400)
+        return JSONResponse({"error": "unknown_team"}, status_code=400)
     return {"team": team, "coins": COINS.get(team, 0)}
 
 @app.post("/api/coins")
@@ -175,7 +184,7 @@ async def api_set_one(req: Request):
     data = await req.json()
     team = data.get("team")
     if team not in TEAMS:
-        return JSONResponse({"error":"unknown_team"}, status_code=400)
+        return JSONResponse({"error": "unknown_team"}, status_code=400)
     lock = team_locks[team]
     async with lock:
         COINS[team] = int(max(0, data.get("coins", 0)))
@@ -191,7 +200,7 @@ async def api_decrement(req: Request):
     action = str(data.get("action", "")).strip()
 
     if team not in TEAMS:
-        return JSONResponse({"error":"unknown_team"}, status_code=400)
+        return JSONResponse({"error": "unknown_team"}, status_code=400)
 
     lock = team_locks[team]
     async with lock:
@@ -214,7 +223,7 @@ async def api_refund(req: Request):
     amount = int(max(0, data.get("amount", 0)))
 
     if team not in TEAMS:
-        return JSONResponse({"error":"unknown_team"}, status_code=400)
+        return JSONResponse({"error": "unknown_team"}, status_code=400)
 
     lock = team_locks[team]
     async with lock:
@@ -227,7 +236,7 @@ async def api_refund(req: Request):
     await broadcast_coins_update(team)
     return {"ok": True, "team": team, "coins": COINS[team]}
 
-# ---------- scores API (NEW) ----------
+# ---------- scores API ----------
 @app.get("/api/scores")
 def api_scores_all():
     return SCORES
@@ -245,28 +254,15 @@ async def api_scores_set(req: Request):
     arr = data.get("scores", [])
     if team not in TEAMS:
         return JSONResponse({"error":"unknown_team"}, status_code=400)
-    # ทำให้เป็นลิสต์ยาว 10 ของตัวเลข int
-    nums: List[int] = []
-    for x in arr:
-        try:
-            n = int(x)
-        except Exception:
-            try:
-                n = int(float(x))
-            except Exception:
-                n = 0
-        nums.append(n)
-    if len(nums) < 10:
-        nums += [0]*(10-len(nums))
-    elif len(nums) > 10:
-        nums = nums[:10]
+
+    nums = _norm10_int_0_10(arr)
 
     lock = scores_locks[team]
     async with lock:
         SCORES[team] = nums
         save_scores(SCORES)
 
-    await broadcast_score_update(team)
+    await broadcast_scores_update(team)
     return {"ok": True, "team": team, "scores": SCORES[team]}
 
 @app.get("/api/logs/actions")
@@ -275,57 +271,76 @@ def api_download_logs():
         return JSONResponse({"error":"no_log"}, status_code=404)
     return FileResponse(LOG_FILE, media_type="text/csv", filename="gama_actions.csv")
 
-# ---------- helpers to parse GAMA messages (NEW) ----------
-def _try_parse_json_score(msg: str):
+# ---------- helpers to parse GAMA messages (typed JSON or KV) ----------
+def _try_parse_typed_json(msg: str) -> Optional[Tuple[str, str, List[int]]]:
+    """
+    ยอมรับ JSON เช่น:
+      {"type":"score_update","team":"Blue","scores":[...]}
+      {"type":"score_update","team":"Blue","score":[...]}   # รองรับ singular
+    คืนค่า: (typ, team, arr) หรือ None
+    """
     try:
         o = json.loads(msg)
     except Exception:
         return None
-    if isinstance(o, dict) and o.get("type") == "score_update":
-        team = o.get("team")
-        arr = o.get("scores")
-        if team in TEAMS and isinstance(arr, list):
-            return team, arr
-    return None
-
-_kv_re = re.compile(r'team\s*=\s*([A-Za-z]+).*?scores?\s*=\s*\[([^\]]*)\]', re.I | re.S)
-
-def _try_parse_kv_score(msg: str):
-    m = _kv_re.search(msg or "")
-    if not m:
+    if not isinstance(o, dict):
         return None
-    team = m.group(1)
-    if team not in TEAMS:
+    typ = str(o.get("type", "")).strip().lower()
+    team = o.get("team")
+    if not team or team not in TEAMS:
         return None
-    raw = m.group(2)
-    arr = []
+    arr = o.get("scores")
+    if arr is None:
+        arr = o.get("score")
+    if not isinstance(arr, list):
+        return None
+    return (typ, team, _norm10_int_0_10(arr))
+
+_kv_type_re = re.compile(r'type\s*=\s*"?(?P<t>[\w\-]+)"?', re.I)
+_kv_team_re = re.compile(r'team\s*=\s*"?(?P<tm>[A-Za-z]+)"?', re.I)
+_kv_arr_re  = re.compile(r'scores?\s*=\s*\[(?P<body>[^\]]*)\]', re.I)
+
+def _try_parse_typed_kv(msg: str) -> Optional[Tuple[str, str, List[int]]]:
+    """
+    ยอมรับ KV ในปีกกา/ไม่ปีกกา เช่น:
+      {type="score_update", team=Blue, scores=[1,2,...]}
+      {team=Blue, score=[...]}  # ถ้าไม่มี type จะ default เป็น score_update
+    คืนค่า: (typ, team, arr) หรือ None
+    """
+    s = msg or ""
+    if "=" not in s:
+        return None
+
+    m_type = _kv_type_re.search(s)
+    typ = (m_type.group("t").lower() if m_type else "score_update")
+
+    m_team = _kv_team_re.search(s)
+    team = m_team.group("tm") if m_team else None
+    if not team or team not in TEAMS:
+        return None
+
+    m_arr = _kv_arr_re.search(s)
+    if not m_arr:
+        return None
+    raw = m_arr.group("body")
+    vals: List[float] = []
     for tok in raw.split(","):
         tok = tok.strip()
         if not tok:
             continue
         try:
-            n = int(tok)
+            vals.append(float(tok))
         except Exception:
-            try:
-                n = int(float(tok))
-            except Exception:
-                n = 0
-        arr.append(n)
-    return team, arr
+            vals.append(0.0)
+    return (typ, team, _norm10_int_0_10(vals))
 
 async def _ingest_score_update(team: str, arr: List[int]):
-    # ปรับให้ยาว 10
-    nums = list(arr)
-    if len(nums) < 10:
-        nums += [0]*(10-len(nums))
-    elif len(nums) > 10:
-        nums = nums[:10]
-
+    nums = _norm10_int_0_10(arr)
     lock = scores_locks[team]
     async with lock:
         SCORES[team] = nums
         save_scores(SCORES)
-    await broadcast_score_update(team)
+    await broadcast_scores_update(team)
 
 # ---------- WebSocket ----------
 @app.websocket("/ws")
@@ -385,14 +400,15 @@ async def ws_bridge(websocket: WebSocket):
                 if isinstance(msg, bytes):
                     msg = msg.decode("utf-8", "ignore")
 
-                # --- NEW: ดัก score_update เข้ามา เก็บ/บันทึก/บรอดแคสต์ ---
-                parsed = _try_parse_json_score(msg) or _try_parse_kv_score(msg)
+                # --- NEW: parse typed messages from GAMA ---
+                parsed = _try_parse_typed_json(msg) or _try_parse_typed_kv(msg)
                 if parsed:
-                    team, arr = parsed
-                    await _ingest_score_update(team, arr)
-                # -----------------------------------------------------------
+                    typ, team, arr = parsed
+                    # persist+broadcast เฉพาะ score_update/scores_update
+                    if typ in ("score_update", "scores_update"):
+                        await _ingest_score_update(team, arr)
 
-                # ยังส่งต่อข้อความเดิมให้ browser ด้วย (เผื่อมี client พาร์สเอง)
+                # forward raw message (เผื่อ client ใช้ต่อ)
                 await websocket.send_text(msg)
 
             except Exception:
@@ -436,6 +452,7 @@ async def ws_bridge(websocket: WebSocket):
 def get_lan_ip():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
+        # ถ้าไม่มีเน็ตอาจ fallback เป็น 127.0.0.1 (ตั้งค่า IP เองเวลาพิมพ์ URL ได้)
         s.connect(("8.8.8.8", 80))
         ip = s.getsockname()[0]
     except Exception:
