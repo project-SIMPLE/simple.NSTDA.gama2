@@ -24,8 +24,7 @@
       border:3px solid; background:#fff; border-radius:1rem;
       box-shadow:0 2px 10px rgba(0,0,0,.06);
       padding:.45rem .9rem;
-      width:fit-content;
-      max-width:100%;
+      width:fit-content; max-width:100%;
     }
     .team-name{
       margin:0; font-size:clamp(1.25rem,6vw,2rem); line-height:1.1;
@@ -46,7 +45,6 @@
     .meta-line{ display:flex; justify-content:space-between; align-items:center; gap:.5rem; }
     .meta-line small{ color:#6b7280; }
   </style>
-  <!-- ECharts (local) -->
   <script src="/static/vendor/echarts.min.js"></script>
 </head>
 <body>
@@ -61,9 +59,7 @@
       <div class="status-box">
         <span class="fw-semibold">Status:</span>
         <span id="badge" class="badge text-bg-secondary">Disconnected</span>
-        <!-- เอา disabled ออก -->
         <button id="reconn" class="btn btn-outline-primary">Re-connect</button>
-        <button id="sync" class="btn btn-outline-secondary">Sync</button>
       </div>
     </div>
 
@@ -113,7 +109,6 @@
   </div>
 </div>
 
-<!-- Toasts -->
 <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toasts"></div>
 <script src="/static/vendor/bootstrap.bundle.min.js"></script>
 
@@ -123,22 +118,20 @@ const qp   = new URLSearchParams(location.search);
 const TEAM = qp.get("team") || "Unknown";
 const TEAMS = ['Blue','Red','Green','Yellow','Black','White'];
 document.getElementById("teamTitle").textContent = `Team ${TEAM}`;
+document.title = `Team ${TEAM} | GAMA Control`; // ตั้ง title ตามทีม
 
 /* -------- Buttons & Costs -------- */
 const btnFire  = document.getElementById("btn_fire");
 const btnAlien = document.getElementById("btn_alien");
 const btnGrass = document.getElementById("btn_grass");
 const reconnBtn= document.getElementById("reconn");
-const syncBtn  = document.getElementById("sync");
 const badge    = document.getElementById("badge");
 const coinsEl  = document.getElementById("coins");
 const lastUpdateEl = document.getElementById("lastUpdate");
 const COST     = { Fire:3, Alien:2, Grass:1 };
 
 /* Team frame color */
-const TEAM_COLOR = {
-  Blue:"#1d4ed8", Red:"#dc2626", Green:"#16a34a", Yellow:"#eab308", Black:"#111827", White:"#9ca3af"
-};
+const TEAM_COLOR = { Blue:"#1d4ed8", Red:"#dc2626", Green:"#16a34a", Yellow:"#eab308", Black:"#111827", White:"#9ca3af" };
 document.getElementById("teamFrame").style.borderColor = TEAM_COLOR[TEAM] || "#6c757d";
 
 /* -------- Toasts -------- */
@@ -153,59 +146,39 @@ function showToast(msg, variant="primary") {
 }
 
 /* -------- Utils -------- */
-function nowStr(){
-  const d = new Date();
-  const pad = n => String(n).padStart(2,'0');
-  return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-}
-function setLastUpdate(source){
-  lastUpdateEl.textContent = `Last update: ${nowStr()} (${source})`;
-}
+function nowStr(){ const d=new Date(); const p=n=>String(n).padStart(2,'0'); return `${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`; }
+function setLastUpdate(source){ lastUpdateEl.textContent = `Last update: ${nowStr()} (${source})`; }
 
 /* -------- Coins (server-authoritative) -------- */
 let coinsLoaded = false;
 let currentCoins = 0;
-function setCoins(val){
-  currentCoins = Math.max(0, val|0);
-  coinsEl.textContent = String(currentCoins);
-  updateActionButtons();
-}
+function setCoins(val){ currentCoins = Math.max(0, val|0); coinsEl.textContent = String(currentCoins); updateActionButtons(); }
 async function fetchCoins(){
   const res = await fetch(`/api/coins/${encodeURIComponent(TEAM)}`);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const data = await res.json();
-  setCoins(data.coins ?? 0);
-  coinsLoaded = true;
+  setCoins(data.coins ?? 0); coinsLoaded = true;
 }
 async function decrementCoins(cost, action){
   const res = await fetch("/api/coins/decrement", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
+    method: "POST", headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ team: TEAM, cost, action })
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const data = await res.json();
-  if (typeof data.coins === "number") setCoins(data.coins);
-  return data;
+  const data = await res.json(); if (typeof data.coins === "number") setCoins(data.coins); return data;
 }
 async function refundCoins(amount){
-  try {
+  try{
     const res = await fetch("/api/coins/refund", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+      method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ team: TEAM, amount })
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    if (typeof data.coins === "number") setCoins(data.coins);
-    return data;
-  } catch {
-    showToast("Refund failed, please sync.", "warning");
-    return null;
-  }
+    const data = await res.json(); if (typeof data.coins === "number") setCoins(data.coins); return data;
+  }catch{ showToast("Refund failed, please sync.", "warning"); return null; }
 }
 
-/* -------- ECharts: init + updater -------- */
+/* -------- ECharts -------- */
 const BAR_LABELS = ['Qu','Sa','Ma','Pho','De','Di','Os','Phy','Ca','Gm'];
 let chart = null;
 function ensureChart(){
@@ -225,233 +198,143 @@ function ensureChart(){
 }
 function normalizeScores(arr){
   const out = new Array(10).fill(0);
-  for (let i=0;i<10;i++){
-    const v = Number(arr?.[i]);
-    const n = Number.isFinite(v) ? Math.max(0, Math.min(10, Math.round(v))) : 0;
-    out[i] = n;
-  }
+  for (let i=0;i<10;i++){ const v=Number(arr?.[i]); const n=Number.isFinite(v)?Math.max(0,Math.min(10,Math.round(v))):0; out[i]=n; }
   return out;
 }
-function updateChart(scores, source="WS"){
-  ensureChart();
-  chart.setOption({ series:[{ data: normalizeScores(scores) }] });
-  setLastUpdate(source);
-}
+function updateChart(scores, source="WS"){ ensureChart(); chart.setOption({ series:[{ data: normalizeScores(scores) }] }); setLastUpdate(source); }
 
-/* -------- Scores: initial load (persisted) -------- */
+/* -------- Scores: initial load -------- */
 async function fetchScores(){
   const res = await fetch(`/api/scores/${encodeURIComponent(TEAM)}`);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const data = await res.json();
-  updateChart(data.scores || [], "Fetch");
+  const data = await res.json(); updateChart(data.scores || [], "Fetch");
 }
 
 /* -------- parse KV (fallback) -------- */
 function parseGamaKVMessage(s){
   if (typeof s !== "string") return null;
-  const t = s.trim();
-  if (!t.includes("=")) return null;
-  const mTeam = /team\s*=\s*"?([A-Za-z]+)"?/i.exec(t);
-  const team = mTeam ? mTeam[1] : null;
-  const mScores = /scores?\s*=\s*\[([^\]]*)\]/i.exec(t);
-  let scores = [];
-  if (mScores && mScores[1]) {
-    scores = mScores[1].split(",").map(x => parseFloat(x.trim())).filter(n => !Number.isNaN(n));
-  }
-  const mType = /type\s*=\s*"?(scores?_update)"?/i.exec(t);
-  const typ = mType ? mType[1] : "score_update";
-  if (!team || !scores.length) return null;
-  return { type: typ, team, scores };
+  const t=s.trim(); if (!t.includes("=")) return null;
+  const mTeam=/team\s*=\s*"?([A-Za-z]+)"?/i.exec(t); const team=mTeam?mTeam[1]:null;
+  const mScores=/scores?\s*=\s*\[([^\]]*)\]/i.exec(t); let scores=[];
+  if (mScores && mScores[1]) scores=mScores[1].split(",").map(x=>parseFloat(x.trim())).filter(n=>!Number.isNaN(n));
+  const mType=/type\s*=\s*"?(scores?_update)"?/i.exec(t); const typ=mType?mType[1]:"score_update";
+  if (!team || !scores.length) return null; return { type: typ, team, scores };
 }
 
-/* -------- WebSocket state (+ auto-reconnect) -------- */
-let sock = null;
-let bridgeReady = false;
-let gamaReady   = false;
-
-const READY = { CONNECTING:0, OPEN:1, CLOSING:2, CLOSED:3 };
-const STATUS = { DISCONNECTED:"Disconnected", CONNECTING:"Connecting", WAITING:"Waiting GAMA", CONNECTED:"Connected" };
-function setBadge(text, cls){ badge.textContent = text; badge.className = "badge text-bg-" + cls; }
-function isSockOpen(){ return sock && sock.readyState === READY.OPEN; }
+/* -------- WebSocket (+ auto-reconnect) -------- */
+let sock=null, bridgeReady=false, gamaReady=false;
+const READY={ CONNECTING:0, OPEN:1, CLOSING:2, CLOSED:3 };
+const STATUS={ DISCONNECTED:"Disconnected", CONNECTING:"Connecting", WAITING:"Waiting GAMA", CONNECTED:"Connected" };
+function setBadge(text, cls){ badge.textContent=text; badge.className="badge text-bg-"+cls; }
+function isSockOpen(){ return sock && sock.readyState===READY.OPEN; }
 
 /* Backoff */
-let wsRetry = 0;
-let wsTimer = null;
-const WS_BACKOFF = [800, 1500, 3000, 5000, 8000]; // ms
-function resetReconnect(){ if (wsTimer){ clearTimeout(wsTimer); wsTimer=null; } wsRetry=0; }
-function scheduleReconnect(){
-  if (wsTimer) return;
-  const delay = WS_BACKOFF[Math.min(wsRetry, WS_BACKOFF.length-1)];
-  wsTimer = setTimeout(() => { wsTimer=null; wsRetry++; connectWS(); }, delay);
-}
-
-/* ปิด socket เก่าแล้วต่อใหม่ทันที */
+let wsRetry=0, wsTimer=null;
+const WS_BACKOFF=[800,1500,3000,5000,8000];
+function resetReconnect(){ if(wsTimer){ clearTimeout(wsTimer); wsTimer=null; } wsRetry=0; }
+function scheduleReconnect(){ if(wsTimer) return; const d=WS_BACKOFF[Math.min(wsRetry,WS_BACKOFF.length-1)]; wsTimer=setTimeout(()=>{ wsTimer=null; wsRetry++; connectWS(); }, d); }
 function hardReconnect(){
   resetReconnect();
-  try { if (sock) { sock.onopen=sock.onclose=sock.onerror=sock.onmessage=null; sock.close(); } } catch {}
-  sock = null;
-  connectWS();
+  try{ if(sock){ sock.onopen=sock.onclose=sock.onerror=sock.onmessage=null; sock.close(); } }catch{}
+  sock=null; connectWS();
 }
 
 /* Buttons enable/disable */
 function updateActionButtons(){
   const canSend = gamaReady && isSockOpen();
   const validTeam = TEAMS.includes(TEAM);
-  const setBtnState = (btn, baseClass, cost) => {
-    const enough = currentCoins >= cost;
-    const on = canSend && coinsLoaded && enough && validTeam;
-    btn.disabled = !on;
-    btn.classList.remove("btn-secondary","btn-danger","btn-warning","btn-success");
-    btn.classList.add(on ? baseClass : "btn-secondary");
+  const connecting = sock && sock.readyState===READY.CONNECTING;
+  const setBtnState=(btn, baseClass, cost)=>{
+    const enough=currentCoins>=cost; const on=canSend && coinsLoaded && enough && validTeam;
+    btn.disabled=!on; btn.classList.remove("btn-secondary","btn-danger","btn-warning","btn-success"); btn.classList.add(on?baseClass:"btn-secondary");
   };
-  setBtnState(btnFire,  "btn-danger",  COST.Fire);
-  setBtnState(btnAlien, "btn-warning", COST.Alien);
-  setBtnState(btnGrass, "btn-success", COST.Grass);
-  // Re-connect: disable เฉพาะตอนกำลัง CONNECTING
-  const connecting = sock && sock.readyState === READY.CONNECTING;
+  setBtnState(btnFire,"btn-danger",COST.Fire);
+  setBtnState(btnAlien,"btn-warning",COST.Alien);
+  setBtnState(btnGrass,"btn-success",COST.Grass);
+  // ให้กดได้เสมอ ยกเว้นกำลัง CONNECTING (กันกดรัว)
   reconnBtn.disabled = !!connecting;
-  syncBtn.disabled = !validTeam;
 }
 function refreshUI(){
-  if (!bridgeReady) setBadge(STATUS.DISCONNECTED, "secondary");
-  else if (!gamaReady) setBadge(STATUS.WAITING, "warning");
-  else setBadge(STATUS.CONNECTED, "success");
+  const connecting = sock && sock.readyState===READY.CONNECTING;
+  if (connecting) setBadge(STATUS.CONNECTING,"info");
+  else if (!bridgeReady) setBadge(STATUS.DISCONNECTED,"secondary");
+  else if (!gamaReady) setBadge(STATUS.WAITING,"warning");
+  else setBadge(STATUS.CONNECTED,"success");
   updateActionButtons();
 }
 
-/* WebSocket connect (with auto-retry) */
+/* WebSocket connect */
 function connectWS(){
-  // ถ้ากำลัง CONNECTING/OPEN ให้รอ แต่ถ้า CLOSING/CLOSED ให้สร้างใหม่
-  if (sock && (sock.readyState === READY.CONNECTING || sock.readyState === READY.OPEN)) {
-    return;
-  }
-  if (sock && (sock.readyState === READY.CLOSING || sock.readyState === READY.CLOSED)) {
-    try { sock.close(); } catch {}
-    sock = null;
-  }
+  if (sock && (sock.readyState===READY.CONNECTING || sock.readyState===READY.OPEN)) return;
+  if (sock && (sock.readyState===READY.CLOSING || sock.readyState===READY.CLOSED)) { try{ sock.close(); }catch{} sock=null; }
 
-  bridgeReady = false; gamaReady = false; refreshUI();
+  bridgeReady=false; gamaReady=false; refreshUI();
   showToast("Connecting to bridge...", "secondary");
 
-  const scheme = location.protocol === "https:" ? "wss://" : "ws://";
+  const scheme = location.protocol==="https:" ? "wss://" : "ws://";
   const url = scheme + location.host + "/ws";
   sock = new WebSocket(url);
 
-  sock.onopen = () => {
-    bridgeReady = true; gamaReady = false;
-    resetReconnect();
-    showToast("Bridge connected. Waiting for GAMA...", "info");
-    refreshUI();
-  };
-  sock.onclose = () => {
-    bridgeReady = false; gamaReady = false;
-    showToast("Disconnected — retrying...", "secondary");
-    refreshUI();
-    scheduleReconnect();
-  };
-  sock.onerror = () => {
-    bridgeReady = false; gamaReady = false;
-    showToast("Connection error — retrying...", "danger");
-    refreshUI();
-    scheduleReconnect();
-  };
+  sock.onopen = () => { bridgeReady=true; gamaReady=false; resetReconnect(); showToast("Bridge connected. Waiting for GAMA...", "info"); refreshUI(); };
+  sock.onclose = () => { bridgeReady=false; gamaReady=false; showToast("Disconnected — retrying...", "secondary"); refreshUI(); scheduleReconnect(); };
+  sock.onerror = () => { bridgeReady=false; gamaReady=false; showToast("Connection error — retrying...", "danger"); refreshUI(); scheduleReconnect(); };
   sock.onmessage = (e) => {
-    let obj = null;
-    try { obj = JSON.parse(e.data); } catch {}
-    if (!obj) obj = parseGamaKVMessage(e.data);
-
-    if (obj && obj.type === "coins_update") {
-      if (obj.team === TEAM && typeof obj.coins === "number") setCoins(obj.coins);
-      return;
+    let obj=null; try{ obj=JSON.parse(e.data); }catch{} if(!obj) obj=parseGamaKVMessage(e.data);
+    if (obj && obj.type==="coins_update"){ if (obj.team===TEAM && typeof obj.coins==="number") setCoins(obj.coins); return; }
+    if (obj && (obj.type==="scores_update" || obj.type==="score_update")){
+      const arr=Array.isArray(obj.scores)?obj.scores:(Array.isArray(obj.score)?obj.score:null);
+      if (obj.team===TEAM && Array.isArray(arr)) updateChart(arr,"WS"); return;
     }
-    if (obj && (obj.type === "scores_update" || obj.type === "score_update")) {
-      const arr = Array.isArray(obj.scores) ? obj.scores : (Array.isArray(obj.score) ? obj.score : null);
-      if (obj.team === TEAM && Array.isArray(arr)) updateChart(arr, "WS");
-      return;
-    }
-    try {
-      if (obj?.error === "gama_unreachable") {
-        gamaReady = false; showToast("GAMA not reachable. Retrying...", "warning"); refreshUI(); return;
-      }
-      if (obj?.info === "gama_connected") {
-        gamaReady = true; showToast("Bridge connected to GAMA", "success"); refreshUI(); return;
-      }
-    } catch {}
+    try{
+      if (obj?.error==="gama_unreachable"){ gamaReady=false; showToast("GAMA not reachable. Retrying...", "warning"); refreshUI(); return; }
+      if (obj?.info==="gama_connected"){ gamaReady=true; showToast("Bridge connected to GAMA", "success"); refreshUI(); return; }
+    }catch{}
   };
 }
-
-/* ถ้า tab กลับมา visible และ WS ปิดอยู่ ให้ลองต่อทันที */
-document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible" && !isSockOpen()) scheduleReconnect();
-});
-/* iOS/Safari: หน้าโหลดจาก bfcache ให้พยายามต่อใหม่ */
-window.addEventListener("pageshow", (e) => {
-  if (e.persisted) hardReconnect();
-});
+document.addEventListener("visibilitychange", () => { if (document.visibilityState==="visible" && !isSockOpen()) scheduleReconnect(); });
+window.addEventListener("pageshow", (e) => { if (e.persisted) hardReconnect(); });
+window.addEventListener("online",  () => { showToast("Back online — reconnecting...","success"); hardReconnect(); });
+window.addEventListener("offline", () => { showToast("You are offline","warning"); });
 
 /* -------- Confirm modal & actions -------- */
-const confirmModalEl = document.getElementById('confirmModal');
-const confirmModal   = new bootstrap.Modal(confirmModalEl);
-const cfThreatEl     = document.getElementById('cfThreat');
-const cfCostEl       = document.getElementById('cfCost');
-const cfCoinsEl      = document.getElementById('cfCoins');
-const cfConfirmBtn   = document.getElementById('cfConfirmBtn');
-let pending = null;
-function openConfirm(threat, cost){
-  pending = { threat, cost };
-  cfThreatEl.textContent = threat;
-  cfCostEl.textContent   = String(cost);
-  cfCoinsEl.textContent  = String(currentCoins);
-  confirmModal.show();
-}
+const confirmModalEl=document.getElementById('confirmModal');
+const confirmModal=new bootstrap.Modal(confirmModalEl);
+const cfThreatEl=document.getElementById('cfThreat');
+const cfCostEl=document.getElementById('cfCost');
+const cfCoinsEl=document.getElementById('cfCoins');
+const cfConfirmBtn=document.getElementById('cfConfirmBtn');
+let pending=null;
+function openConfirm(threat,cost){ pending={threat,cost}; cfThreatEl.textContent=threat; cfCostEl.textContent=String(cost); cfCoinsEl.textContent=String(currentCoins); confirmModal.show(); }
 function sendReset(threat){
-  if (!gamaReady || !isSockOpen()) { showToast("Not connected to GAMA", "warning"); return false; }
-  const msg = `type=RemoveThreat;team=${TEAM};threat=${threat}`;
-  try { sock.send(msg); showToast(`Sent reset "${threat}"`, "info"); return true; }
-  catch { showToast("Failed to send", "danger"); return false; }
+  if (!gamaReady || !isSockOpen()) { showToast("Not connected to GAMA","warning"); return false; }
+  const msg=`type=RemoveThreat;team=${TEAM};threat=${threat}`;
+  try{ sock.send(msg); showToast(`Sent reset "${threat}"`,"info"); return true; }catch{ showToast("Failed to send","danger"); return false; }
 }
-cfConfirmBtn.onclick = async () => {
-  if (!pending) return;
-  const { threat, cost } = pending;
-  let dec;
-  try { dec = await decrementCoins(cost, threat); }
-  catch { showToast("Failed to update coins on server.", "danger"); return; }
-  if (!dec?.ok){
-    const serverCoins = typeof dec?.coins === "number" ? dec.coins : currentCoins;
-    showToast(`Not enough coins. You have ${serverCoins}.`, "warning");
-    return;
-  }
-  const sent = sendReset(threat);
-  if (!sent){ await refundCoins(cost); showToast("Action failed. Refunded coins.", "warning"); return; }
-  showToast(`Coins deducted (-${cost}). Remaining: ${currentCoins}`, "success");
-  confirmModal.hide(); pending = null;
+cfConfirmBtn.onclick=async()=>{ if(!pending) return; const {threat,cost}=pending;
+  let dec; try{ dec=await decrementCoins(cost,threat); }catch{ showToast("Failed to update coins on server.","danger"); return; }
+  if(!dec?.ok){ const serverCoins=typeof dec?.coins==="number"?dec.coins:currentCoins; showToast(`Not enough coins. You have ${serverCoins}.`,"warning"); return; }
+  const sent=sendReset(threat); if(!sent){ await refundCoins(cost); showToast("Action failed. Refunded coins.","warning"); return; }
+  showToast(`Coins deducted (-${cost}). Remaining: ${currentCoins}`,"success"); confirmModal.hide(); pending=null;
 };
 
 /* Hooks */
-btnFire.onclick  = () => openConfirm("Fire",    COST.Fire);
-btnAlien.onclick = () => openConfirm("Aliens",  COST.Alien);
-btnGrass.onclick = () => openConfirm("Grasses", COST.Grass);
+btnFire.onclick=()=>openConfirm("Fire",COST.Fire);
+btnAlien.onclick=()=>openConfirm("Aliens",COST.Alien);
+btnGrass.onclick=()=>openConfirm("Grasses",COST.Grass);
+reconnBtn.onclick=()=>{ hardReconnect(); };
 
-/* -------- Init / Sync -------- */
+/* -------- Init -------- */
 async function fullSync(){
-  if (!TEAMS.includes(TEAM)){
-    showToast("Unknown team. Controls disabled.", "warning");
-    updateActionButtons();
-    return;
-  }
+  if (!TEAMS.includes(TEAM)){ showToast("Unknown team. Controls disabled.","warning"); updateActionButtons(); return; }
   await Promise.allSettled([fetchCoins(), fetchScores()]);
-  setLastUpdate("Fetch");
-  updateActionButtons();
+  setLastUpdate("Fetch"); updateActionButtons();
 }
 (async function init(){
   ensureChart();
   await fullSync();
   connectWS();
-  // กันพลาด: ถ้ายังไม่ open ภายใน 1s ให้ตั้ง retry
-  setTimeout(()=>{ if (!isSockOpen()) scheduleReconnect(); }, 1000);
+  setTimeout(()=>{ if(!isSockOpen()) scheduleReconnect(); }, 1000);
 })();
-reconnBtn.onclick = () => { hardReconnect(); };
-syncBtn.onclick   = () => { fullSync().catch(()=>showToast("Sync failed.", "danger")); hardReconnect(); };
 </script>
 </body>
 </html>

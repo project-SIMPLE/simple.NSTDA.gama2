@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
-import uvicorn, os, json, socket, asyncio, re
+import os, json, socket, asyncio, re
 from typing import Dict, Set, List, Tuple, Optional
 import websockets
 from datetime import datetime
@@ -9,18 +9,22 @@ from datetime import datetime
 # ---------- config ----------
 HOST = "0.0.0.0"
 PORT = int(os.environ.get("PORT", "8000"))
-STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
-COINS_FILE = os.path.join(os.path.dirname(__file__), "coins.json")
-SCORES_FILE = os.path.join(os.path.dirname(__file__), "scores.json")   # keep scores persistent
+BASE_DIR   = os.path.dirname(__file__)
+STATIC_DIR = os.path.join(BASE_DIR, "static")
+COINS_FILE = os.path.join(BASE_DIR, "coins.json")
+SCORES_FILE= os.path.join(BASE_DIR, "scores.json")
+LOG_FILE   = os.path.join(BASE_DIR, "gama_actions.csv")
+
 TEAMS = ["Blue","Red","Green","Yellow","Black","White"]
 
-RESET_ON_START = os.environ.get("RESET_COINS_ON_START", "1") != "0"
-RESET_SCORES_ON_START = os.environ.get("RESET_SCORES_ON_START", "1") != "0"   # <-- NEW
+RESET_ON_START         = os.environ.get("RESET_COINS_ON_START", "1") != "0"
+RESET_SCORES_ON_START  = os.environ.get("RESET_SCORES_ON_START", "1") != "0"
 
 GAMA_HOST = os.environ.get("GAMA_IP_ADDRESS", "localhost")
 GAMA_PORT = int(os.environ.get("GAMA_WS_PORT", "3001"))
 
-LOG_FILE = os.path.join(os.path.dirname(__file__), "gama_actions.csv")
+# ปรับค่า keepalive ของ websockets ให้ทนเน็ตแกว่ง ๆ มากขึ้น
+WS_CONNECT_KW = dict(ping_interval=20, ping_timeout=20, max_queue=64, open_timeout=4)
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
@@ -88,9 +92,9 @@ def save_scores(state: Dict[str, List[int]]):
 SCORES: Dict[str, List[int]] = load_scores()
 
 # ---------- per-team & global locks ----------
-team_locks = {t: asyncio.Lock() for t in TEAMS}   # coins per team
-coins_lock = asyncio.Lock()
-scores_locks = {t: asyncio.Lock() for t in TEAMS} # scores per team
+team_locks   = {t: asyncio.Lock() for t in TEAMS}   # coins per team
+coins_lock   = asyncio.Lock()
+scores_locks = {t: asyncio.Lock() for t in TEAMS}   # scores per team
 
 # ---------- browser WS pool (for broadcast) ----------
 BROWSER_SOCKETS: Set[WebSocket] = set()
@@ -111,7 +115,6 @@ async def broadcast_coins_update(team: str):
     await _broadcast({"type": "coins_update", "team": team, "coins": COINS.get(team, 0)})
 
 async def broadcast_scores_update(team: str):
-    # NOTE: ใช้ชนิด "scores_update" ให้ตรงกับฝั่งเว็บ
     await _broadcast({"type": "scores_update", "team": team, "scores": SCORES.get(team, _zeros10())})
 
 # ---------- simple CSV logger for actions ----------
@@ -133,15 +136,13 @@ async def reset_on_startup():
     global COINS, SCORES
     init_log_file()
 
-    # รีเซ็ต coins
     if RESET_ON_START:
         COINS = {t: 0 for t in TEAMS}
         save_coins(COINS)
         print("💾 Reset all coins to 0 at server startup")
     else:
-        print("↩️  Skipped reset on startup (RESET_COINS_ON_START=0)")
+        print("↩️  Skipped coins reset on startup (RESET_COINS_ON_START=0)")
 
-    # รีเซ็ต scores (NEW)
     if RESET_SCORES_ON_START:
         SCORES = {t: _zeros10() for t in TEAMS}
         save_scores(SCORES)
@@ -157,6 +158,17 @@ def root():
 @app.get("/static/team.html", response_class=HTMLResponse)
 def team_page():
     return FileResponse(os.path.join(STATIC_DIR, "team.html"))
+
+# ---------- tiny health endpoint ----------
+@app.get("/healthz")
+def healthz():
+    return {
+        "ok": True,
+        "teams": TEAMS,
+        "coins_file": os.path.exists(COINS_FILE),
+        "scores_file": os.path.exists(SCORES_FILE),
+        "browser_ws": len(BROWSER_SOCKETS),
+    }
 
 # ---------- coins API ----------
 @app.get("/api/coins")
@@ -342,7 +354,7 @@ async def _ingest_score_update(team: str, arr: List[int]):
         save_scores(SCORES)
     await broadcast_scores_update(team)
 
-# ---------- WebSocket ----------
+# ---------- WebSocket (bridge) ----------
 @app.websocket("/ws")
 async def ws_bridge(websocket: WebSocket):
     await websocket.accept()
@@ -357,13 +369,14 @@ async def ws_bridge(websocket: WebSocket):
     async def connect_once():
         nonlocal gama_ws
         try:
-            gama_ws = await websockets.connect(f"ws://{GAMA_HOST}:{GAMA_PORT}")
+            gama_ws = await websockets.connect(f"ws://{GAMA_HOST}:{GAMA_PORT}", **WS_CONNECT_KW)
             await websocket.send_json({"info": "gama_connected"})
         except Exception:
             gama_ws = None
             await websocket.send_json({"error": "gama_unreachable"})
 
     async def connect_loop():
+        # พยายามเชื่อม GAMA ใหม่เรื่อย ๆ จนกว่าจะสำเร็จหรือถูกยกเลิก
         while not stop:
             if gama_ws is None:
                 await connect_once()
@@ -400,15 +413,14 @@ async def ws_bridge(websocket: WebSocket):
                 if isinstance(msg, bytes):
                     msg = msg.decode("utf-8", "ignore")
 
-                # --- NEW: parse typed messages from GAMA ---
+                # --- parse typed messages from GAMA ---
                 parsed = _try_parse_typed_json(msg) or _try_parse_typed_kv(msg)
                 if parsed:
                     typ, team, arr = parsed
-                    # persist+broadcast เฉพาะ score_update/scores_update
-                    if typ in ("score_update", "scores_update"):
+                    if typ in ("score_update", "scores_update"):   # persist + broadcast
                         await _ingest_score_update(team, arr)
 
-                # forward raw message (เผื่อ client ใช้ต่อ)
+                # ส่งต่อข้อความดิบกลับให้ client ปัจจุบัน (backward-compat)
                 await websocket.send_text(msg)
 
             except Exception:
@@ -418,10 +430,11 @@ async def ws_bridge(websocket: WebSocket):
                 except Exception:
                     pass
                 gama_ws = None
+                # ปล่อยให้ connect_loop กลับไปลองเชื่อมใหม่
 
     connect_task = asyncio.create_task(connect_loop())
-    b2g_task = asyncio.create_task(browser_to_gama())
-    g2b_task = asyncio.create_task(gama_to_browser())
+    b2g_task     = asyncio.create_task(browser_to_gama())
+    g2b_task     = asyncio.create_task(gama_to_browser())
 
     try:
         done, pending = await asyncio.wait(
@@ -445,14 +458,13 @@ async def ws_bridge(websocket: WebSocket):
                 pass
         # ถอนทะเบียน browser
         async with BROWSER_SOCKETS_LOCK:
-            if websocket in BROWSER_SOCKETS:
-                BROWSER_SOCKETS.remove(websocket)
+            BROWSER_SOCKETS.discard(websocket)
 
-# ---------- util ----------
+# ---------- util (only used when run directly) ----------
 def get_lan_ip():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
-        # ถ้าไม่มีเน็ตอาจ fallback เป็น 127.0.0.1 (ตั้งค่า IP เองเวลาพิมพ์ URL ได้)
+        s.settimeout(0.3)
         s.connect(("8.8.8.8", 80))
         ip = s.getsockname()[0]
     except Exception:
@@ -462,6 +474,8 @@ def get_lan_ip():
     return ip
 
 if __name__ == "__main__":
+    # รันตรง ๆ (ส่วนใหญ่คุณจะใช้ run_server.py อยู่แล้ว)
+    import uvicorn
     ip = get_lan_ip()
     print("🚀 Server is running!")
     print("🌐 Open this link on any device in the same Wi-Fi:")
