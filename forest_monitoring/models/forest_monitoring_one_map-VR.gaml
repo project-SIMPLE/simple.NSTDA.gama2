@@ -245,6 +245,7 @@ global{
 	}
 		
 	action update_n_remain_tree {		
+		list<int> temp_max_total_score <- list_with(6,0);
 		loop p over:connect_team_list{
 			loop i from:0 to:2{
 				list<tree> for_count_tree_state <- tree where ((each.it_state = i+1) 
@@ -252,8 +253,12 @@ global{
 															and (each.it_can_growth != "0"));
 				n_remain_tree[p-1][i] <- length(for_count_tree_state);
 			}
+			
+			add int(total_score_list[p-1] + sum_score_list[p-1]) to:temp_max_total_score;
 		}
-
+		
+		max_score <- max(temp_max_total_score);
+		
 		loop p over:connect_team_list{
 //			sum_score_list[p-1] <- 	((-2*alpha)	*(100 - sum(n_remain_tree[p-1]))) +
 //									(0			*n_remain_tree[p-1][0]) + 
@@ -272,7 +277,7 @@ global{
 			}
 			ask Server{
 				do send to: "All" contents:["type"::"score_update", "team"::color_list[p-1], "score"::n_remain_tree_all[p-1]] ;
-				write "Send score for type= score_update team= " + color_list[p-1] + " score= " + n_remain_tree_all[p-1];
+//				write "Send score for type= score_update team= " + color_list[p-1] + " score= " + n_remain_tree_all[p-1];
 			}
 		}
 		

@@ -26,7 +26,7 @@ global{
 	list<string> color_list <- ["Blue", "Red", 'Green', "Yellow", "Black", "White"];
 	list<rgb> player_colors <- [rgb(66, 72, 255), #red, #green, rgb(255, 196, 0), #black, rgb(156, 152, 142)];
 	list<rgb> state_colors <- [rgb(151, 255, 110), rgb(50, 176, 0), rgb(32, 112, 0)];
-	list<string> player_name <- ["Player_101", "Player_102", "Player_103", "Player_57", "Player_59", "Player_52"];
+	list<string> player_name <- ["Player_101", "Player_102", "Player_103", "Player_104", "Player_105", "Player_106"];
 	map<int, string> map_player_intid <- [1::player_name[0], 2::player_name[1], 3::player_name[2], 4::player_name[3], 5::player_name[4], 6::player_name[5]];
 	map<string, int> map_player_idint <- [player_name[0]::1, player_name[1]::2, player_name[2]::3, player_name[3]::4, player_name[4]::5, player_name[5]::6];
 	map<string, int> map_player_colorint <- [color_list[0]::1, color_list[1]::2, color_list[2]::3, color_list[3]::4, color_list[4]::5, color_list[5]::6];
@@ -66,7 +66,7 @@ global{
 	list<list<int>> n_remain_tree_all <- list_with(6, list_with(10, 0));
 	list<int> sum_score_list <- list_with(6,0);
 	list<int> total_score_list <- list_with(6,0);
-	float alpha <- 0.5;
+	int max_score <- 0;
 	int upper_bound <- 150;
 	
 	int time_interval <- 15;
@@ -281,9 +281,9 @@ global{
 }
 
 experiment init_exp type: gui {
-	output{
+	output{ 
 		layout vertical([horizontal([0::1, 1::1])::1, horizontal([2::1, 3::1, 4::1, 5::1, 6::1, 7::1])::1]) 
-		toolbars: false tabs: false parameters: false consoles: true navigator: false controls: true tray: false ;
+		toolbars: false tabs: false parameters: false consoles: false navigator: false controls: true tray: false ;
 		display "Main" type: 3d background: rgb(50,50,50) locked:true antialias:true {
 			camera 'default' location: {25.14,12.2616,92.8721} target: {25.14,12.26,0.0};
 			species map_area;
@@ -365,9 +365,9 @@ experiment init_exp type: gui {
 				}
 			}
 		}
-		display "Total" type: 2d locked:true{
-			chart "Total seeds" type:histogram reverse_axes:true
-			y_range:[-100, 100*(count_start+1)]
+		display "Total Scores" type: 2d locked:true{
+			chart "Total Scores" type:histogram reverse_axes:true
+			y_range:[0, 20 + max_score]
 			x_serie_labels: [""]
 			style:"3d"
 			series_label_position: xaxis
@@ -384,19 +384,20 @@ experiment init_exp type: gui {
 						"(" + 
 						int(sum_score_list[i]) + 
 						")"
-						at:{width/1.3, 13 + 6.3*i} 
-						font:font("Times", 16, #bold+#italic) 
+						at:{width/1.5, 13 + 6.3*i} 
+						font:font("Times", 14, #bold+#italic) 
 						border:#black color:player_colors[i];
 				}
 			}
 		}
+		
 		display "His_Team1" type: 2d locked:true{ 		
 			chart "Team1" type:histogram 
-			x_serie_labels: ["Species"] 				
-			y_range:[0, 3] 		
+			x_serie_labels: ["State"] 				
+			y_range:[0, 100] 		
 			style:"3d" 			  
 			series_label_position: xaxis {
-				data "D" value: sum(n_remain_tree[0])
+				data "D" value: 100-sum(n_remain_tree[0])
 				color:#black ;
 					
 				loop j from:0 to:2{
@@ -408,11 +409,11 @@ experiment init_exp type: gui {
 		
 		display "His_Team2" type: 2d locked:true{ 		
 			chart "Team2" type:histogram 
-			x_serie_labels: ["Species"] 				
-			y_range:[0, 10] 		
+			x_serie_labels: ["State"] 				
+			y_range:[0, 100] 		
 			style:"3d" 			  
 			series_label_position: xaxis {
-				data "D" value: sum(n_remain_tree[1])
+				data "D" value: 100-sum(n_remain_tree[1])
 				color:#black ;
 					
 				loop j from:0 to:2{
@@ -424,11 +425,11 @@ experiment init_exp type: gui {
 		
 		display "His_Team3" type: 2d locked:true{ 		
 			chart "Team3" type:histogram 
-			x_serie_labels: ["Species"] 				
-			y_range:[0, 10] 		
+			x_serie_labels: ["State"] 				
+			y_range:[0, 100] 		
 			style:"3d" 			  
 			series_label_position: xaxis {
-				data "D" value: sum(n_remain_tree[2])
+				data "D" value: 100-sum(n_remain_tree[2])
 				color:#black ;
 					
 				loop j from:0 to:2{
@@ -440,11 +441,11 @@ experiment init_exp type: gui {
 		
 		display "His_Team4" type: 2d locked:true{ 		
 			chart "Team4" type:histogram 
-			x_serie_labels: ["Species"] 				
-			y_range:[0, 10] 		
+			x_serie_labels: ["State"] 				
+			y_range:[0, 100] 		
 			style:"3d" 			  
 			series_label_position: xaxis {
-				data "D" value: sum(n_remain_tree[3])
+				data "D" value: 100-sum(n_remain_tree[3])
 				color:#black ;
 					
 				loop j from:0 to:2{
@@ -456,11 +457,11 @@ experiment init_exp type: gui {
 		
 		display "His_Team5" type: 2d locked:true{ 		
 			chart "Team5" type:histogram 
-			x_serie_labels: ["Species"] 				
-			y_range:[0, 10] 		
+			x_serie_labels: ["State"] 				
+			y_range:[0, 100] 		
 			style:"3d" 			  
 			series_label_position: xaxis {
-				data "D" value: sum(n_remain_tree[4])
+				data "D" value: 100-sum(n_remain_tree[4])
 				color:#black ;
 					
 				loop j from:0 to:2{
@@ -472,11 +473,11 @@ experiment init_exp type: gui {
 		
 		display "His_Team6" type: 2d locked:true{ 		
 			chart "Team6" type:histogram 
-			x_serie_labels: ["Species"] 				
-			y_range:[0, 10] 		
+			x_serie_labels: ["State"] 				
+			y_range:[0, 100] 		
 			style:"3d" 			  
 			series_label_position: xaxis {
-				data "D" value: sum(n_remain_tree[5])
+				data "D" value: 100-sum(n_remain_tree[5])
 				color:#black ;
 					
 				loop j from:0 to:2{

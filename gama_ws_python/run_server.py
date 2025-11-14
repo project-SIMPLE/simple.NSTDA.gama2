@@ -8,7 +8,12 @@ def get_local_ip():
         s.connect(("8.8.8.8", 80))
         ip = s.getsockname()[0]
     except Exception:
-        ip = "localhost"
+        try:
+            # วิธีสำรอง: ใช้ hostname
+            hostname = socket.gethostname()
+            ip = socket.gethostbyname(hostname)
+        except Exception:
+            ip = "127.0.0.1"
     finally:
         s.close()
     return ip
@@ -25,7 +30,6 @@ def find_free_port(start=8000, max_tries=50):
 
 if __name__ == "__main__":
     ip = get_local_ip()
-    # ip = "192.168.68.50"
     port = find_free_port(8000)
     print("\n🚀 Server is running!")
     print(f"🌐 Open this link on any device in the same Wi-Fi:")
