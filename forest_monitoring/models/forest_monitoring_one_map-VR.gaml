@@ -161,7 +161,7 @@ global{
 				can_start <- true;
 			}
 			else{
-				do prepare_step;
+//				do prepare_step;
 				ready_team_list <- [];
 				before_Q_team_list <- [];
 				after_Q_team_list <- [];
@@ -741,6 +741,10 @@ species unity_linker parent: abstract_unity_linker {
 	action PlayerID_Ready(string player_ID, string Ready){					
 		if Ready = "Ready1"{
 			write "PlayerID_Ready " + player_ID + " " + Ready + "Readyyyyyyyyy";
+			
+			ask world{
+				do prepare_step;
+			}
 			
 			if not (map_player_idint[player_ID] in ready_team_list){
 				add map_player_idint[player_ID] to:ready_team_list;
