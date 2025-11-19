@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<projectDescription>
+	<name>Unclassified Models</name>
+	<comment></comment>
+	<projects>
+	</projects>
+	<buildSpec>
+		<buildCommand>
+			<name>org.eclipse.xtext.ui.shared.xtextBuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
+	</buildSpec>
+	<natures>
+		<nature>org.eclipse.xtext.ui.shared.xtextNature</nature>
+		<nature>gama.ui.application.gamaNature</nature>
+	</natures>
+	<linkedResources>
+		<link>
+			<name>models/forest_growth_model.gaml</name>
+			<type>1</type>
+			<location>/Users/lilti/Downloads/GitHub/NSTDA/simple.webplatform/learning-packages/2.Summary/models/forest_growth_model.gaml</location>
+		</link>
+		<link>
+			<name>models/forest_growth_model1.gaml</name>
+			<type>1</type>
+			<location>/Users/lilti/Downloads/simple.NSTDA-3.gama/learning-packages/2.Forest_growth/models/forest_growth_model.gaml</location>
+		</link>
+	</linkedResources>
+</projectDescription>

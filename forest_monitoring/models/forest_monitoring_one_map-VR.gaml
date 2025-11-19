@@ -122,15 +122,15 @@ global{
 				"Threats"::""] to:all_for_send;
 				write "send StartGame at cycle = " + cycle;
 				
-				ask unity_player{
-					location <- {main_location.x, main_location.y, adjust_z};
-					ask unity_linker {
-						new_player_position[myself.name] <- [myself.location.x *precision,
-															myself.location.y *precision,
-															myself.location.z *precision];
-						move_player_event <- true;
-					}
-				}
+//				ask unity_player{
+//					location <- {main_location.x, main_location.y, adjust_z};
+//					ask unity_linker {
+//						new_player_position[myself.name] <- [myself.location.x *precision,
+//															myself.location.y *precision,
+//															myself.location.z *precision];
+//						move_player_event <- true;
+//					}
+//				}
 //-----------------------------------------------------------------------------------------*********
 				do create_tree;
 
@@ -202,15 +202,15 @@ global{
 		// score
 		loop p over:connect_team_list{
 			add map<string, string>(["PlayerID"::map_player_intid[p], 
-										"Name"::sum(n_remain_tree[p-1]), 
+										"Name"::sum_score_list[p-1], 
 										"State"::""]) to:send_final_score;
 		}
 		
 		// Background
 		loop p over:connect_team_list{
 			loop j from:0 to:(length(list_of_bg_score)-2){
-				if (sum(n_remain_tree[p-1]) >= list_of_bg_score[j]) and 
-					(sum(n_remain_tree[p-1]) < list_of_bg_score[j+1]){
+				if (sum_score_list[p-1] >= list_of_bg_score[j]) and 
+					(sum_score_list[p-1] < list_of_bg_score[j+1]){
 					add map<string, string>(["PlayerID"::map_player_intid[p], 
 											"Name"::string(j+1), 
 											"State"::""]) to:send_tree_update_environment;
@@ -252,6 +252,8 @@ global{
 															and (each.player = p) 
 															and (each.it_can_growth != "0"));
 				n_remain_tree[p-1][i] <- length(for_count_tree_state);
+				
+				remaining_tree_per_plot[p-1][count_start-1][i] <- n_remain_tree[p-1][i];
 			}
 			
 			add int(total_score_list[p-1] + sum_score_list[p-1]) to:temp_max_total_score;
@@ -275,9 +277,20 @@ global{
 															and (each.player = p) 
 															and (each.it_can_growth != "0")));
 			}
+			
 			ask Server{
+				list<int> team_score_list <- list_with(6,0);
+				
+				loop i from:0 to:(length(sum_score_list)-1){
+					team_score_list[i] <- int(total_score_list[i]+sum_score_list[i]);
+				}
+				
 				do send to: "All" contents:["type"::"score_update", "team"::color_list[p-1], "score"::n_remain_tree_all[p-1]] ;
 //				write "Send score for type= score_update team= " + color_list[p-1] + " score= " + n_remain_tree_all[p-1];
+				
+				do send to: "All" contents:["type"::"remaining_tree_update", "team"::color_list[p-1], "score"::remaining_tree_per_plot[p-1]];
+				
+				do send to: "All" contents:["type"::"bar_chart_update", "team"::"", "score"::team_score_list];
 			}
 		}
 		
@@ -501,8 +514,8 @@ global{
 		// Background
 		loop p over:connect_team_list{
 			loop j from:0 to:(length(list_of_bg_score)-2){
-				if (sum(n_remain_tree[p-1]) >= list_of_bg_score[j]) and 
-					(sum(n_remain_tree[p-1]) < list_of_bg_score[j+1]) and
+				if (sum_score_list[p-1] >= list_of_bg_score[j]) and 
+					(sum_score_list[p-1] < list_of_bg_score[j+1]) and
 					(j != list_of_player_bg[p-1]){
 					add map<string, string>(["PlayerID"::map_player_intid[p], 
 											"Name"::string(j+1), 
@@ -799,6 +812,17 @@ species unity_linker parent: abstract_unity_linker {
 			}
 			write for_save_answer;
 			
+			ask unity_player where(each.name = PlayerID){
+				write "move player " + self.name;
+				location <- {main_location.x, main_location.y, adjust_z};
+				ask unity_linker {
+					new_player_position[myself.name] <- [myself.location.x *precision,
+														myself.location.y *precision,
+														myself.location.z *precision];
+					move_player_event <- true;
+				}
+			}
+				
 			if (before_Q_team_list sort_by (each)) = (connect_team_list sort_by (each)){
 				write "All player before Q " + (before_Q_team_list sort_by (each)) + " = " +
 					(connect_team_list sort_by (each));

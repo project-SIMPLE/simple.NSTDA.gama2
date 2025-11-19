@@ -26,7 +26,7 @@ global{
 	list<string> color_list <- ["Blue", "Red", 'Green', "Yellow", "Black", "White"];
 	list<rgb> player_colors <- [rgb(66, 72, 255), #red, #green, rgb(255, 196, 0), #black, rgb(156, 152, 142)];
 	list<rgb> state_colors <- [rgb(151, 255, 110), rgb(50, 176, 0), rgb(32, 112, 0)];
-	list<string> player_name <- ["Player_101", "Player_102", "Player_103", "Player_104", "Player_105", "Player_106"];
+	list<string> player_name <- ["Player_59", "Player_102", "Player_103", "Player_104", "Player_105", "Player_106"];
 	map<int, string> map_player_intid <- [1::player_name[0], 2::player_name[1], 3::player_name[2], 4::player_name[3], 5::player_name[4], 6::player_name[5]];
 	map<string, int> map_player_idint <- [player_name[0]::1, player_name[1]::2, player_name[2]::3, player_name[3]::4, player_name[4]::5, player_name[5]::6];
 	map<string, int> map_player_colorint <- [color_list[0]::1, color_list[1]::2, color_list[2]::3, color_list[3]::4, color_list[4]::5, color_list[5]::6];
@@ -64,6 +64,7 @@ global{
 	
 	list<list<int>> n_remain_tree <- list_with(6, list_with(3, 0));
 	list<list<int>> n_remain_tree_all <- list_with(6, list_with(10, 0));
+	list<list<list<int>>> remaining_tree_per_plot <- list_with(6,list_with(6, list_with(3, 0)));
 	list<int> sum_score_list <- list_with(6,0);
 	list<int> total_score_list <- list_with(6,0);
 	int max_score <- 0;
@@ -97,8 +98,8 @@ global{
 //	( -33,  33] bg2
 //	(  33, 100] bg3
 //	list<int> list_of_bg_score <- [-100,-33,33,100+1];
-	list<int> list_of_bg_score <- [0,50,75,100+1];
-	list<int> list_of_player_bg <- [2,2,2,2,2,2];
+	list<int> list_of_bg_score <- [0,150,240,300+1];
+	list<int> list_of_player_bg <- [1,1,1,1,1,1];
 	
 	list<int> zone_list <- [1,2,3,4];
 	
@@ -380,11 +381,11 @@ experiment init_exp type: gui {
 			}
 			graphics Strings {
 				loop i from:0 to:(length(sum_score_list)-1){
-					draw "=> " + int(total_score_list[i]+sum_score_list[i]) + 
+					draw "" + int(total_score_list[i]+sum_score_list[i]) + 
 						"(" + 
 						int(sum_score_list[i]) + 
 						")"
-						at:{width/1.5, 13 + 6.3*i} 
+						at:{width/1.5, 8 + 6.3*i} 
 						font:font("Times", 14, #bold+#italic) 
 						border:#black color:player_colors[i];
 				}
