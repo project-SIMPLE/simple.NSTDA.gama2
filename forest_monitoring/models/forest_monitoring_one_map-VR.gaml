@@ -1,3 +1,4 @@
+
 model forestmonitoringonemap_model_VR
 
 import "forest_monitoring_one_map.gaml"
@@ -161,7 +162,6 @@ global{
 				can_start <- true;
 			}
 			else{
-//				do prepare_step;
 				ready_team_list <- [];
 				before_Q_team_list <- [];
 				after_Q_team_list <- [];
@@ -176,7 +176,6 @@ global{
 				
 				ask unity_player{
 					self.correct_location <- false;
-//					location <- {tutorial_location.x, tutorial_location.y + adjust_y, adjust_z};
 					location <- {result_location.x, result_location.y, result_location.z + adjust_z};
 					ask unity_linker {
 						new_player_position[myself.name] <- [myself.location.x *precision,
@@ -188,7 +187,6 @@ global{
 
 				ask old_tree {do die;}
 				ask tree {do die;}
-				ask front_tree {do die;}
 			}
 		}
 	}
@@ -248,9 +246,8 @@ global{
 		list<int> temp_max_total_score <- list_with(6,0);
 		loop p over:connect_team_list{
 			loop i from:0 to:2{
-				list<tree> for_count_tree_state <- tree where ((each.it_state = i+1) 
-															and (each.player = p) 
-															and (each.it_can_growth != "0"));
+				list<tree> for_count_tree_state <- tree where ((each.it_state[p-1] = i+1) 
+															and (each.it_can_growth[p-1] != "0"));
 				n_remain_tree[p-1][i] <- length(for_count_tree_state);
 				
 				remaining_tree_per_plot[p-1][count_start-1][i] <- n_remain_tree[p-1][i];
@@ -262,20 +259,15 @@ global{
 		max_score <- max(temp_max_total_score);
 		
 		loop p over:connect_team_list{
-//			sum_score_list[p-1] <- 	((-2*alpha)	*(100 - sum(n_remain_tree[p-1]))) +
-//									(0			*n_remain_tree[p-1][0]) + 
-//									(alpha		*n_remain_tree[p-1][1]) + 
-//									((2*alpha)	*n_remain_tree[p-1][2]);
 			
-			sum_score_list[p-1] <- 	(0	*(100 - sum(n_remain_tree[p-1]))) +
+			sum_score_list[p-1] <- 	(0	*(sum(n_tree) - sum(n_remain_tree[p-1]))) +
 									(1	*n_remain_tree[p-1][0]) + 
 									(2	*n_remain_tree[p-1][1]) + 
 									(3	*n_remain_tree[p-1][2]);
 									
 			loop j from:0 to:(length(tree_name)-1){
 				n_remain_tree_all[p-1][j] <- length(tree where ((each.tree_type = j+1) 
-															and (each.player = p) 
-															and (each.it_can_growth != "0")));
+															and (each.it_can_growth[p-1] != "0")));
 			}
 			
 			ask Server{
@@ -293,32 +285,12 @@ global{
 				do send to: "All" contents:["type"::"bar_chart_update", "team"::"", "score"::team_score_list];
 			}
 		}
-		
-		ask front_tree{
-			list<tree> stack_tree <- tree where (each.name_for_front_tree = self.name);
-			list<tree> dead_stack_tree <- tree where (each.name_for_front_tree = self.name 
-													and	each.it_can_growth = "0");
-			tree_ratio <- length(dead_stack_tree)/length(stack_tree);		
-		}
 	}
 	
 	action send_readID{		
-		list<map<string,string>> send_tree_update_readID <- [];
-		ask tree{
-			add map<string, string>(["PlayerID"::map_player_intid[self.player], 
-									"Name"::self.name, 
-									"State"::""]) to:send_tree_update_readID;
-		}
-		
-		ask old_tree{
-			add map<string, string>(["PlayerID"::map_player_intid[self.player], 
-									"Name"::self.name, 
-									"State"::""]) to:send_tree_update_readID;
-		}
-		
 		add ["Head"::"ReadID", 
 				"Body"::"", 
-				"Trees"::send_tree_update_readID,
+				"Trees"::"",
 				"Threats"::""] to:all_for_send;
 				
 		write "Send ReadID at cycle = " + cycle;
@@ -380,20 +352,20 @@ global{
 				if alien_type[i] = "A1"{
 					it_zone <- sample(zone_list,1,false);
 					loop j over:it_zone{
-						list<tree> for_rnd_tree <- tree where ((each.player = connect_team_list[0]) 
-															and (each.zone = j)
-															and (each.it_can_growth != "0"));
-						ask sample(for_rnd_tree,1,false){
-							at_location <- {self.location.x + rnd_choice([(-1)::0.5,(1)::0.5]) + rnd(0.5, tree_distance/1.5), 
-											self.location.y + rnd_choice([(-1)::0.5,(1)::0.5]) + rnd(0.5, tree_distance/1.5), 
-											self.location.z};
-							loop p over:connect_team_list{
+						loop p over:connect_team_list{
+						list<tree> for_rnd_tree <- tree where ((each.zone = j)
+															and (each.it_can_growth[p-1] != "0"));
+							ask sample(for_rnd_tree,1,false){
+								at_location <- {self.location.x + rnd_choice([(-1)::0.5,(1)::0.5]) + rnd(0.5, tree_distance/1.5), 
+												self.location.y + rnd_choice([(-1)::0.5,(1)::0.5]) + rnd(0.5, tree_distance/1.5), 
+												self.location.z};
 								add map<string, string>(["Name"::"Alien2", 
 									"x"::at_location.x, 
 									"y"::at_location.z, 
 									"z"::-at_location.y,
-									"PlayerID"::map_player_intid[p]]) to:send_tree_update_threats;	
-							}
+									"PlayerID"::map_player_intid[p]]) to:send_tree_update_threats;
+							}		
+							
 							create icon_everything{
 								location <- at_location;
 								type <- "alien";
@@ -405,19 +377,19 @@ global{
 				else if alien_type[i] = "A2"{
 					it_zone <- sample(zone_list,2,false);
 					loop j over:it_zone{
-						list<tree> for_rnd_tree <- tree where ((each.player = connect_team_list[0]) 
-															and (each.zone = j)
-															and (each.it_can_growth != "0"));
-						ask sample(for_rnd_tree,2,false){
-							at_location <- {self.location.x + rnd_choice([(-1)::0.5,(1)::0.5]) + rnd(0.5, tree_distance/1.5), 
-											self.location.y + rnd_choice([(-1)::0.5,(1)::0.5]) + rnd(0.5, tree_distance/1.5), 
-											self.location.z};
-							loop p over:connect_team_list{
-								add map<string, string>(["Name"::"Alien", 
-									"x"::at_location.x, 
-									"y"::at_location.z, 
-									"z"::-at_location.y,
-									"PlayerID"::map_player_intid[p]]) to:send_tree_update_threats;
+						loop p over:connect_team_list{
+							list<tree> for_rnd_tree <- tree where ((each.zone = j)
+																and (each.it_can_growth[p-1] != "0"));
+							ask sample(for_rnd_tree,2,false){
+								at_location <- {self.location.x + rnd_choice([(-1)::0.5,(1)::0.5]) + rnd(0.5, tree_distance/1.5), 
+												self.location.y + rnd_choice([(-1)::0.5,(1)::0.5]) + rnd(0.5, tree_distance/1.5), 
+												self.location.z};
+								
+									add map<string, string>(["Name"::"Alien", 
+										"x"::at_location.x, 
+										"y"::at_location.z, 
+										"z"::-at_location.y,
+										"PlayerID"::map_player_intid[p]]) to:send_tree_update_threats;
 							}
 							create icon_everything{
 								location <- at_location;
@@ -431,7 +403,7 @@ global{
 			}
 		}
 			
-		// Weeds
+		// Grass
 			loop i from:0 to:(length(grass_Stime)-1){
 				if (time_now >= grass_Stime[i]) and (time_now < grass_Etime[i]) and (time_now mod time_interval = 1){
 					list<int> it_zone;
@@ -439,24 +411,21 @@ global{
 						it_zone <- sample(zone_list,1,false);
 						loop j over:it_zone{
 							loop p over:connect_team_list{
-								list<tree> for_rnd_tree <- tree where ((each.player = p) 
-																	and (each.zone = j)
-																	and (each.it_can_growth = "1")
-																	and (each.it_state != 3));
+								list<tree> for_rnd_tree <- tree where ((each.zone = j)
+																	and (each.it_can_growth[p-1] = "1")
+																	and (each.it_state[p-1] != 3));
 								ask sample(for_rnd_tree,2,false){
-									add map<string, string>(["PlayerID"::map_player_intid[self.player], 
+									add map<string, string>(["PlayerID"::map_player_intid[p], 
 															"Name"::self.name, 
 															"State"::99]) to:send_tree_update_grass;
-//									it_can_growth <- "-1";
 									
 									list<tree> temp_list_tree <- tree at_distance (tree_distance)#m 
-																		where ((each.it_can_growth = "1")
-																			and (each.it_state != 3));
-									ask temp_list_tree where (each.player = p){
-										add map<string, string>(["PlayerID"::map_player_intid[self.player], 
+																		where ((each.it_can_growth[p-1] = "1")
+																			and (each.it_state[p-1] != 3));
+									ask temp_list_tree{
+										add map<string, string>(["PlayerID"::map_player_intid[p], 
 																"Name"::self.name, 
 																"State"::99]) to:send_tree_update_grass;
-//										it_can_growth <- "-1";
 									}
 								}
 							}
@@ -466,24 +435,21 @@ global{
 						it_zone <- sample(zone_list,2,false);
 						loop j over:it_zone{
 							loop p over:connect_team_list{
-								list<tree> for_rnd_tree <- tree where ((each.player = p) 
-																	and (each.zone = j)
-																	and (each.it_can_growth = "1")
-																	and (each.it_state != 3));
+								list<tree> for_rnd_tree <- tree where ((each.zone = j)
+																	and (each.it_can_growth[p-1] = "1")
+																	and (each.it_state[p-1] != 3));
 								ask sample(for_rnd_tree,4,false){
-									add map<string, string>(["PlayerID"::map_player_intid[self.player], 
+									add map<string, string>(["PlayerID"::map_player_intid[p], 
 															"Name"::self.name, 
 															"State"::99]) to:send_tree_update_grass;
-//									it_can_growth <- "-1";
 									
 									list<tree> temp_list_tree <- tree at_distance (tree_distance)#m 
-																		where ((each.it_can_growth = "1")
-																			and (each.it_state != 3));
-									ask temp_list_tree where (each.player = p){
-										add map<string, string>(["PlayerID"::map_player_intid[self.player], 
+																		where ((each.it_can_growth[p-1] = "1")
+																			and (each.it_state[p-1] != 3));
+									ask temp_list_tree{
+										add map<string, string>(["PlayerID"::map_player_intid[p], 
 																"Name"::self.name, 
 																"State"::99]) to:send_tree_update_grass;
-//										it_can_growth <- "-1";
 									}
 								}
 							}
@@ -494,18 +460,21 @@ global{
 			}
 			
 		// Growth
-		ask tree where (each.it_can_growth = "1"){
-			current_time <- current_time + 1;
-			height <- logist_growth(init_height, float(list_of_height[self.tree_type-1]), float(list_of_growth_rate[self.tree_type-1]));
-			int h_max <- list_of_max_height_in_n_years[self.tree_type - 1];
+		loop p over:connect_team_list{
+			ask tree where (each.it_can_growth[p-1] = "1"){
+				current_time[p-1] <- current_time[p-1] + 1;
+				height[p-1] <- logist_growth(init_height, float(list_of_height[self.tree_type-1]), float(list_of_growth_rate[self.tree_type-1]), p);
+				int h_max <- list_of_max_height_in_n_years[self.tree_type - 1];
+				
+				if (height[p-1] >= (h_max*0.5)) and (height[p-1] < (h_max*0.8)) and (it_state[p-1] = 1){
+					it_state[p-1] <- 2;
+					add map<string, string>(["PlayerID"::map_player_intid[p], "Name"::self.name, "State"::it_state[p-1]]) to:send_tree_update_grow;
+				}
+				else if (height[p-1] >= (h_max*0.8)) and (height[p-1] <= (h_max)) and (it_state[p-1] = 2){
+					it_state[p-1] <- 3;
+					add map<string, string>(["PlayerID"::map_player_intid[p], "Name"::self.name, "State"::it_state[p-1]]) to:send_tree_update_grow;
+				}
 			
-			if (height >= (h_max*0.5)) and (height < (h_max*0.8)) and (it_state = 1){
-				it_state <- 2;
-				add map<string, string>(["PlayerID"::map_player_intid[self.player], "Name"::self.name, "State"::it_state]) to:send_tree_update_grow;
-			}
-			else if (height >= (h_max*0.8)) and (height <= (h_max)) and (it_state = 2){
-				it_state <- 3;
-				add map<string, string>(["PlayerID"::map_player_intid[self.player], "Name"::self.name, "State"::it_state]) to:send_tree_update_grow;
 			}
 		}
 		
@@ -748,10 +717,10 @@ species unity_linker parent: abstract_unity_linker {
 		];
 	}
 	
-	action ChangeTreeState(string tree_Name, string status){
+	action ChangeTreeState(string tree_Name, string status, string player_ID){
 		ask tree where ((each.name = tree_Name)){
-			if it_can_growth in ["-1", "1"]{
-				it_can_growth <- status;
+			if it_can_growth[map_player_idint[player_ID]-1] in ["-1", "1"]{
+				it_can_growth[map_player_idint[player_ID]-1] <- status;
 			}
 		}	
 	}
@@ -879,7 +848,6 @@ species unity_linker parent: abstract_unity_linker {
 //		do add_background_geometries(tree_area,up_road);
 //		do add_background_geometries(map_area,up_road);
 //		do add_background_geometries(tutorial_area,up_road);
-
 	}
 	
 	action define_properties {

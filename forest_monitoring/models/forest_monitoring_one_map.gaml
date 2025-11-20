@@ -17,8 +17,8 @@ global{
 	float height <- shape.height;
 	
 	int n_teams <- 6;
-	list<int> n_tree <- [10,10,10,10,10,10,10,10,10,10];
-	list<int> n_old_tree <- [1,1,1,1,1,1,1,1,1,1];
+	list<int> n_tree <- list_with(10, 10);
+	list<int> n_old_tree <- list_with(10, 1);
 	float size_of_tree <- 50.0;
 	float size_of_old_tree <- 100.0;
 	float tree_distance <- 2.0;
@@ -26,7 +26,7 @@ global{
 	list<string> color_list <- ["Blue", "Red", 'Green', "Yellow", "Black", "White"];
 	list<rgb> player_colors <- [rgb(66, 72, 255), #red, #green, rgb(255, 196, 0), #black, rgb(156, 152, 142)];
 	list<rgb> state_colors <- [rgb(151, 255, 110), rgb(50, 176, 0), rgb(32, 112, 0)];
-	list<string> player_name <- ["Player_59", "Player_102", "Player_103", "Player_104", "Player_105", "Player_106"];
+	list<string> player_name <- ["Player_101", "Player_102", "Player_103", "Player_104", "Player_105", "Player_106"];
 	map<int, string> map_player_intid <- [1::player_name[0], 2::player_name[1], 3::player_name[2], 4::player_name[3], 5::player_name[4], 6::player_name[5]];
 	map<string, int> map_player_idint <- [player_name[0]::1, player_name[1]::2, player_name[2]::3, player_name[3]::4, player_name[4]::5, player_name[5]::6];
 	map<string, int> map_player_colorint <- [color_list[0]::1, color_list[1]::2, color_list[2]::3, color_list[3]::4, color_list[4]::5, color_list[5]::6];
@@ -87,17 +87,6 @@ global{
 	list<int> fire_Etime <- 	[  60,  75,  90, 165, 210, 225];
 	list<string> fire_type <- 	["F1","F2","F1","F1","F2","F1"];
 	
-//	-50 -> 40	bg1
-//	 41 -> 85	bg2
-//	 86 -> 110	bg3
-// 	111 -> 130	bg4
-//	131 -> 150	bg5
-//	list<int> list_of_bg_score <- [-50,41,86,111,131,150+1];
-
-//	[-100, -33] bg1
-//	( -33,  33] bg2
-//	(  33, 100] bg3
-//	list<int> list_of_bg_score <- [-100,-33,33,100+1];
 	list<int> list_of_bg_score <- [0,150,240,300+1];
 	list<int> list_of_player_bg <- [1,1,1,1,1,1];
 	
@@ -147,7 +136,6 @@ global{
 		
 		ask old_tree {do die;}
 		ask tree {do die;}
-		ask front_tree {do die;}
 		
 		point at_location ;
 		int count_create_tree <- 0;
@@ -167,19 +155,17 @@ global{
 				else{
 					at_location <- any_location_in(usable_area_for_tree-1);
 					
-					loop p over:connect_team_list{
-						create old_tree{
-							location <- {at_location.x,
-										at_location.y,
-										at_location.z
-										};
-							shape <- circle(size_of_old_tree#cm);
-							tree_type <- i+1;
-							player <- p;
-							name <- "p" + p + "oldtree" + count_label_tree;
-							count_create_tree <- count_create_tree + 1;
-						}
+					create old_tree{
+						location <- {at_location.x,
+									at_location.y,
+									at_location.z
+									};
+						shape <- circle(size_of_old_tree#cm);
+						tree_type <- i+1;
+						name <- "oldtree" + count_label_tree;
+						count_create_tree <- count_create_tree + 1;
 					}
+					
 				}
 				count_label_tree <- count_label_tree + 1;
 			}
@@ -218,31 +204,16 @@ global{
 						temp_zone <- 4 ;
 					}
 					
-					loop p over:connect_team_list{
-						create tree{
-							location <- {at_location.x,
-										at_location.y,
-										at_location.z
-										};
-							shape <- circle(size_of_tree#cm);
-							tree_type <- i+1;
-							it_state <- 1;
-							player <- p;
-							name <- "p" + p + "tree" + count_label_tree;
-							name_for_front_tree <- "tree" + count_label_tree;
-							number <- count_label_tree;
-							zone <- temp_zone;
-							count_create_tree <- count_create_tree + 1;
-						}
-					}
-					
-					create front_tree{
+					create tree{
 						location <- {at_location.x,
 									at_location.y,
 									at_location.z
 									};
 						shape <- circle(size_of_tree#cm);
+						tree_type <- i+1;
 						name <- "tree" + count_label_tree;
+						zone <- temp_zone;
+						count_create_tree <- count_create_tree + 1;
 					}
 				}
 				count_label_tree <- count_label_tree + 1;
@@ -293,7 +264,6 @@ experiment init_exp type: gui {
 			species tutorial_area;
 			species old_tree;
 			species tree;
-			species front_tree;
 			species icon_everything;
 			species reset;
 			
@@ -395,10 +365,10 @@ experiment init_exp type: gui {
 		display "His_Team1" type: 2d locked:true{ 		
 			chart "Team1" type:histogram 
 			x_serie_labels: ["State"] 				
-			y_range:[0, 100] 		
+			y_range:[0, sum(n_tree)] 		
 			style:"3d" 			  
 			series_label_position: xaxis {
-				data "D" value: 100-sum(n_remain_tree[0])
+				data "D" value: sum(n_tree)-sum(n_remain_tree[0])
 				color:#black ;
 					
 				loop j from:0 to:2{
@@ -411,10 +381,10 @@ experiment init_exp type: gui {
 		display "His_Team2" type: 2d locked:true{ 		
 			chart "Team2" type:histogram 
 			x_serie_labels: ["State"] 				
-			y_range:[0, 100] 		
+			y_range:[0, sum(n_tree)] 		
 			style:"3d" 			  
 			series_label_position: xaxis {
-				data "D" value: 100-sum(n_remain_tree[1])
+				data "D" value: sum(n_tree)-sum(n_remain_tree[1])
 				color:#black ;
 					
 				loop j from:0 to:2{
@@ -427,10 +397,10 @@ experiment init_exp type: gui {
 		display "His_Team3" type: 2d locked:true{ 		
 			chart "Team3" type:histogram 
 			x_serie_labels: ["State"] 				
-			y_range:[0, 100] 		
+			y_range:[0, sum(n_tree)] 		
 			style:"3d" 			  
 			series_label_position: xaxis {
-				data "D" value: 100-sum(n_remain_tree[2])
+				data "D" value: sum(n_tree)-sum(n_remain_tree[2])
 				color:#black ;
 					
 				loop j from:0 to:2{
@@ -443,10 +413,10 @@ experiment init_exp type: gui {
 		display "His_Team4" type: 2d locked:true{ 		
 			chart "Team4" type:histogram 
 			x_serie_labels: ["State"] 				
-			y_range:[0, 100] 		
+			y_range:[0, sum(n_tree)] 		
 			style:"3d" 			  
 			series_label_position: xaxis {
-				data "D" value: 100-sum(n_remain_tree[3])
+				data "D" value: sum(n_tree)-sum(n_remain_tree[3])
 				color:#black ;
 					
 				loop j from:0 to:2{
@@ -459,10 +429,10 @@ experiment init_exp type: gui {
 		display "His_Team5" type: 2d locked:true{ 		
 			chart "Team5" type:histogram 
 			x_serie_labels: ["State"] 				
-			y_range:[0, 100] 		
+			y_range:[0, sum(n_tree)] 		
 			style:"3d" 			  
 			series_label_position: xaxis {
-				data "D" value: 100-sum(n_remain_tree[4])
+				data "D" value: sum(n_tree)-sum(n_remain_tree[4])
 				color:#black ;
 					
 				loop j from:0 to:2{
@@ -475,10 +445,10 @@ experiment init_exp type: gui {
 		display "His_Team6" type: 2d locked:true{ 		
 			chart "Team6" type:histogram 
 			x_serie_labels: ["State"] 				
-			y_range:[0, 100] 		
+			y_range:[0, sum(n_tree)] 		
 			style:"3d" 			  
 			series_label_position: xaxis {
-				data "D" value: 100-sum(n_remain_tree[5])
+				data "D" value: sum(n_tree)-sum(n_remain_tree[5])
 				color:#black ;
 					
 				loop j from:0 to:2{

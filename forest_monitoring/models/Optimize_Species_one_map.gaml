@@ -16,7 +16,6 @@ global{
 	image_file reset_image <- image_file("../images/reset.png");
 	
 	int time_now;
-	int time_interval;
 	int n_years <- 2;
 	int time_to_play <- 240;
 	int announce_time <- time_to_play - 60;
@@ -70,7 +69,6 @@ species icon_everything{
 }
 
 species old_tree{
-	int player <- 1;
 	int tree_type <- 0;
 	rgb color <- #yellow;
 	
@@ -79,9 +77,29 @@ species old_tree{
 	}
 }
 
-species front_tree{
-	float tree_ratio ;
-	rgb color <- rgb(151, 255, 110);
+species tree{
+	int tree_type <- 0;
+	rgb color <- rgb(43, 150, 0);
+	int zone <- 1;
+	
+	list<float> height <- list_with(6, 50.0);
+	list<string> it_can_growth <- list_with(6, "1") ;
+	list<int> it_state <- list_with(6, 1);
+	list<int> current_time <- list_with(6, 0);
+	float tree_ratio <- 0.0;
+	
+	float logist_growth (float init_input, float max_height, float growth_rate, int p){
+		growth_rate <- growth_rate + rnd (-0.1, 0.1) * growth_rate;
+		
+		float height_logist <- (init_input * max_height) / (init_input + (max_height - init_height) * 
+							exp (-((growth_rate) * ((current_time[p-1] * n_years / (time_to_play)) - 0)))) ;
+		return height_logist;
+	}
+	
+	reflex update_tree_ratio{
+		int dead_stack_tree <- it_can_growth count (each = "0");
+		tree_ratio <- dead_stack_tree/length(it_can_growth);
+	}
 	
 	reflex change_color{
 		if tree_ratio = 0.0{
@@ -94,67 +112,6 @@ species front_tree{
 			color <- #gray;
 		}
 	}
-	
-	aspect default{
-		draw shape color:color;
-	}
-}
-
-species tree{
-	int player <- 1;
-	int tree_type <- 0;
-	int it_state <- 1;
-	float height <- 50.0;
-	string it_can_growth <- "1" ;
-	rgb color <- rgb(43, 150, 0);
-	int current_time <- 0;
-	int zone <- 1;
-	int number <- 1;
-	string name_for_front_tree ;
-	
-	float logist_growth (float init_input, float max_height, float growth_rate){
-		growth_rate <- growth_rate + rnd (-0.1, 0.1) * growth_rate;
-		
-		float height_logist <- (init_input * max_height) / (init_input + (max_height - init_height) * 
-							exp (-((growth_rate) * ((current_time * n_years / (time_to_play)) - 0)))) ;
-		return height_logist;
-	}
-	
-//	reflex change_color{
-//		if it_can_growth = "0"{
-//			color <- #black;
-//		}
-//		else if it_can_growth = "-1"{
-//			color <- #purple;
-//		}
-//		else if it_can_growth = "1"{
-//			if it_state = 1{
-//				color <- rgb(151, 255, 110);
-//			}
-//			else if it_state = 2{
-//				color <- rgb(50, 176, 0);
-//			}
-//			else if it_state = 3{
-//				color <- rgb(32, 112, 0);
-//			}
-//		}	
-//	}
-	
-	
-//	reflex change_color{
-//		if zone = 1{
-//			color <- #black;
-//		}
-//		else if zone = 2{
-//			color <- #red;
-//		}
-//		else if zone = 3{
-//			color <- #blue;
-//		}
-//		else if zone = 4{
-//			color <- #green;
-//		}
-//	}
 	
 	aspect default{
 		draw shape color:color;
