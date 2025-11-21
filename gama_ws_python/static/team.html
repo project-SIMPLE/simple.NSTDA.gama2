@@ -1,341 +1,1126 @@
 <!doctype html>
 <html lang="en">
+
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Team | GAMA Control</title>
-  <link href="/static/vendor/bootstrap.min.css" rel="stylesheet"/>
+  <link href="/static/vendor/bootstrap.min.css" rel="stylesheet" />
   <style>
-    body { background:#f5f7fa; }
-    .card { border-radius:1rem; box-shadow:0 2px 8px rgba(0,0,0,.08); }
+    body {
+      background: #f5f7fa;
+    }
+
+    .card {
+      border-radius: 1rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, .08);
+    }
 
     /* Header grid: ให้คอลัมน์ชื่อทีมกว้างเท่าข้อความ */
-    .header-grid { display:grid; grid-template-columns:1fr; gap:.75rem; }
-    @media (min-width:768px){
-      .header-grid{
-        grid-template-columns: max-content auto; /* พอดีกับเนื้อหา */
-        align-items:center; column-gap:1rem;
+    .header-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: .75rem;
+    }
+
+    @media (min-width:768px) {
+      .header-grid {
+        grid-template-columns: max-content auto;
+        /* พอดีกับเนื้อหา */
+        align-items: center;
+        column-gap: 1rem;
       }
     }
 
     /* Team box: หดพอดีข้อความ */
-    #teamFrame{
-      display:inline-flex; align-items:center;
-      border:3px solid; background:#fff; border-radius:1rem;
-      box-shadow:0 2px 10px rgba(0,0,0,.06);
-      padding:.45rem .9rem;
-      width:fit-content; max-width:100%;
-    }
-    .team-name{
-      margin:0; font-size:clamp(1.25rem,6vw,2rem); line-height:1.1;
-      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-    }
-
-    .status-box{ display:inline-flex; align-items:center; gap:.5rem; flex-wrap:wrap; }
-    @media (max-width:767.98px){
-      .status-box{ display:flex; flex-direction:column; align-items:stretch; gap:.5rem; }
-      #reconn{ width:100%; }
+    #teamFrame {
+      display: inline-flex;
+      align-items: center;
+      border: 3px solid;
+      background: #fff;
+      border-radius: 1rem;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, .06);
+      padding: .45rem .9rem;
+      width: fit-content;
+      max-width: 100%;
     }
 
-    .actions{ display:grid; gap:.5rem; }
-    @media (min-width:768px){ .actions{ display:flex; gap:.5rem; flex-wrap:wrap; } .actions .btn{ min-width:14rem; } }
-    .btn .icon{ font-size:1.15em; line-height:1; margin-right:.35rem; }
-    .coins-line{ display:flex; align-items:center; gap:.5rem; }
-    #scoreChart{ width:100%; height:260px; }
-    .meta-line{ display:flex; justify-content:space-between; align-items:center; gap:.5rem; }
-    .meta-line small{ color:#6b7280; }
+    .team-name {
+      margin: 0;
+      font-size: clamp(1.25rem, 6vw, 2rem);
+      line-height: 1.1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .status-box {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      flex-wrap: wrap;
+    }
+
+    @media (max-width:767.98px) {
+      .status-box {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: .5rem;
+      }
+
+      #reconn {
+        width: 100%;
+      }
+    }
+
+    .actions {
+      display: grid;
+      gap: .5rem;
+    }
+
+    @media (min-width:768px) {
+      .actions {
+        display: flex;
+        gap: .5rem;
+        flex-wrap: wrap;
+      }
+
+      .actions .btn {
+        min-width: 14rem;
+      }
+    }
+
+    .btn .icon {
+      font-size: 1.15em;
+      line-height: 1;
+      margin-right: .35rem;
+    }
+
+    .coins-line {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+    }
+
+    #scoreChart {
+      width: 100%;
+      height: 260px;
+    }
+
+    .meta-line {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: .5rem;
+    }
+
+    .meta-line small {
+      color: #6b7280;
+    }
+
+    /* -------- Mobile layout -------- */
+    @media (max-width: 768px) {
+
+      .header-grid {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .status-box {
+        text-align: right;
+      }
+
+      .status-box button {
+        width: 100%;
+        margin-top: 4px;
+      }
+
+      .row.g-4>.col-md-4:nth-child(1),
+      .row.g-4>.col-md-4:nth-child(2) {
+        width: 50%;
+        flex: 0 0 50%;
+      }
+
+      .row.g-4>.col-md-4:nth-child(3) {
+        width: 100%;
+        flex: 0 0 100%;
+      }
+
+      .d-grid.gap-2.d-md-flex-col button {
+        width: 100%;
+      }
+    }
+
+    /* Desktop layout */
+    @media (min-width: 768px) {
+
+      #gaugeChart,
+      #gaugeChartcoin {
+        width: 150px !important;
+        margin: auto;
+      }
+
+      #score {
+        margin-top: -20px !important;
+        font-size: 20px;
+      }
+    }
+
+    .barchart-container {
+      width: 100%;
+      height: 350px;
+      overflow: hidden;
+    }
+
+    #chart {
+      width: 100%;
+      height: 100%;
+    }
+
+    .chart-container {
+      position: relative;
+      width: 100%;
+      height: 350px;
+    }
+
+    @media (max-width: 576px) {
+      .chart-container {
+        height: 200px !important;
+      }
+    }
   </style>
+
+  <!-- libs -->
   <script src="/static/vendor/echarts.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="/static/vendor/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+
 </head>
+
 <body>
-<div class="container py-4">
-  <div class="card p-4">
+  <div class="container py-4">
+    <div class="card p-4">
 
-    <!-- Header -->
-    <div class="header-grid mb-2">
-      <div id="teamFrame">
-        <h3 id="teamTitle" class="team-name">Team</h3>
+      <!-- Header -->
+      <div class="header-grid mb-2">
+        <div id="teamFrame">
+          <h3 id="teamTitle" class="team-name">Team</h3>
+        </div>
+        <div class="status-box">
+          <span class="fw-semibold">Status:</span>
+          <span id="badge" class="badge text-bg-secondary">Disconnected</span>
+          <button id="reconn" class="btn btn-outline-primary">Re-connect</button>
+        </div>
       </div>
-      <div class="status-box">
-        <span class="fw-semibold">Status:</span>
-        <span id="badge" class="badge text-bg-secondary">Disconnected</span>
-        <button id="reconn" class="btn btn-outline-primary">Re-connect</button>
+
+      <hr />
+
+      <div class="row g-4">
+
+        <!-- Team Score -->
+        <div class="col-md-4">
+          <div class="card shadow-sm p-4 text-center h-100">
+            <h5 class="mb-2">Team Score</h5>
+
+            <div>
+              <canvas id="gaugeChart"></canvas>
+              <div id="teamScoreValue" class="fw-bold text-success"
+                style="font-weight:bold; font-size:24px; margin-top:-30px;">
+                0
+              </div>
+            </div>
+
+            <div class="d-flex justify-content-between mt-3 small">
+              <div class="text-start">
+                <!-- เปลี่ยนข้อความเป็น Max Scores (1800) -->
+                <div>Max Scores</div>
+                <div id="totalScores" class="fw-bold">1800</div>
+              </div>
+
+              <div class="text-end">
+                <div>Current Scores</div>
+                <div id="currentScores" class="fw-bold">0</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Team Coins -->
+        <div class="col-md-4">
+          <div class="card shadow-sm p-4 text-center h-100">
+            <h5 class="mb-2">Team Coins</h5>
+
+            <div>
+              <canvas id="gaugeChartcoin"></canvas>
+              <div id="coinsGaugeValue" class="fw-bold text-success"
+                style="font-weight:bold; font-size:24px; margin-top:-30px;">
+                0
+              </div>
+            </div>
+
+            <div class="d-flex justify-content-between mt-3 small">
+              <div class="text-start">
+                <!-- ใช้ initial coins แทน total coins -->
+                Initial Coins
+                <div id="totalCoins" class="fw-bold">0</div>
+              </div>
+              <div class="text-end">
+                Remaining Coins
+                <div id="coins" class="fw-bold">0</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="col-md-4">
+          <div class="card shadow-sm p-4 text-center h-100">
+            <h5 class="mb-2">Reset Threat <> Coins</h5>
+            <div class="d-grid gap-2 d-md-flex-col">
+              <button class="btn btn-success" id="btn_grass"><span class="icon">🌿</span>Reset Grass (cost 1)</button>
+              <button class="btn btn-warning" id="btn_alien"><span class="icon">👽</span>Reset Alien (cost 2)</button>
+              <button class="btn btn-danger" id="btn_fire"><span class="icon">🔥</span>Reset Fire (cost 3)</button>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
 
-    <hr/>
+    <div class="row mt-4">
 
-    <!-- Coins -->
-    <div class="coins-line mb-3">
-      <span class="fw-semibold">Coins:</span>
-      <span id="coins" class="badge text-bg-dark">0</span>
+      <!-- Tree Growth Stage Overview -->
+      <div class="col-12 col-md-3 mb-4">
+        <div class="card shadow-sm p-4 h-100">
+          <h5 class="mb-3">Tree Growth Stage Overview</h5>
+          <div class="barchart-container">
+            <div id="chart" class="mt-3"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stack Chart -->
+      <div class="col-12 col-md-9 mb-4">
+        <div class="card shadow-sm p-4 h-100">
+          <h5 class="mb-3">Stack remaining trees by growth state round</h5>
+          <div class="chart-container">
+            <canvas id="stackChart"></canvas>
+          </div>
+        </div>
+      </div>
+
     </div>
 
-    <!-- Actions -->
-    <div class="actions mb-2">
-      <button class="btn btn-danger"  id="btn_fire"><span class="icon">🔥</span>Reset Fire (cost 3)</button>
-      <button class="btn btn-warning" id="btn_alien"><span class="icon">👽</span>Reset Alien (cost 2)</button>
-      <button class="btn btn-success" id="btn_grass"><span class="icon">🌿</span>Reset Grass (cost 1)</button>
+    <!-- EChart -->
+    <div class="card shadow-sm p-4">
+      <div class="meta-line d-flex justify-content-between align-items-center">
+        <h5 class="mb-3">Number of remaining trees by species</h5>
+        <small id="lastUpdate">Last update: –</small>
+      </div>
+      <div id="scoreChart" class="mt-3"></div>
     </div>
-
-    <!-- Scores Chart -->
-    <div class="meta-line">
-      <div class="fw-semibold">Scores</div>
-      <small id="lastUpdate">Last update: –</small>
-    </div>
-    <div id="scoreChart" class="mt-2"></div>
 
   </div>
-</div>
 
-<!-- Confirm Modal -->
-<div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Confirm reset</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <p class="mb-1">Threat: <strong id="cfThreat">-</strong></p>
-        <p class="mb-1">Cost: <span class="badge text-bg-dark" id="cfCost">0</span></p>
-        <p class="text-muted small mb-0">Your coins: <span id="cfCoins">0</span></p>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-primary" id="cfConfirmBtn">Confirm</button>
+  <!-- Confirm Modal -->
+  <div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Confirm reset</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p class="mb-1">Threat: <strong id="cfThreat">-</strong></p>
+          <p class="mb-1">Cost: <span class="badge text-bg-dark" id="cfCost">0</span></p>
+          <p class="text-muted small mb-0">Your coins: <span id="cfCoins">0</span></p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" id="cfConfirmBtn">Confirm</button>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
-<div class="toast-container position-fixed bottom-0 end-0 p-3" id="toasts"></div>
-<script src="/static/vendor/bootstrap.bundle.min.js"></script>
+  <!-- Toast -->
+  <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toasts"></div>
 
-<script>
-/* -------- Team -------- */
-const qp   = new URLSearchParams(location.search);
-const TEAM = qp.get("team") || "Unknown";
-const TEAMS = ['Blue','Red','Green','Yellow','Black','White'];
-document.getElementById("teamTitle").textContent = `Team ${TEAM}`;
-document.title = `Team ${TEAM} | GAMA Control`; // ตั้ง title ตามทีม
+  <script>
+    /* -------- Team -------- */
+    const qp = new URLSearchParams(location.search);
+    const TEAM = qp.get("team") || "Unknown";
+    const TEAMS = ['Blue', 'Red', 'Green', 'Yellow', 'Black', 'White'];
+    document.getElementById("teamTitle").textContent = `Team ${TEAM}`;
+    document.title = `Team ${TEAM} | GAMA Control`; // ตั้ง title ตามทีม
 
-/* -------- Buttons & Costs -------- */
-const btnFire  = document.getElementById("btn_fire");
-const btnAlien = document.getElementById("btn_alien");
-const btnGrass = document.getElementById("btn_grass");
-const reconnBtn= document.getElementById("reconn");
-const badge    = document.getElementById("badge");
-const coinsEl  = document.getElementById("coins");
-const lastUpdateEl = document.getElementById("lastUpdate");
-const COST     = { Fire:3, Alien:2, Grass:1 };
+    /* -------- Buttons & Costs -------- */
+    const btnFire = document.getElementById("btn_fire");
+    const btnAlien = document.getElementById("btn_alien");
+    const btnGrass = document.getElementById("btn_grass");
+    const reconnBtn = document.getElementById("reconn");
+    const badge = document.getElementById("badge");
+    const coinsEl = document.getElementById("coins");
+    const totalCoinsEl = document.getElementById("totalCoins");
+    const lastUpdateEl = document.getElementById("lastUpdate");
 
-/* Team frame color */
-const TEAM_COLOR = { Blue:"#1d4ed8", Red:"#dc2626", Green:"#16a34a", Yellow:"#eab308", Black:"#111827", White:"#9ca3af" };
-document.getElementById("teamFrame").style.borderColor = TEAM_COLOR[TEAM] || "#6c757d";
+    const teamScoreValueEl = document.getElementById("teamScoreValue");
+    const totalScoresEl = document.getElementById("totalScores");
+    const currentScoresEl = document.getElementById("currentScores");
+    const coinsGaugeValueEl = document.getElementById("coinsGaugeValue");
 
-/* -------- Toasts -------- */
-const toasts = document.getElementById("toasts");
-function showToast(msg, variant="primary") {
-  const el = document.createElement("div");
-  el.className = `toast align-items-center text-bg-${variant} border-0`;
-  el.innerHTML = `<div class="d-flex"><div class="toast-body">${msg}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>`;
-  toasts.appendChild(el);
-  const t = new bootstrap.Toast(el, { delay: 2200 }); t.show();
-  el.addEventListener("hidden.bs.toast", () => el.remove());
-}
+    const COST = { Fire: 3, Alien: 2, Grass: 1 };
+    const DEFAULT_MAX_SCORE = 1800; // ปรับให้ max score = 1800
 
-/* -------- Utils -------- */
-function nowStr(){ const d=new Date(); const p=n=>String(n).padStart(2,'0'); return `${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`; }
-function setLastUpdate(source){ lastUpdateEl.textContent = `Last update: ${nowStr()} (${source})`; }
+    /* Team frame color */
+    const TEAM_COLOR = {
+      Blue: "#1d4ed8",
+      Red: "#dc2626",
+      Green: "#16a34a",
+      Yellow: "#eab308",
+      Black: "#111827",
+      White: "#9ca3af"
+    };
+    document.getElementById("teamFrame").style.borderColor = TEAM_COLOR[TEAM] || "#6c757d";
 
-/* -------- Coins (server-authoritative) -------- */
-let coinsLoaded = false;
-let currentCoins = 0;
-function setCoins(val){ currentCoins = Math.max(0, val|0); coinsEl.textContent = String(currentCoins); updateActionButtons(); }
-async function fetchCoins(){
-  const res = await fetch(`/api/coins/${encodeURIComponent(TEAM)}`);
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const data = await res.json();
-  setCoins(data.coins ?? 0); coinsLoaded = true;
-}
-async function decrementCoins(cost, action){
-  const res = await fetch("/api/coins/decrement", {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ team: TEAM, cost, action })
-  });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const data = await res.json(); if (typeof data.coins === "number") setCoins(data.coins); return data;
-}
-async function refundCoins(amount){
-  try{
-    const res = await fetch("/api/coins/refund", {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ team: TEAM, amount })
-    });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json(); if (typeof data.coins === "number") setCoins(data.coins); return data;
-  }catch{ showToast("Refund failed, please sync.", "warning"); return null; }
-}
-
-/* -------- ECharts -------- */
-const BAR_LABELS = ['Qu','Sa','Ma','Pho','De','Di','Os','Phy','Ca','Gm'];
-let chart = null;
-function ensureChart(){
-  if (chart) return;
-  chart = echarts.init(document.getElementById('scoreChart'));
-  window.addEventListener('resize', () => chart && chart.resize());
-  chart.setOption({
-    animation:true, animationDuration:300, animationEasing:'cubicOut',
-    animationDurationUpdate:500, animationEasingUpdate:'cubicOut',
-    grid:{ left:40, right:12, top:20, bottom:35 },
-    tooltip:{ trigger:'item', formatter:p => `${p.name}: ${p.value}` },
-    xAxis:{ type:'category', data:BAR_LABELS, axisTick:{ alignWithLabel:true }, axisLabel:{ rotate:90 } },
-    yAxis:{ type:'value', min:0, max:10, interval:1 },
-    series:[{ type:'bar', data:new Array(BAR_LABELS.length).fill(0),
-      itemStyle:{ color:(TEAM_COLOR[TEAM] || '#6c757d') }, universalTransition:true }]
-  });
-}
-function normalizeScores(arr){
-  const out = new Array(10).fill(0);
-  for (let i=0;i<10;i++){ const v=Number(arr?.[i]); const n=Number.isFinite(v)?Math.max(0,Math.min(10,Math.round(v))):0; out[i]=n; }
-  return out;
-}
-function updateChart(scores, source="WS"){ ensureChart(); chart.setOption({ series:[{ data: normalizeScores(scores) }] }); setLastUpdate(source); }
-
-/* -------- Scores: initial load -------- */
-async function fetchScores(){
-  const res = await fetch(`/api/scores/${encodeURIComponent(TEAM)}`);
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const data = await res.json(); updateChart(data.scores || [], "Fetch");
-}
-
-/* -------- parse KV (fallback) -------- */
-// {type=score_update, team=Blue, scores=[10,10,10,10,10,10,10,10,10,10]}
-function parseGamaKVMessage(s){
-  if (typeof s !== "string") return null;
-  const t=s.trim(); if (!t.includes("=")) return null;
-  const mTeam=/team\s*=\s*"?([A-Za-z]+)"?/i.exec(t); const team=mTeam?mTeam[1]:null;
-  const mScores=/scores?\s*=\s*\[([^\]]*)\]/i.exec(t); let scores=[];
-  if (mScores && mScores[1]) scores=mScores[1].split(",").map(x=>parseFloat(x.trim())).filter(n=>!Number.isNaN(n));
-  const mType=/type\s*=\s*"?(scores?_update)"?/i.exec(t); const typ=mType?mType[1]:"score_update";
-  if (!team || !scores.length) return null; return { type: typ, team, scores };
-}
-
-/* -------- WebSocket (+ auto-reconnect) -------- */
-let sock=null, bridgeReady=false, gamaReady=false;
-const READY={ CONNECTING:0, OPEN:1, CLOSING:2, CLOSED:3 };
-const STATUS={ DISCONNECTED:"Disconnected", CONNECTING:"Connecting", WAITING:"Waiting GAMA", CONNECTED:"Connected" };
-function setBadge(text, cls){ badge.textContent=text; badge.className="badge text-bg-"+cls; }
-function isSockOpen(){ return sock && sock.readyState===READY.OPEN; }
-
-/* Backoff */
-let wsRetry=0, wsTimer=null;
-const WS_BACKOFF=[800,1500,3000,5000,8000];
-function resetReconnect(){ if(wsTimer){ clearTimeout(wsTimer); wsTimer=null; } wsRetry=0; }
-function scheduleReconnect(){ if(wsTimer) return; const d=WS_BACKOFF[Math.min(wsRetry,WS_BACKOFF.length-1)]; wsTimer=setTimeout(()=>{ wsTimer=null; wsRetry++; connectWS(); }, d); }
-function hardReconnect(){
-  resetReconnect();
-  try{ if(sock){ sock.onopen=sock.onclose=sock.onerror=sock.onmessage=null; sock.close(); } }catch{}
-  sock=null; connectWS();
-}
-
-/* Buttons enable/disable */
-function updateActionButtons(){
-  const canSend = gamaReady && isSockOpen();
-  const validTeam = TEAMS.includes(TEAM);
-  const connecting = sock && sock.readyState===READY.CONNECTING;
-  const setBtnState=(btn, baseClass, cost)=>{
-    const enough=currentCoins>=cost; const on=canSend && coinsLoaded && enough && validTeam;
-    btn.disabled=!on; btn.classList.remove("btn-secondary","btn-danger","btn-warning","btn-success"); btn.classList.add(on?baseClass:"btn-secondary");
-  };
-  setBtnState(btnFire,"btn-danger",COST.Fire);
-  setBtnState(btnAlien,"btn-warning",COST.Alien);
-  setBtnState(btnGrass,"btn-success",COST.Grass);
-  // ให้กดได้เสมอ ยกเว้นกำลัง CONNECTING (กันกดรัว)
-  reconnBtn.disabled = !!connecting;
-}
-function refreshUI(){
-  const connecting = sock && sock.readyState===READY.CONNECTING;
-  if (connecting) setBadge(STATUS.CONNECTING,"info");
-  else if (!bridgeReady) setBadge(STATUS.DISCONNECTED,"secondary");
-  else if (!gamaReady) setBadge(STATUS.WAITING,"warning");
-  else setBadge(STATUS.CONNECTED,"success");
-  updateActionButtons();
-}
-
-/* WebSocket connect */
-function connectWS(){
-  if (sock && (sock.readyState===READY.CONNECTING || sock.readyState===READY.OPEN)) return;
-  if (sock && (sock.readyState===READY.CLOSING || sock.readyState===READY.CLOSED)) { try{ sock.close(); }catch{} sock=null; }
-
-  bridgeReady=false; gamaReady=false; refreshUI();
-  showToast("Connecting to bridge...", "secondary");
-
-  const scheme = location.protocol==="https:" ? "wss://" : "ws://";
-  const url = scheme + location.host + "/ws";
-  sock = new WebSocket(url);
-
-  sock.onopen = () => { bridgeReady=true; gamaReady=false; resetReconnect(); showToast("Bridge connected. Waiting for GAMA...", "info"); refreshUI(); };
-  sock.onclose = () => { bridgeReady=false; gamaReady=false; showToast("Disconnected — retrying...", "secondary"); refreshUI(); scheduleReconnect(); };
-  sock.onerror = () => { bridgeReady=false; gamaReady=false; showToast("Connection error — retrying...", "danger"); refreshUI(); scheduleReconnect(); };
-  sock.onmessage = (e) => {
-    let obj=null; try{ obj=JSON.parse(e.data); }catch{} if(!obj) obj=parseGamaKVMessage(e.data);
-    if (obj && obj.type==="coins_update"){ if (obj.team===TEAM && typeof obj.coins==="number") setCoins(obj.coins); return; }
-    if (obj && (obj.type==="scores_update" || obj.type==="score_update")){
-      const arr=Array.isArray(obj.scores)?obj.scores:(Array.isArray(obj.score)?obj.score:null);
-      if (obj.team===TEAM && Array.isArray(arr)) updateChart(arr,"WS"); return;
+    /* -------- Toasts -------- */
+    const toasts = document.getElementById("toasts");
+    function showToast(msg, variant = "primary") {
+      const el = document.createElement("div");
+      el.className = `toast align-items-center text-bg-${variant} border-0`;
+      el.innerHTML = `<div class="d-flex"><div class="toast-body">${msg}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>`;
+      toasts.appendChild(el);
+      const t = new bootstrap.Toast(el, { delay: 2200 }); t.show();
+      el.addEventListener("hidden.bs.toast", () => el.remove());
     }
-    try{
-      if (obj?.error==="gama_unreachable"){ gamaReady=false; showToast("GAMA not reachable. Retrying...", "warning"); refreshUI(); return; }
-      if (obj?.info==="gama_connected"){ gamaReady=true; showToast("Bridge connected to GAMA", "success"); refreshUI(); return; }
-    }catch{}
-  };
-}
-document.addEventListener("visibilitychange", () => { if (document.visibilityState==="visible" && !isSockOpen()) scheduleReconnect(); });
-window.addEventListener("pageshow", (e) => { if (e.persisted) hardReconnect(); });
-window.addEventListener("online",  () => { showToast("Back online — reconnecting...","success"); hardReconnect(); });
-window.addEventListener("offline", () => { showToast("You are offline","warning"); });
 
-/* -------- Confirm modal & actions -------- */
-const confirmModalEl=document.getElementById('confirmModal');
-const confirmModal=new bootstrap.Modal(confirmModalEl);
-const cfThreatEl=document.getElementById('cfThreat');
-const cfCostEl=document.getElementById('cfCost');
-const cfCoinsEl=document.getElementById('cfCoins');
-const cfConfirmBtn=document.getElementById('cfConfirmBtn');
-let pending=null;
-function openConfirm(threat,cost){ pending={threat,cost}; cfThreatEl.textContent=threat; cfCostEl.textContent=String(cost); cfCoinsEl.textContent=String(currentCoins); confirmModal.show(); }
-function sendReset(threat){
-  if (!gamaReady || !isSockOpen()) { showToast("Not connected to GAMA","warning"); return false; }
-  const msg=`type=RemoveThreat;team=${TEAM};threat=${threat}`;
-  try{ sock.send(msg); showToast(`Sent reset "${threat}"`,"info"); return true; }catch{ showToast("Failed to send","danger"); return false; }
-}
-cfConfirmBtn.onclick=async()=>{ if(!pending) return; const {threat,cost}=pending;
-  let dec; try{ dec=await decrementCoins(cost,threat); }catch{ showToast("Failed to update coins on server.","danger"); return; }
-  if(!dec?.ok){ const serverCoins=typeof dec?.coins==="number"?dec.coins:currentCoins; showToast(`Not enough coins. You have ${serverCoins}.`,"warning"); return; }
-  const sent=sendReset(threat); if(!sent){ await refundCoins(cost); showToast("Action failed. Refunded coins.","warning"); return; }
-  showToast(`Coins deducted (-${cost}). Remaining: ${currentCoins}`,"success"); confirmModal.hide(); pending=null;
-};
+    /* -------- Utils -------- */
+    function nowStr() {
+      const d = new Date();
+      const p = n => String(n).padStart(2, '0');
+      return `${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+    }
+    function setLastUpdate(source) {
+      lastUpdateEl.textContent = `Last update: ${nowStr()} (${source})`;
+    }
 
-/* Hooks */
-btnFire.onclick=()=>openConfirm("Fire",COST.Fire);
-btnAlien.onclick=()=>openConfirm("Aliens",COST.Alien);
-btnGrass.onclick=()=>openConfirm("Grasses",COST.Grass);
-reconnBtn.onclick=()=>{ hardReconnect(); };
+    /* -------- Coins (server-authoritative) -------- */
+    let coinsLoaded = false;
+    let currentCoins = 0;
+    let initialCoins = null;
 
-/* -------- Init -------- */
-async function fullSync(){
-  if (!TEAMS.includes(TEAM)){ showToast("Unknown team. Controls disabled.","warning"); updateActionButtons(); return; }
-  await Promise.allSettled([fetchCoins(), fetchScores()]);
-  setLastUpdate("Fetch"); updateActionButtons();
-}
-(async function init(){
-  ensureChart();
-  await fullSync();
-  connectWS();
-  setTimeout(()=>{ if(!isSockOpen()) scheduleReconnect(); }, 1000);
-})();
-</script>
+    function setCoins(val, initialVal) {
+      currentCoins = Math.max(0, val | 0);
+      coinsEl.textContent = String(currentCoins);
+
+      // ถ้า server ส่ง initial_coins มาให้ (กรณี app.py ใหม่)
+      if (typeof initialVal === "number" && !Number.isNaN(initialVal)) {
+        initialCoins = Math.max(0, initialVal | 0);
+        totalCoinsEl.textContent = String(initialCoins);
+      } else if (initialCoins === null) {
+        // fallback: กรณีไม่มี initial_coins (เช่น backend เก่า)
+        initialCoins = currentCoins;
+        totalCoinsEl.textContent = String(initialCoins);
+      }
+
+      updateCoinsGauge();
+      updateActionButtons();
+    }
+
+    async function fetchCoins() {
+      const res = await fetch(`/api/coins/${encodeURIComponent(TEAM)}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      setCoins(data.coins ?? 0, data.initial_coins);
+      coinsLoaded = true;
+    }
+
+    async function decrementCoins(cost, action) {
+      const res = await fetch("/api/coins/decrement", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ team: TEAM, cost, action })
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      if (typeof data.coins === "number") setCoins(data.coins);
+      return data;
+    }
+
+    async function refundCoins(amount) {
+      try {
+        const res = await fetch("/api/coins/refund", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ team: TEAM, amount })
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        if (typeof data.coins === "number") setCoins(data.coins);
+        return data;
+      } catch {
+        showToast("Refund failed, please sync.", "warning");
+        return null;
+      }
+    }
+
+    /* -------- ECharts: species bar -------- */
+    const BAR_LABELS = ['Qu', 'Sa', 'Ma', 'Pho', 'De', 'Di', 'Os', 'Phy', 'Ca', 'Gm'];
+    let speciesChart = null;
+
+    function ensureSpeciesChart() {
+      if (speciesChart) return;
+      speciesChart = echarts.init(document.getElementById('scoreChart'));
+      window.addEventListener('resize', () => speciesChart && speciesChart.resize());
+      speciesChart.setOption({
+        animation: true, animationDuration: 300, animationEasing: 'cubicOut',
+        animationDurationUpdate: 500, animationEasingUpdate: 'cubicOut',
+        grid: { left: 30, right: 20, top: 20, bottom: 30 },
+        tooltip: { trigger: 'item', formatter: p => `${p.name}: ${p.value}` },
+        yAxis: {
+          type: 'category',
+          data: BAR_LABELS,
+          axisTick: { alignWithLabel: true },
+          axisLabel: {
+            rotate: 0,
+            overflow: 'break'
+          }
+        },
+        xAxis: { type: 'value', min: 0, max: 10, interval: 1 },
+        series: [{
+          type: 'bar',
+          data: new Array(BAR_LABELS.length).fill(0),
+          itemStyle: {
+            color: TEAM_COLOR[TEAM] || '#6c757d',
+            borderRadius: [10, 10, 10, 10]
+          },
+          universalTransition: true
+        }]
+      });
+    }
+
+    function normalizeScores(arr) {
+      const out = new Array(10).fill(0);
+      for (let i = 0; i < 10; i++) {
+        const v = Number(arr?.[i]);
+        const n = Number.isFinite(v) ? Math.max(0, Math.min(10, Math.round(v))) : 0;
+        out[i] = n;
+      }
+      return out;
+    }
+
+    function updateSpeciesChart(scores, source = "WS") {
+      ensureSpeciesChart();
+      speciesChart.setOption({ series: [{ data: normalizeScores(scores) }] });
+      setLastUpdate(source);
+    }
+
+    /* -------- Scores: initial load (species) -------- */
+    async function fetchScores() {
+      const res = await fetch(`/api/scores/${encodeURIComponent(TEAM)}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      updateSpeciesChart(data.scores || [], "Fetch");
+    }
+
+    /* -------- Tree Growth Stage (ECharts) -------- */
+    let growthChart = null;
+    const STAGE_COLORS = [
+      'rgb(151, 255, 110)', // Stage 1
+      'rgb(50, 176, 0)',    // Stage 2
+      'rgb(32, 112, 0)'     // Stage 3
+    ];
+
+    function initGrowthChart() {
+      if (growthChart) return;
+      const dom = document.getElementById('chart');
+      growthChart = echarts.init(dom);
+      window.addEventListener('resize', () => growthChart && growthChart.resize());
+      growthChart.setOption({
+        tooltip: { trigger: 'axis' },
+        xAxis: {
+          type: 'category',
+          data: ['Stage 1', 'Stage 2', 'Stage 3'],
+          axisTick: { show: false }
+        },
+        yAxis: {
+          type: 'value',
+          min: 0
+        },
+        series: [{
+          name: 'Trees',
+          type: 'bar',
+          data: [0, 0, 0],
+          barWidth: 30,
+          itemStyle: {
+            color: function (params) {
+              return STAGE_COLORS[params.dataIndex] || STAGE_COLORS[0];
+            }
+          }
+        }]
+      });
+    }
+
+    function updateGrowthChart(values) {
+      initGrowthChart();
+      const data = [0, 0, 0];
+      for (let i = 0; i < 3; i++) {
+        const v = Number(values?.[i]);
+        data[i] = Number.isFinite(v) && v >= 0 ? v : 0;
+      }
+      growthChart.setOption({ series: [{ data }] });
+    }
+
+    async function fetchGrowthStage() {
+      const res = await fetch(`/api/tree_growth_stage/${encodeURIComponent(TEAM)}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      updateGrowthChart(data.score || data.growth || []);
+    }
+
+    /* -------- Stack Chart (Chart.js) -------- */
+    let stackChart = null;
+
+    function initStackChart() {
+      if (stackChart) return;
+      const ctx = document.getElementById('stackChart');
+      stackChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['1', '2', '3', '4', '5', '6'],
+          datasets: [
+            { label: 'Stage 1', data: [0, 0, 0, 0, 0, 0], backgroundColor: '#455B73' },
+            { label: 'Stage 2', data: [0, 0, 0, 0, 0, 0], backgroundColor: '#38C6D1' },
+            { label: 'Stage 3', data: [0, 0, 0, 0, 0, 0], backgroundColor: '#F3B32F' }
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { position: 'bottom' },
+            datalabels: {
+              color: '#fff',
+              anchor: 'center',
+              align: 'center',
+              formatter: (value, context) => {
+                const dataArr = context.chart.data.datasets.map(ds => ds.data[context.dataIndex] || 0);
+                const sum = dataArr.reduce((a, b) => a + b, 0);
+                if (!sum) return '';
+                const percent = (value / sum * 100).toFixed(0);
+                return percent + '%';
+              },
+            }
+          },
+          scales: {
+            x: {
+              stacked: true,
+            },
+            y: { stacked: true }
+          }
+        },
+        plugins: [ChartDataLabels]
+      });
+    }
+
+    function updateStackChart(matrix) {
+      initStackChart();
+      const rounds = 6;
+      const stages = 3;
+
+      const safe = Array.isArray(matrix) ? matrix : [];
+      const dataByStage = [
+        [], [], []
+      ];
+
+      for (let i = 0; i < rounds; i++) {
+        const row = Array.isArray(safe[i]) ? safe[i] : [];
+        for (let j = 0; j < stages; j++) {
+          const v = Number(row[j]);
+          dataByStage[j].push(Number.isFinite(v) && v >= 0 ? v : 0);
+        }
+      }
+
+      stackChart.data.labels = ['1', '2', '3', '4', '5', '6'];
+      stackChart.data.datasets[0].data = dataByStage[0];
+      stackChart.data.datasets[1].data = dataByStage[1];
+      stackChart.data.datasets[2].data = dataByStage[2];
+
+      stackChart.update();
+    }
+
+    async function fetchStackTrees() {
+      const res = await fetch(`/api/stack_trees/${encodeURIComponent(TEAM)}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      updateStackChart(data.stack || data.score || []);
+    }
+
+    /* -------- parse KV (fallback) -------- */
+    function parseGamaKVMessage(s) {
+      if (typeof s !== "string") return null;
+      const t = s.trim(); if (!t.includes("=")) return null;
+
+      const mTeam = /team\s*=\s*"?([A-Za-z]+)"?/i.exec(t);
+      const team = mTeam ? mTeam[1] : null;
+
+      const mScores = /scores?\s*=\s*\[([^\]]*)\]/i.exec(t);
+      let scores = [];
+      if (mScores && mScores[1]) {
+        scores = mScores[1]
+          .split(",")
+          .map(x => parseFloat(x.trim()))
+          .filter(n => !Number.isNaN(n));
+      }
+
+      const mType = /type\s*=\s*"?(scores?_update)"?/i.exec(t);
+      const typ = mType ? mType[1] : "score_update";
+
+      if (!team || !scores.length) return null;
+      return { type: typ, team, scores };
+    }
+
+    /* -------- WebSocket (+ auto-reconnect) -------- */
+    let sock = null, bridgeReady = false, gamaReady = false;
+    const READY = { CONNECTING: 0, OPEN: 1, CLOSING: 2, CLOSED: 3 };
+    const STATUS = {
+      DISCONNECTED: "Disconnected",
+      CONNECTING: "Connecting",
+      WAITING: "Waiting GAMA",
+      CONNECTED: "Connected"
+    };
+    function setBadge(text, cls) {
+      badge.textContent = text;
+      badge.className = "badge text-bg-" + cls;
+    }
+    function isSockOpen() { return sock && sock.readyState === READY.OPEN; }
+
+    /* Backoff */
+    let wsRetry = 0, wsTimer = null;
+    const WS_BACKOFF = [800, 1500, 3000, 5000, 8000];
+    function resetReconnect() {
+      if (wsTimer) { clearTimeout(wsTimer); wsTimer = null; }
+      wsRetry = 0;
+    }
+    function scheduleReconnect() {
+      if (wsTimer) return;
+      const d = WS_BACKOFF[Math.min(wsRetry, WS_BACKOFF.length - 1)];
+      wsTimer = setTimeout(() => {
+        wsTimer = null; wsRetry++; connectWS();
+      }, d);
+    }
+    function hardReconnect() {
+      resetReconnect();
+      try {
+        if (sock) {
+          sock.onopen = sock.onclose = sock.onerror = sock.onmessage = null;
+          sock.close();
+        }
+      } catch { }
+      sock = null;
+      connectWS();
+    }
+
+    /* Buttons enable/disable */
+    function updateActionButtons() {
+      const canSend = gamaReady && isSockOpen();
+      const validTeam = TEAMS.includes(TEAM);
+      const connecting = sock && sock.readyState === READY.CONNECTING;
+
+      const setBtnState = (btn, baseClass, cost) => {
+        const enough = currentCoins >= cost;
+        const on = canSend && coinsLoaded && enough && validTeam;
+        btn.disabled = !on;
+        btn.classList.remove("btn-secondary", "btn-danger", "btn-warning", "btn-success");
+        btn.classList.add(on ? baseClass : "btn-secondary");
+      };
+
+      setBtnState(btnFire, "btn-danger", COST.Fire);
+      setBtnState(btnAlien, "btn-warning", COST.Alien);
+      setBtnState(btnGrass, "btn-success", COST.Grass);
+
+      // ให้กดได้เสมอ ยกเว้นกำลัง CONNECTING (กันกดรัว)
+      reconnBtn.disabled = !!connecting;
+    }
+
+    function refreshUI() {
+      const connecting = sock && sock.readyState === READY.CONNECTING;
+      if (connecting) setBadge(STATUS.CONNECTING, "info");
+      else if (!bridgeReady) setBadge(STATUS.DISCONNECTED, "secondary");
+      else if (!gamaReady) setBadge(STATUS.WAITING, "warning");
+      else setBadge(STATUS.CONNECTED, "success");
+      updateActionButtons();
+    }
+
+    /* WebSocket connect */
+    function connectWS() {
+      if (sock && (sock.readyState === READY.CONNECTING || sock.readyState === READY.OPEN)) return;
+      if (sock && (sock.readyState === READY.CLOSING || sock.readyState === READY.CLOSED)) {
+        try { sock.close(); } catch { }
+        sock = null;
+      }
+
+      bridgeReady = false;
+      gamaReady = false;
+      refreshUI();
+      showToast("Connecting to bridge...", "secondary");
+
+      const scheme = location.protocol === "https:" ? "wss://" : "ws://";
+      const url = scheme + location.host + "/ws";
+      sock = new WebSocket(url);
+
+      sock.onopen = () => {
+        bridgeReady = true;
+        gamaReady = false;
+        resetReconnect();
+        showToast("Bridge connected. Waiting for GAMA...", "info");
+        refreshUI();
+      };
+
+      sock.onclose = () => {
+        bridgeReady = false;
+        gamaReady = false;
+        showToast("Disconnected — retrying...", "secondary");
+        refreshUI();
+        scheduleReconnect();
+      };
+
+      sock.onerror = () => {
+        bridgeReady = false;
+        gamaReady = false;
+        showToast("Connection error — retrying...", "danger");
+        refreshUI();
+        scheduleReconnect();
+      };
+
+      sock.onmessage = (e) => {
+        let obj = null;
+        try { obj = JSON.parse(e.data); } catch { }
+        if (!obj) obj = parseGamaKVMessage(e.data);
+
+        // 1) อัปเดต coins
+        if (obj && obj.type === "coins_update") {
+          if (obj.team === TEAM && typeof obj.coins === "number") setCoins(obj.coins);
+          return;
+        }
+
+        // 2) species scores (10 ค่า)
+        if (obj && (obj.type === "scores_update" || obj.type === "score_update")) {
+          const arr = Array.isArray(obj.scores) ? obj.scores : (Array.isArray(obj.score) ? obj.score : null);
+          if (obj.team === TEAM && Array.isArray(arr)) updateSpeciesChart(arr, "WS");
+          return;
+        }
+
+        // 3) tree growth stage (3 ค่า)
+        if (obj && obj.type === "tree_growth_stage_update") {
+          if (obj.team === TEAM) {
+            const arr = Array.isArray(obj.score) ? obj.score : (Array.isArray(obj.growth) ? obj.growth : null);
+            if (arr) updateGrowthChart(arr);
+          }
+          return;
+        }
+
+        // 4) stack trees (6x3)
+        if (obj && obj.type === "stack_tree_update") {
+          if (obj.team === TEAM) {
+            const mat = Array.isArray(obj.score) ? obj.score : (Array.isArray(obj.stack) ? obj.stack : null);
+            if (mat) updateStackChart(mat);
+          }
+          return;
+        }
+
+        // 5) team score (leaderboard) → ใช้อัปเดต Team Score gauge
+        if (obj && obj.type === "team_score_update") {
+          const scoresList = Array.isArray(obj.score) ? obj.score : [];
+          const teamsArr = Array.isArray(obj.teams) ? obj.teams : TEAMS;
+          const idx = teamsArr.indexOf(TEAM);
+          if (idx !== -1 && idx < scoresList.length) {
+            const entry = scoresList[idx];
+            let total = 0;
+            let current = 0;
+            if (Array.isArray(entry)) {
+              total = Number(entry[0]) || 0;
+              current = Number(entry[1]) || 0;
+            } else {
+              total = Number(entry) || 0;
+              current = total;
+            }
+            updateScoreGauge(total, current);
+          }
+          return;
+        }
+
+        // 6) สถานะ GAMA
+        try {
+          if (obj?.error === "gama_unreachable") {
+            gamaReady = false;
+            showToast("GAMA not reachable. Retrying...", "warning");
+            refreshUI();
+            return;
+          }
+          if (obj?.info === "gama_connected") {
+            gamaReady = true;
+            showToast("Bridge connected to GAMA", "success");
+            refreshUI();
+            return;
+          }
+        } catch { }
+      };
+    }
+
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible" && !isSockOpen()) scheduleReconnect();
+    });
+    window.addEventListener("pageshow", (e) => { if (e.persisted) hardReconnect(); });
+    window.addEventListener("online", () => { showToast("Back online — reconnecting...", "success"); hardReconnect(); });
+    window.addEventListener("offline", () => { showToast("You are offline", "warning"); });
+
+    /* -------- Confirm modal & actions -------- */
+    const confirmModalEl = document.getElementById('confirmModal');
+    const confirmModal = new bootstrap.Modal(confirmModalEl);
+    const cfThreatEl = document.getElementById('cfThreat');
+    const cfCostEl = document.getElementById('cfCost');
+    const cfCoinsEl = document.getElementById('cfCoins');
+    const cfConfirmBtn = document.getElementById('cfConfirmBtn');
+    let pending = null;
+
+    function openConfirm(threat, cost) {
+      pending = { threat, cost };
+      cfThreatEl.textContent = threat;
+      cfCostEl.textContent = String(cost);
+      cfCoinsEl.textContent = String(currentCoins);
+      confirmModal.show();
+    }
+
+    function sendReset(threat) {
+      if (!gamaReady || !isSockOpen()) {
+        showToast("Not connected to GAMA", "warning");
+        return false;
+      }
+      const msg = `type=RemoveThreat;team=${TEAM};threat=${threat}`;
+      try {
+        sock.send(msg);
+        showToast(`Sent reset "${threat}"`, "info");
+        return true;
+      } catch {
+        showToast("Failed to send", "danger");
+        return false;
+      }
+    }
+
+    cfConfirmBtn.onclick = async () => {
+      if (!pending) return;
+      const { threat, cost } = pending;
+
+      let dec;
+      try {
+        dec = await decrementCoins(cost, threat);
+      } catch {
+        showToast("Failed to update coins on server.", "danger");
+        return;
+      }
+
+      if (!dec?.ok) {
+        const serverCoins = typeof dec?.coins === "number" ? dec.coins : currentCoins;
+        showToast(`Not enough coins. You have ${serverCoins}.`, "warning");
+        return;
+      }
+
+      const sent = sendReset(threat);
+      if (!sent) {
+        await refundCoins(cost);
+        showToast("Action failed. Refunded coins.", "warning");
+        return;
+      }
+
+      showToast(`Coins deducted (-${cost}). Remaining: ${currentCoins}`, "success");
+      confirmModal.hide();
+      pending = null;
+    };
+
+    /* Hooks */
+    btnFire.onclick = () => openConfirm("Fire", COST.Fire);
+    btnAlien.onclick = () => openConfirm("Aliens", COST.Alien);
+    btnGrass.onclick = () => openConfirm("Grasses", COST.Grass);
+    reconnBtn.onclick = () => { hardReconnect(); };
+
+    /* -------- Gauge helpers -------- */
+    const COLORS = [
+      'rgb(231, 24, 49)',   // แดง: ค่าน้อย
+      'rgb(239, 198, 0)',   // เหลือง: ค่ากลาง
+      'rgb(140, 214, 16)',  // เขียว: ค่าสูง
+      'rgb(53, 117, 0)'     // เขียวเข้ม: ค่าสูงมาก
+    ];
+    function getColor(v) {
+      // v = percent 0-100
+      if (v < 25) return COLORS[0];
+      if (v < 50) return COLORS[1];
+      if (v < 75) return COLORS[2];
+      return COLORS[3];
+    }
+
+    let scoreGaugeChart = null;
+    let coinsGaugeChart = null;
+
+    function initScoreGauge() {
+      if (scoreGaugeChart) return;
+      const ctx = document.getElementById("gaugeChart");
+      const initialPercent = 0;
+
+      scoreGaugeChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Score'],
+          datasets: [{
+            data: [initialPercent, 100 - initialPercent],
+            backgroundColor: [
+              getColor(initialPercent),
+              'rgb(230,230,230)'
+            ],
+            borderWidth: 0,
+            cutout: '70%'
+          }]
+        },
+        options: {
+          rotation: -90,
+          circumference: 180,
+          responsive: true,
+          plugins: {
+            legend: { display: false },
+            tooltip: { enabled: false }
+          }
+        }
+      });
+    }
+
+    function initCoinsGauge() {
+      if (coinsGaugeChart) return;
+      const ctx = document.getElementById("gaugeChartcoin");
+      const initialPercent = 0;
+
+      coinsGaugeChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Coins'],
+          datasets: [{
+            data: [initialPercent, 100 - initialPercent],
+            backgroundColor: [
+              getColor(initialPercent),
+              'rgb(230,230,230)'
+            ],
+            borderWidth: 0,
+            cutout: '70%'
+          }]
+        },
+        options: {
+          rotation: -90,
+          circumference: 180,
+          responsive: true,
+          plugins: {
+            legend: { display: false },
+            tooltip: { enabled: false }
+          }
+        }
+      });
+    }
+
+    // totalScore = คะแนนรวมทั้งทีม, currentScore = คะแนนของ "ตานั้น ๆ"
+    function updateScoreGauge(totalScore, currentScore, maxScore = DEFAULT_MAX_SCORE) {
+      initScoreGauge();
+      const max = maxScore > 0 ? maxScore : 1;
+
+      const total = Math.max(0, Math.min(max, Number(totalScore) || 0));
+      const current = Math.max(0, Number(currentScore) || 0);
+
+      const percent = Math.max(0, Math.min(100, (total / max) * 100));
+
+      const ds = scoreGaugeChart.data.datasets[0];
+      ds.data = [percent, 100 - percent];
+      ds.backgroundColor[0] = getColor(percent);
+      scoreGaugeChart.update();
+
+      // ตัวเลขใหญ่กลาง gauge = total
+      teamScoreValueEl.textContent = String(total);
+      // ซ้าย = max (เช่น 1800)
+      totalScoresEl.textContent = String(max);
+      // ขวา = current score ของตานี้
+      currentScoresEl.textContent = String(current);
+    }
+
+    function updateCoinsGauge() {
+      initCoinsGauge();
+      let maxCoins = initialCoins ?? currentCoins;
+      if (maxCoins <= 0) maxCoins = 1;
+
+      const v = Math.max(0, currentCoins);
+      const percent = Math.max(0, Math.min(100, (v / maxCoins) * 100));
+
+      const ds = coinsGaugeChart.data.datasets[0];
+      ds.data = [percent, 100 - percent];
+      ds.backgroundColor[0] = getColor(percent);
+      coinsGaugeChart.update();
+
+      coinsGaugeValueEl.textContent = String(v);
+    }
+
+    /* -------- Fetch team score for gauge -------- */
+    async function fetchTeamScore() {
+      const res = await fetch(`/api/team_scores/${encodeURIComponent(TEAM)}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      const entry = data.score;
+
+      let total = 0;
+      let current = 0;
+      if (Array.isArray(entry)) {
+        total = Number(entry[0]) || 0;
+        current = Number(entry[1]) || 0;
+      } else {
+        total = Number(entry) || 0;
+        current = total;
+      }
+
+      updateScoreGauge(total, current);
+    }
+
+    /* -------- Init -------- */
+    async function fullSync() {
+      if (!TEAMS.includes(TEAM)) {
+        showToast("Unknown team. Controls disabled.", "warning");
+        updateActionButtons();
+        return;
+      }
+
+      await Promise.allSettled([
+        fetchCoins(),
+        fetchScores(),
+        fetchGrowthStage(),
+        fetchStackTrees(),
+        fetchTeamScore()
+      ]);
+
+      setLastUpdate("Fetch");
+      updateActionButtons();
+    }
+
+    (async function init() {
+      // init charts first
+      ensureSpeciesChart();
+      initGrowthChart();
+      initStackChart();
+      initScoreGauge();
+      initCoinsGauge();
+
+      await fullSync();
+      connectWS();
+      setTimeout(() => { if (!isSockOpen()) scheduleReconnect(); }, 1000);
+    })();
+
+  </script>
 </body>
+
 </html>

@@ -1,352 +1,728 @@
 <!doctype html>
 <html lang="en">
+
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Setup · GAMA Coins</title>
-  <link href="/static/vendor/bootstrap.min.css" rel="stylesheet"/>
+  <link href="/static/vendor/bootstrap.min.css" rel="stylesheet" />
   <style>
-    body { background:#f5f7fa; }
-    .card { border-radius:1rem; box-shadow:0 2px 8px rgba(0,0,0,.08); }
+    body {
+      background: #f5f7fa;
+    }
+
+    .card {
+      border-radius: 1rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, .08);
+    }
 
     /* --- Coins row layout --- */
-    .coin-row { display:flex; align-items:center; flex-wrap:wrap; gap:.5rem .75rem; }
-    .team-label { width:90px; }
-    .spin { width:2.2rem; }
-    .num  { width:5.5rem; text-align:center; }
+    .coin-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: .5rem .75rem;
+    }
+
+    .team-label {
+      width: 90px;
+    }
+
+    .spin {
+      width: 2.2rem;
+    }
+
+    .num {
+      width: 5.5rem;
+      text-align: center;
+    }
 
     input[type=number]::-webkit-inner-spin-button,
-    input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; margin:0; }
-    input[type=number] { appearance:textfield; }
+    input[type=number]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    input[type=number] {
+      appearance: textfield;
+    }
 
     /* --- Link row layout --- */
-    .muted-link { pointer-events:none; opacity:.6; }
-    .link-line { display:flex; gap:.5rem; }
-    .link-url  { max-width:100%; }
-    .link-url a { word-break:break-all; }
-    .btns-right { display:flex; gap:.5rem; }
+    .muted-link {
+      pointer-events: none;
+      opacity: .6;
+    }
+
+    .link-line {
+      display: flex;
+      gap: .5rem;
+    }
+
+    .link-url {
+      max-width: 100%;
+    }
+
+    .link-url a {
+      word-break: break-all;
+    }
+
+    .btns-right {
+      display: flex;
+      gap: .5rem;
+    }
 
     /* QR box */
-    .qr-wrap { display:none; }
-    .qr-wrap.active { display:block; }
-    .qr-box { background:#fff; border:1px solid #e5e7eb; border-radius:.5rem; padding:.75rem; }
-    .qr-meta { font-size:.875rem; }
+    .qr-wrap {
+      display: none;
+    }
+
+    .qr-wrap.active {
+      display: block;
+    }
+
+    .qr-box {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: .5rem;
+      padding: .75rem;
+    }
+
+    .qr-meta {
+      font-size: .875rem;
+    }
 
     /* ===== Mobile tweaks ===== */
-    @media (max-width:576px){
-      .team-label{ width:72px; }
-      .spin{ width:2.6rem; padding:.45rem 0; }
-      .num{ width:5rem; font-size:1.05rem; }
-      .link-line{ flex-direction:column; align-items:stretch; }
-      .btns-right{ width:100%; justify-content:flex-start; }
+    @media (max-width:576px) {
+      .team-label {
+        width: 72px;
+      }
+
+      .spin {
+        width: 2.6rem;
+        padding: .45rem 0;
+      }
+
+      .num {
+        width: 5rem;
+        font-size: 1.05rem;
+      }
+
+      .link-line {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .btns-right {
+        width: 100%;
+        justify-content: flex-start;
+      }
     }
-    @media (min-width:768px){
-      .link-line{ align-items:center; }
-      .btns-right{ margin-left:auto; }
+
+    @media (min-width:768px) {
+      .link-line {
+        align-items: center;
+      }
+
+      .btns-right {
+        margin-left: auto;
+      }
+    }
+
+    .title-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .species-row {
+      margin-bottom: 18px;
+    }
+
+    .species-name {
+      display: flex;
+      align-items: center;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .flag {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background-size: cover;
+      margin-right: 8px;
+    }
+
+    .bar-container {
+      width: 100%;
+      height: 8px;
+      background: #e7e7e7;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .bar {
+      height: 8px;
+      border-radius: 8px;
+    }
+
+    .value-text {
+      margin-left: 10px;
+      font-size: 14px;
+      color: #666;
+      font-weight: 600;
+    }
+
+    #scoreChart {
+      width: 100%;
+      height: 260px;
+    }
+
+    #coinChart {
+      width: 100%;
+      height: 260px;
     }
   </style>
+
+  <script src="/static/vendor/bootstrap.bundle.min.js"></script>
+  <script src="/static/vendor/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+
 </head>
+
 <body>
-<div class="container py-4">
-  <div class="card p-4">
-    <h2 class="mb-3">Setup · GAMA Coins 🪙</h2>
+  <div class="container py-4">
+    <div class="card p-4">
+      <h2 class="mb-3">Setup · GAMA Coins 🪙</h2>
 
-    <!-- Top controls -->
-    <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
-      <h5 class="mb-0 me-auto">Coins per team</h5>
-    </div>
+      <div class="coin-block">
+        <div class="coin-row">
+        </div>
 
-    <div id="rows" class="vstack gap-2 mb-3" role="group" aria-label="Coins per team"></div>
-
-    <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mt-2">
-      <small id="statusText" class="text-muted">
-        Enter coins (at least one team &gt; 0), then click <strong>Submit</strong> to unlock team links.
-      </small>
-      <div class="d-flex gap-2">
-        <button id="resetAllBtn" class="btn btn-outline-danger">Reset all to zero</button>
-        <button id="submitBtn" class="btn btn-success" disabled>Submit</button>
-      </div>
-    </div>
-
-    <hr class="my-4"/>
-
-    <h6 class="mb-2">Team links (fixed)</h6>
-    <p class="text-muted small mb-2">
-      Links will be available after you click <strong>Submit</strong> (or if the server already has coins).
-      Use <em>Open</em>, <em>Copy</em>, or <em>QR</em>.
-    </p>
-    <div id="links" class="vstack gap-3"></div>
-  </div>
-</div>
-
-<!-- Toasts -->
-<div class="toast-container position-fixed bottom-0 end-0 p-3" id="toasts"></div>
-<script src="/static/vendor/bootstrap.bundle.min.js"></script>
-<script src="/static/vendor/qrcode.min.js"></script>
-
-<script>
-/* ---------- Constants & elements ---------- */
-const teams = ["Blue","Red","Green","Yellow","Black","White"];
-const rows      = document.getElementById('rows');
-const linksBox  = document.getElementById('links');
-const submitBtn = document.getElementById('submitBtn');
-const resetAllBtn = document.getElementById('resetAllBtn');
-const statusTxt = document.getElementById('statusText');
-
-const toasts = document.getElementById("toasts");
-function showToast(msg, variant="primary") {
-  const el = document.createElement("div");
-  el.className = `toast align-items-center text-bg-${variant} border-0`;
-  el.innerHTML = `<div class="d-flex"><div class="toast-body">${msg}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>`;
-  toasts.appendChild(el);
-  new bootstrap.Toast(el, { delay: 1800 }).show();
-  el.addEventListener("hidden.bs.toast", () => el.remove());
-}
-
-/* ---------- Utils ---------- */
-const saving = { busy:false };
-function setBusy(on){
-  saving.busy = !!on;
-  submitBtn.disabled = on || submitBtn.disabled;
-  resetAllBtn.disabled = on;
-  // disable all inputs when busy
-  refs.forEach(({num, incBtn, decBtn}) => { num.disabled = on; incBtn.disabled = on; decBtn.disabled = on; });
-}
-
-function buildTeamUrl(team){
-  // robust to proxy/prefix (always absolute to current origin)
-  const u = new URL('/static/team.html', window.location.origin);
-  u.searchParams.set('team', team);
-  return u.toString();
-}
-
-/* ---------- Copy helper ---------- */
-async function copyText(txt) {
-  try {
-    if (navigator.clipboard && window.isSecureContext) await navigator.clipboard.writeText(txt);
-    else {
-      const ta = document.createElement("textarea");
-      ta.value = txt; ta.style.position="fixed"; ta.style.left="-9999px";
-      document.body.appendChild(ta); ta.focus(); ta.select();
-      document.execCommand("copy"); ta.remove();
-    }
-    showToast("Link copied.", "success");
-  } catch { showToast("Copy failed.", "danger"); }
-}
-
-/* ---------- Server API ---------- */
-async function fetchAllCoins() {
-  try {
-    const res = await fetch("/api/coins", { cache:"no-store" });
-    if (!res.ok) throw new Error("HTTP " + res.status);
-    return await res.json();
-  } catch {
-    showToast("Failed to fetch coins from server.", "danger");
-    return null;
-  }
-}
-async function saveAllCoins(payload) {
-  try {
-    const res = await fetch("/api/coins", {
-      method: "POST",
-      headers: {"Content-Type":"application/json"},
-      body: JSON.stringify(payload)
-    });
-    if (!res.ok) throw new Error("HTTP " + res.status);
-    return await res.json();
-  } catch {
-    showToast("Failed to save coins to server.", "danger");
-    return null;
-  }
-}
-
-/* ---------- Build coin rows ---------- */
-const refs = [];
-function clampNonNegInt(v){ v = parseInt(v ?? "0", 10); return Number.isFinite(v) && v > 0 ? v : (v===0 ? 0 : 0); }
-
-function makeRow(team, initial=0){
-  const row = document.createElement('div');
-  row.className = "coin-row";
-  const inputId = `coins-${team}`;
-  row.innerHTML = `
-    <label class="team-label" for="${inputId}">${team}:</label>
-    <button class="btn btn-outline-secondary spin" data-op="dec" aria-label="Decrease ${team} coins">−</button>
-    <input id="${inputId}" class="form-control num" type="number" min="0" step="1" value="${clampNonNegInt(initial)}"
-           aria-label="${team} coins" placeholder="0" inputmode="numeric" pattern="[0-9]*" autocomplete="off"/>
-    <button class="btn btn-primary spin" data-op="inc" aria-label="Increase ${team} coins">+</button>
-  `;
-  const dec = row.querySelector('[data-op="dec"]');
-  const inc = row.querySelector('[data-op="inc"]');
-  const num = row.querySelector('input');
-
-  const sanitize = () => {
-    const v = clampNonNegInt(num.value);
-    num.value = String(v);
-    validateAnyPositive();
-  };
-  num.addEventListener('input', sanitize);
-  num.addEventListener('blur', sanitize);
-  num.addEventListener('keydown', (e)=>{ if(e.key==="Enter"){ e.preventDefault(); if(!submitBtn.disabled) submitBtn.click(); }});
-  dec.onclick = () => { if (saving.busy) return; num.value = String(Math.max(0, clampNonNegInt(num.value)-1)); validateAnyPositive(); };
-  inc.onclick = () => { if (saving.busy) return; num.value = String(Math.max(0, clampNonNegInt(num.value)+1)); validateAnyPositive(); };
-
-  rows.appendChild(row);
-  refs.push({ team, num, incBtn: inc, decBtn: dec });
-}
-
-/* ---------- Team links ---------- */
-function badgeClass(t){
-  switch(t){
-    case "Blue": return "text-bg-primary";
-    case "Red": return "text-bg-danger";
-    case "Green": return "text-bg-success";
-    case "Yellow": return "text-bg-warning";
-    case "Black": return "text-bg-dark";
-    case "White": return "text-bg-light text-dark";
-    default: return "text-bg-secondary";
-  }
-}
-function renderTeamLinks(enabled=false) {
-  linksBox.innerHTML = "";
-  teams.forEach(t => {
-    const url = buildTeamUrl(t);
-    const row = document.createElement('div');
-    row.className = "vstack gap-2";
-
-    const line = document.createElement('div');
-    line.className = "link-line";
-    line.innerHTML = `
-      <div class="link-url text-truncate">
-        <span class="badge me-2 ${badgeClass(t)}">${t}</span>
-        <a class="link-primary text-truncate ${enabled ? '' : 'muted-link'}"
-           href="${enabled ? url : '#'}" target="_blank" rel="noopener">${url}</a>
-      </div>
-      <div class="btns-right">
-        <button class="btn btn-sm btn-outline-secondary" data-copy ${enabled ? '' : 'disabled'}>Copy</button>
-        <button class="btn btn-sm btn-outline-primary"  data-open ${enabled ? '' : 'disabled'}>Open</button>
-        <button class="btn btn-sm btn-outline-dark"     data-qr   ${enabled ? '' : 'disabled'}>QR</button>
-      </div>
-    `;
-
-    const qrWrap = document.createElement('div');
-    qrWrap.className = "qr-wrap";
-    qrWrap.innerHTML = `
-      <div class="qr-box d-flex flex-wrap align-items-center gap-3">
-        <div class="qr-holder" aria-label="QR code for ${t}"></div>
-        <div class="qr-meta">
-          <div><strong>${t}</strong> QR</div>
-          <div class="text-muted small text-break">${url}</div>
-          <div class="mt-2">
-            <button class="btn btn-sm btn-outline-success" data-dl>Download PNG</button>
-            <button class="btn btn-sm btn-outline-secondary" data-hide>Hide</button>
-          </div>
+        <div class="link-row">
         </div>
       </div>
-    `;
 
-    const copyBtn = line.querySelector("[data-copy]");
-    const openBtn = line.querySelector("[data-open]");
-    const qrBtn   = line.querySelector("[data-qr]");
-    const dlBtn   = qrWrap.querySelector("[data-dl]");
-    const hideBtn = qrWrap.querySelector("[data-hide]");
-    const holder  = qrWrap.querySelector(".qr-holder");
+      <!-- Top controls -->
+      <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
+        <h5 class="mb-0 me-auto">Coins per team</h5>
+      </div>
 
-    copyBtn.onclick = () => copyText(url);
-    openBtn.onclick = () => window.open(url, "_blank", "noopener");
-    qrBtn.onclick = () => {
-      if (typeof window.QRCode === "undefined") {
-        showToast("QR library is not available.", "danger");
-        document.querySelectorAll('[data-qr]').forEach(b => b.disabled = true);
+      <div id="rows" class="vstack gap-2 mb-3" role="group" aria-label="Coins per team"></div>
+
+      <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mt-2">
+        <small id="statusText" class="text-muted">
+          Enter coins (at least one team &gt; 0), then click <strong>Submit</strong> to unlock team links.
+        </small>
+        <div class="d-flex gap-2">
+          <button id="resetAllBtn" class="btn btn-outline-danger">Reset all to zero</button>
+          <button id="submitBtn" class="btn btn-success" disabled>Submit</button>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="row mt-4">
+
+      <!-- Scores Chart -->
+      <div class="col-md-6 mb-4">
+        <div class="card shadow-sm p-4 h-100">
+          <div class="meta-line d-flex justify-content-between align-items-center">
+            <div class="fw-semibold">Leading board [Team Scores]</div>
+            <small id="scoreLastUpdate">Last update: –</small>
+          </div>
+          <div id="scoreChart" class="mt-2"></div>
+        </div>
+      </div>
+
+      <!-- Coins Chart -->
+      <div class="col-md-6 mb-4">
+        <div class="card shadow-sm p-4 h-100">
+          <div class="meta-line d-flex justify-content-between align-items-center">
+            <div class="fw-semibold">Leading board [Team Coins]</div>
+            <small id="coinLastUpdate">Last update: –</small>
+          </div>
+          <div id="coinChart" class="mt-2"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Toasts -->
+  <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toasts"></div>
+
+  <script>
+    /* ---------- Constants & elements ---------- */
+    const teams = ["Blue", "Red", "Green", "Yellow", "Black", "White"];
+    const rows = document.getElementById('rows');
+    // const linksBox = document.getElementById('links'); // unused
+    const submitBtn = document.getElementById('submitBtn');
+    const resetAllBtn = document.getElementById('resetAllBtn');
+    const statusTxt = document.getElementById('statusText');
+
+    const toasts = document.getElementById("toasts");
+    function showToast(msg, variant = "primary") {
+      const el = document.createElement("div");
+      el.className = `toast align-items-center text-bg-${variant} border-0`;
+      el.innerHTML = `<div class="d-flex"><div class="toast-body">${msg}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>`;
+      toasts.appendChild(el);
+      new bootstrap.Toast(el, { delay: 1800 }).show();
+      el.addEventListener("hidden.bs.toast", () => el.remove());
+    }
+
+    /* ---------- Utils ---------- */
+    const saving = { busy: false };
+    function setBusy(on) {
+      saving.busy = !!on;
+      resetAllBtn.disabled = on;
+
+      // ตอน busy → ปิดปุ่ม submit, พอเลิก busy ให้กลับไปเช็คตามค่าจริง
+      if (on) {
+        submitBtn.disabled = true;
+      } else {
+        validateAnyPositive();
+      }
+
+      // disable all inputs when busy
+      refs.forEach(({ num, incBtn, decBtn }) => {
+        num.disabled = on;
+        incBtn.disabled = on;
+        decBtn.disabled = on;
+      });
+    }
+
+    function buildTeamUrl(team) {
+      // robust to proxy/prefix (always absolute to current origin)
+      const u = new URL('/static/team.html', window.location.origin);
+      u.searchParams.set('team', team);
+      return u.toString();
+    }
+
+    /* ---------- Copy helper ---------- */
+    async function copyText(txt) {
+      try {
+        if (navigator.clipboard && window.isSecureContext) await navigator.clipboard.writeText(txt);
+        else {
+          const ta = document.createElement("textarea");
+          ta.value = txt; ta.style.position = "fixed"; ta.style.left = "-9999px";
+          document.body.appendChild(ta); ta.focus(); ta.select();
+          document.execCommand("copy"); ta.remove();
+        }
+        showToast("Link copied.", "success");
+      } catch { showToast("Copy failed.", "danger"); }
+    }
+
+    /* ---------- Server API ---------- */
+    async function fetchAllCoins() {
+      try {
+        const res = await fetch("/api/coins", { cache: "no-store" });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        return await res.json();
+      } catch {
+        showToast("Failed to fetch coins from server.", "danger");
+        return null;
+      }
+    }
+    async function saveAllCoins(payload) {
+      try {
+        const res = await fetch("/api/coins", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        return await res.json();
+      } catch {
+        showToast("Failed to save coins to server.", "danger");
+        return null;
+      }
+    }
+
+    /* ---------- Build coin rows ---------- */
+    const refs = [];
+    function clampNonNegInt(v) {
+      v = parseInt(v ?? "0", 10);
+      return Number.isFinite(v) && v > 0 ? v : 0;
+    }
+
+    function makeRow(team, initial = 0) {
+      const block = document.createElement('div');
+      block.className = "coin-block vstack gap-2 p-2 border rounded";
+
+      const row = document.createElement('div');
+      row.className = "coin-row d-flex align-items-center gap-2";
+
+      const inputId = `coins-${team}`;
+      row.innerHTML = `
+          <label class="team-label flex-grow-1" for="${inputId}">${team}:</label>
+          <button class="btn btn-outline-secondary spin" data-op="dec">−</button>
+          <input id="${inputId}" class="form-control num" type="number" min="0" step="1"
+                value="${clampNonNegInt(initial)}"/>
+          <button class="btn btn-primary spin" data-op="inc">+</button>
+        `;
+
+      const dec = row.querySelector('[data-op="dec"]');
+      const inc = row.querySelector('[data-op="inc"]');
+      const num = row.querySelector('input');
+
+      const sanitize = () => {
+        const v = clampNonNegInt(num.value);
+        num.value = String(v);
+        validateAnyPositive();
+      };
+      num.addEventListener('input', sanitize);
+      num.addEventListener('blur', sanitize);
+      num.addEventListener('keydown', (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          if (!submitBtn.disabled) submitBtn.click();
+        }
+      });
+      dec.onclick = () => { if (!saving.busy) { num.value = Math.max(0, clampNonNegInt(num.value) - 1); validateAnyPositive(); } };
+      inc.onclick = () => { if (!saving.busy) { num.value = clampNonNegInt(+num.value + 1); validateAnyPositive(); } };
+
+      const linkBox = document.createElement("div");
+      linkBox.id = `link-${team}`;
+      linkBox.className = "team-link-box";
+      linkBox.style.display = "none";
+
+      block.appendChild(row);
+      block.appendChild(linkBox);
+
+      rows.appendChild(block);
+
+      refs.push({ team, num, incBtn: inc, decBtn: dec });
+    }
+
+    /* ---------- Team links ---------- */
+    function badgeClass(t) {
+      switch (t) {
+        case "Blue": return "text-bg-primary";
+        case "Red": return "text-bg-danger";
+        case "Green": return "text-bg-success";
+        case "Yellow": return "text-bg-warning";
+        case "Black": return "text-bg-dark";
+        case "White": return "text-bg-light text-dark";
+        default: return "text-bg-secondary";
+      }
+    }
+
+    function renderTeamLinks(enabled = false) {
+      teams.forEach(t => {
+        const url = buildTeamUrl(t);
+
+        const linkBox = document.getElementById(`link-${t}`);
+        linkBox.innerHTML = "";
+        linkBox.style.display = enabled ? "block" : "none";
+
+        const row = document.createElement('div');
+        row.className = "vstack gap-2";
+
+        row.innerHTML = `
+            <div class="link-line d-flex justify-content-between align-items-center">
+              <div class="link-url text-truncate">
+                <span class="badge me-2 ${badgeClass(t)}">${t}</span>
+                <a class="link-primary text-truncate ${enabled ? '' : 'muted-link'}"
+                  href="${enabled ? url : '#'}" target="_blank">${url}</a>
+              </div>
+              <div class="btns-right d-flex gap-1">
+                <button class="btn btn-sm btn-outline-secondary" data-copy ${enabled ? '' : 'disabled'}>Copy</button>
+                <button class="btn btn-sm btn-outline-primary"  data-open ${enabled ? '' : 'disabled'}>Open</button>
+                <button class="btn btn-sm btn-outline-dark"     data-qr   ${enabled ? '' : 'disabled'}>QR</button>
+              </div>
+            </div>
+
+            <div class="qr-wrap">
+              <div class="qr-box d-flex flex-wrap align-items-center gap-3">
+                <div class="qr-holder"></div>
+                <div class="qr-meta">
+                  <div><strong>${t}</strong> QR</div>
+                  <div class="text-muted small text-break">${url}</div>
+                  <div class="mt-2">
+                    <button class="btn btn-sm btn-outline-success" data-dl>Download PNG</button>
+                    <button class="btn btn-sm btn-outline-secondary" data-hide>Hide</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+
+        const copyBtn = row.querySelector("[data-copy]");
+        const openBtn = row.querySelector("[data-open]");
+        const qrBtn = row.querySelector("[data-qr]");
+        const dlBtn = row.querySelector("[data-dl]");
+        const hideBtn = row.querySelector("[data-hide]");
+        const holder = row.querySelector(".qr-holder");
+        const qrWrap = row.querySelector(".qr-wrap");
+
+        copyBtn.onclick = () => copyText(url);
+        openBtn.onclick = () => window.open(url, "_blank");
+        qrBtn.onclick = () => {
+          if (!window.QRCode) return showToast("QR lib missing", "danger");
+          holder.innerHTML = "";
+          new QRCode(holder, { text: url, width: 180, height: 180 });
+          qrWrap.classList.toggle("active");
+        };
+        dlBtn.onclick = () => {
+          const img = holder.querySelector("img");
+          if (img) {
+            const a = document.createElement("a");
+            a.href = img.src;
+            a.download = `team-${t}.png`;
+            a.click();
+          }
+        };
+        hideBtn.onclick = () => qrWrap.classList.remove("active");
+
+        linkBox.appendChild(row);
+      });
+    }
+
+    /* ---------- Validation & Submit ---------- */
+    function anyPositive() { return refs.some(({ num }) => clampNonNegInt(num.value) > 0); }
+    function validateAnyPositive() {
+      if (saving.busy) return; // อย่ากระพริบสถานะตอนกำลัง save
+      const ok = anyPositive();
+      submitBtn.disabled = !ok;
+      statusTxt.textContent = ok
+        ? "Ready to submit."
+        : "Enter coins (at least one team > 0), then click Submit to unlock team links.";
+      statusTxt.classList.toggle("text-success", ok);
+      statusTxt.classList.toggle("text-muted", !ok);
+    }
+
+    submitBtn.onclick = async () => {
+      if (saving.busy) return;
+      if (!anyPositive()) {
+        showToast("Please enter coins for at least one team (> 0).", "warning");
         return;
       }
-      if (qrWrap.classList.contains("active")) { qrWrap.classList.remove("active"); return; }
-      holder.innerHTML = "";
+      const payload = {};
+      refs.forEach(({ team, num }) => payload[team] = clampNonNegInt(num.value));
+      setBusy(true);
+      const res = await saveAllCoins(payload);
+      setBusy(false);
+      if (!res) return;
+      renderTeamLinks(true);
+      showToast("Saved successfully.", "success");
+      statusTxt.textContent = "Coins saved on server. You can now Open/Copy/QR each team.";
+      statusTxt.classList.remove("text-muted");
+      statusTxt.classList.add("text-success");
+    };
+
+    /* ---------- Reset all to zero ---------- */
+    resetAllBtn.onclick = async () => {
+      if (saving.busy) return;
+      if (!confirm("Reset ALL teams to zero?")) return;
+      const zeros = Object.fromEntries(teams.map(t => [t, 0]));
+      setBusy(true);
+      const res = await saveAllCoins(zeros);
+      setBusy(false);
+      if (!res) return;
+      refs.forEach(r => r.num.value = "0");
+      validateAnyPositive();
+      renderTeamLinks(false);
+      showToast("All teams reset to zero.", "warning");
+      statusTxt.textContent = "All coins are zero. Enter new values and Submit to unlock links.";
+      statusTxt.classList.remove("text-success");
+      statusTxt.classList.add("text-muted");
+    };
+
+    /* ---------- Init flow (coins + links) ---------- */
+    (async function init() {
+      const loading = document.createElement("div");
+      loading.className = "text-muted small";
+      loading.textContent = "Loading coins from server…";
+      rows.appendChild(loading);
+
+      const coinsMap = (await fetchAllCoins()) || Object.fromEntries(teams.map(t => [t, 0]));
+      rows.innerHTML = "";
+
+      teams.forEach(t => makeRow(t, clampNonNegInt(coinsMap[t])));
+      validateAnyPositive();
+
+      const hasAny = Object.values(coinsMap).some(v => clampNonNegInt(v) > 0);
+      renderTeamLinks(hasAny);
+      if (hasAny) {
+        statusTxt.textContent = "Server already has coins. You can Open/Copy/QR each team.";
+        statusTxt.classList.remove("text-muted");
+        statusTxt.classList.add("text-success");
+      }
+    })();
+
+    /* ---------- TEAM COLOR ---------- */
+    const TEAM_COLOR = {
+      Blue: "#1d4ed8",
+      Red: "#dc2626",
+      Green: "#16a34a",
+      Yellow: "#eab308",
+      Black: "#111827",
+      White: "#9ca3af"
+    };
+
+    /* ---------- Team Scores (leaderboard) ---------- */
+    let scoreChart = null;
+
+    function initScoreChart() {
+      if (!scoreChart) {
+        scoreChart = echarts.init(document.getElementById("scoreChart"));
+        window.addEventListener("resize", () => scoreChart && scoreChart.resize());
+      }
+
+      scoreChart.setOption({
+        title: { text: "" },
+        tooltip: {
+          formatter: function (params) {
+            const d = params.data || {};
+            const current = typeof d.current === "number" ? d.current : 0;
+            return `${params.name}<br/>Total: ${params.value}<br/>Current: ${current}`;
+          }
+        },
+        xAxis: { type: "value", min: 0 },
+        yAxis: {
+          type: "category",
+          data: teams,
+          inverse: true
+        },
+        series: [{
+          type: "bar",
+          data: [],
+          itemStyle: {
+            color: (params) => TEAM_COLOR[params.name],
+            borderRadius: [10, 10, 10, 10]
+          },
+          barWidth: "55%",
+          label: { show: true, position: "right" }
+        }]
+      });
+    }
+
+    async function updateScoreChart() {
       try {
-        new QRCode(holder, { text:url, width:180, height:180, colorDark:"#000", colorLight:"#fff", correctLevel:QRCode.CorrectLevel.M });
-        qrWrap.classList.add("active");
-      } catch { showToast("Failed to generate QR.", "danger"); }
-    };
-    hideBtn.onclick = () => qrWrap.classList.remove("active");
-    dlBtn.onclick = () => {
-      const img = holder.querySelector("img");
-      const canvas = holder.querySelector("canvas");
-      const dataURL = img?.src || (canvas && canvas.toDataURL("image/png"));
-      if (!dataURL) { showToast("No QR image to download yet.", "warning"); return; }
-      const a = document.createElement("a"); a.href = dataURL; a.download = `team-${t}.png`; document.body.appendChild(a); a.click(); a.remove();
-    };
+        const res = await fetch("/api/team_scores");
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const data = await res.json(); // { Blue: [total,current], ... } หรือ { Blue: 100, ... } (แบบเก่า)
 
-    row.appendChild(line);
-    row.appendChild(qrWrap);
-    linksBox.appendChild(row);
-  });
-}
+        const sorted = teams
+          .map(t => {
+            const entry = data[t];
+            let total = 0;
+            let current = 0;
 
-/* ---------- Validation & Submit ---------- */
-function anyPositive(){ return refs.some(({num}) => clampNonNegInt(num.value) > 0); }
-function validateAnyPositive(){
-  if (saving.busy) return; // อย่ากระพริบสถานะตอนกำลัง save
-  const ok = anyPositive();
-  submitBtn.disabled = !ok;
-  statusTxt.textContent = ok ? "Ready to submit." : "Enter coins (at least one team > 0), then click Submit to unlock team links.";
-  statusTxt.classList.toggle("text-success", ok);
-  statusTxt.classList.toggle("text-muted", !ok);
-}
+            if (Array.isArray(entry)) {
+              total = Number(entry[0]) || 0;
+              current = Number(entry[1]) || 0;
+            } else {
+              total = Number(entry) || 0;
+              current = total;
+            }
 
-submitBtn.onclick = async () => {
-  if (saving.busy) return;
-  if (!anyPositive()) { showToast("Please enter coins for at least one team (> 0).", "warning"); return; }
-  const payload = {};
-  refs.forEach(({team, num}) => payload[team] = clampNonNegInt(num.value));
-  setBusy(true);
-  const res = await saveAllCoins(payload);
-  setBusy(false);
-  if (!res) return;
-  renderTeamLinks(true);
-  showToast("Saved successfully.", "success");
-  statusTxt.textContent = "Coins saved on server. You can now Open/Copy/QR each team.";
-  statusTxt.classList.remove("text-muted");
-  statusTxt.classList.add("text-success");
-};
+            return { team: t, total, current };
+          })
+          .sort((a, b) => b.total - a.total); // เรียงจาก total score มาก → น้อย
 
-/* ---------- Reset all to zero ---------- */
-resetAllBtn.onclick = async () => {
-  if (saving.busy) return;
-  if (!confirm("Reset ALL teams to zero?")) return;
-  const zeros = Object.fromEntries(teams.map(t => [t, 0]));
-  setBusy(true);
-  const res = await saveAllCoins(zeros);
-  setBusy(false);
-  if (!res) return;
-  refs.forEach(r => r.num.value = "0");
-  validateAnyPositive();
-  renderTeamLinks(false);
-  showToast("All teams reset to zero.", "warning");
-  statusTxt.textContent = "All coins are zero. Enter new values and Submit to unlock links.";
-  statusTxt.classList.remove("text-success");
-  statusTxt.classList.add("text-muted");
-};
+        scoreChart.setOption({
+          yAxis: {
+            type: "category",
+            data: sorted.map(x => x.team),
+            inverse: true // highest on top
+          },
+          series: [{
+            data: sorted.map(x => ({
+              value: x.total,
+              name: x.team,
+              current: x.current
+            })),
+            itemStyle: {
+              color: (params) => TEAM_COLOR[params.name],
+              borderRadius: [10, 10, 10, 10]
+            }
+          }]
+        });
 
-/* ---------- Init flow ---------- */
-(async function init(){
-  const loading = document.createElement("div");
-  loading.className = "text-muted small";
-  loading.textContent = "Loading coins from server…";
-  rows.appendChild(loading);
+        document.getElementById("scoreLastUpdate").textContent =
+          "Last update: " + new Date().toLocaleTimeString();
 
-  const coinsMap = (await fetchAllCoins()) || Object.fromEntries(teams.map(t => [t, 0]));
-  rows.innerHTML = "";
+      } catch (err) {
+        console.error("ScoreChart Error:", err);
+      }
+    }
 
-  teams.forEach(t => makeRow(t, clampNonNegInt(coinsMap[t])));
-  validateAnyPositive();
+    /* ---------- Team Coins ---------- */
+    let coinChart = null;
 
-  const hasAny = Object.values(coinsMap).some(v => clampNonNegInt(v) > 0);
-  renderTeamLinks(hasAny);
-  if (hasAny) {
-    statusTxt.textContent = "Server already has coins. You can Open/Copy/QR each team.";
-    statusTxt.classList.remove("text-muted");
-    statusTxt.classList.add("text-success");
-  }
-})();
-</script>
+    function initCoinChart() {
+      if (!coinChart) {
+        coinChart = echarts.init(document.getElementById("coinChart"));
+        window.addEventListener("resize", () => coinChart && coinChart.resize());
+      }
+
+      coinChart.setOption({
+        tooltip: {},
+        xAxis: { type: "value", min: 0 },
+        yAxis: { type: "category", data: teams },
+        series: [{
+          type: "bar",
+          data: [],
+          itemStyle: {
+            color: (params) => TEAM_COLOR[params.name],
+            borderRadius: [10, 10, 10, 10]
+          },
+          barWidth: "55%",
+          label: { show: true, position: "right" }
+        }]
+      });
+    }
+
+    async function updateCoinChart() {
+      try {
+        const res = await fetch("/api/coins");
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const data = await res.json();
+
+        const sorted = teams
+          .map(t => ({ team: t, coins: data[t] ?? 0 }))
+          .sort((a, b) => b.coins - a.coins); // descending by coins
+
+        coinChart.setOption({
+          yAxis: {
+            type: "category",
+            data: sorted.map(x => x.team),
+            inverse: true // highest on top
+          },
+          series: [{
+            data: sorted.map(x => x.coins),
+            itemStyle: {
+              color: (params) => TEAM_COLOR[params.name],
+              borderRadius: [10, 10, 10, 10]
+            }
+          }]
+        });
+
+        document.getElementById("coinLastUpdate").textContent =
+          "Last update: " + new Date().toLocaleTimeString();
+
+      } catch (err) {
+        console.error("CoinChart Error:", err);
+      }
+    }
+
+    /* ---------- Init flow (charts) ---------- */
+    window.addEventListener("DOMContentLoaded", () => {
+      initScoreChart();
+      initCoinChart();
+
+      updateScoreChart();
+      updateCoinChart();
+
+      setInterval(() => {
+        updateScoreChart();
+        updateCoinChart();
+      }, 1000); // 1 seconds
+    });
+
+  </script>
 </body>
+
 </html>

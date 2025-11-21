@@ -58,6 +58,7 @@ global{
 	action pause_game;
 	action remove_threat(int p, string threat);
 	action resend_command_to_unity (string player_name_ID);
+	action reload_scene (string player_name_ID);
 	
 	geometry usable_area_for_wildfire ;
 	geometry usable_area_for_tree;
@@ -123,6 +124,10 @@ global{
 		loop i from:0 to:5{
 			create reset{
 				location <- {width + 6, 4 + (8*i)}; 
+			}
+			
+			create reload{
+				location <- {width + 12, 4.5 + (8*i)}; 
 			}
 		}
 	}
@@ -266,6 +271,7 @@ experiment init_exp type: gui {
 			species tree;
 			species icon_everything;
 			species reset;
+			species reload;
 			
 			event #mouse_down {
 				int temp_team1 <- 1;
@@ -304,6 +310,44 @@ experiment init_exp type: gui {
 					ask world{
 						//write "Reset Player_106" ;
 						do resend_command_to_unity(player_name[5]);
+					}
+				}
+				
+				
+				if (#user_location distance_to reload[0] < 1) and not paused{
+					ask world{
+						//write "Reload Player_101" ;
+						do reload_scene(player_name[0]);
+					}
+				}
+				else if (#user_location distance_to reload[1] < 1) and not paused{
+					ask world{
+						//write "Reload Player_102" ;
+						do reload_scene(player_name[1]);
+					}
+				}
+				else if (#user_location distance_to reload[2] < 1) and not paused{
+					ask world{
+						//write "Reload Player_103" ;
+						do reload_scene(player_name[2]);
+					}
+				}
+				else if (#user_location distance_to reload[3] < 1) and not paused{
+					ask world{
+						//write "Reload Player_104" ;
+						do reload_scene(player_name[3]);
+					}
+				}
+				else if (#user_location distance_to reload[4] < 1) and not paused{
+					ask world{
+						//write "Reload Player_105" ;
+						do reload_scene(player_name[4]);
+					}
+				}
+				else if (#user_location distance_to reload[5] < 1) and not paused{
+					ask world{
+						//write "Reload Player_106" ;
+						do reload_scene(player_name[5]);
 					}
 				}
 			}

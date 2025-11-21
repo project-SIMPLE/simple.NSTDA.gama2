@@ -2,10 +2,9 @@ import os
 from uvicorn import Config, Server
 from app import app
 
-LAN_IP = "10.230.219.32" 
+LAN_IP = "192.168.68.54" 
 PORT   = 8040         
 
-# ภายในเครื่องให้ uvicorn ฟังทุก interface ไปเลย
 HOST = "0.0.0.0"
 
 if __name__ == "__main__":

@@ -14,7 +14,8 @@ global{
 	image_file rain_image_file <- image_file("../images/rain.png");
 	image_file blank_image_file <- image_file("../images/blank.png");
 	image_file reset_image <- image_file("../images/reset.png");
-	
+	image_file reload_image <- image_file("../images/reload.png");
+
 	int time_now;
 	int n_years <- 2;
 	int time_to_play <- 240;
@@ -36,6 +37,13 @@ species reset {
 	image_file img <- reset_image;
 	aspect default {
 		draw img size:{10,6};
+	}
+}
+
+species reload {
+	image_file img <- reload_image;
+	aspect default {
+		draw img size:{3,3};
 	}
 }
 
