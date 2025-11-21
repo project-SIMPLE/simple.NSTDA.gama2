@@ -16,7 +16,7 @@ COINS_FILE         = os.path.join(BASE_DIR, "coins.json")
 INITIAL_COINS_FILE = os.path.join(BASE_DIR, "initial_coins.json")
 SCORES_FILE        = os.path.join(BASE_DIR, "scores.json")        # species (10 ค่า) ต่อทีม
 STACK_TREES_FILE   = os.path.join(BASE_DIR, "stack_trees.json")   # 6x3 ต่อทีม
-TREE_GROWTH_FILE   = os.path.join(BASE_DIR, "tree_growth.json")   # 3 ค่า ต่อทีม
+TREE_GROWTH_FILE   = os.path.join(BASE_DIR, "tree_growth.json")   # 4 ค่า ต่อทีม: [Dead, Stage1, Stage2, Stage3]
 TEAM_SCORES_FILE   = os.path.join(BASE_DIR, "team_scores.json")   # 2 ค่า ต่อทีม: [total, current]
 
 LOG_FILE   = os.path.join(BASE_DIR, "gama_actions.csv")
@@ -85,13 +85,20 @@ def _norm_stack(values) -> List[List[int]]:
     return rows
 
 def _zero_growth() -> List[int]:
-    """3 ค่า (เช่น Stage 1/2/3)"""
-    return [0, 0, 0]
+    """4 ค่า: [Dead, Stage 1, Stage 2, Stage 3]"""
+    return [0, 0, 0, 0]
 
 def _norm_growth(values) -> List[int]:
+    """
+    normalize ให้เป็น list 4 ตัว:
+      index 0 = Dead
+      index 1 = Stage 1
+      index 2 = Stage 2
+      index 3 = Stage 3
+    """
     vals = values if isinstance(values, list) else []
     out: List[int] = []
-    for i in range(3):
+    for i in range(4):
         try:
             v = int(round(float(vals[i]))) if i < len(vals) else 0
         except Exception:
@@ -186,7 +193,7 @@ def save_stack_trees(state: Dict[str, List[List[int]]]):
 STACK_TREES: Dict[str, List[List[int]]] = load_stack_trees()
 
 
-# ---------- tree growth stage (3 ค่า) ----------
+# ---------- tree growth stage (4 ค่า) ----------
 def load_tree_growth() -> Dict[str, List[int]]:
     if os.path.exists(TREE_GROWTH_FILE):
         try:
@@ -540,7 +547,7 @@ def _parse_gama_json(msg: str) -> Optional[dict]:
     รองรับ JSON จาก GAMA เช่น:
       {"type":"score_update","team":"Blue","score":[...]}
       {"type":"stack_tree_update","team":"Blue","score":[[...],[...],...]}
-      {"type":"tree_growth_stage_update","team":"Blue","score":[...]}
+      {"type":"tree_growth_stage_update","team":"Blue","score":[...]}  # ตอนนี้ score ยาว 4 ค่า
       {"type":"team_score_update","team":"","score":[...]}  # ตอนนี้ score อาจเป็น [total,current] ต่อทีม
     """
     try:
@@ -691,7 +698,7 @@ async def ws_bridge(websocket: WebSocket):
                     elif typ == "stack_tree_update" and team in TEAMS:
                         await _ingest_stack_tree_update(team, score)
 
-                    # 3) tree growth stage (3 ค่า ต่อทีม)
+                    # 3) tree growth stage (4 ค่า ต่อทีม)
                     elif typ == "tree_growth_stage_update" and team in TEAMS:
                         await _ingest_tree_growth_update(team, score)
 

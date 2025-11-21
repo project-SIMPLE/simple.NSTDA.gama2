@@ -163,6 +163,12 @@ global{
 				loop i from:0 to:(length(total_score_list)-1){
 					total_score_list[i] <- total_score_list[i] + sum_score_list[i];
 				}
+				loop p over:connect_team_list{
+					loop i from:0 to:2{
+						total_n_remain_tree[p-1][i] <- total_n_remain_tree[p-1][i] + n_remain_tree[p-1][i];
+					}
+					
+				}
 				sum_score_list <- list_with(6,0);
 //-----------------------------------------------------------------------------------------*********
 			}
@@ -296,9 +302,13 @@ global{
 			}
 			
 			ask Server{
+				list<int> team_score_list <- [((sum(n_tree)*count_start) - (sum(total_n_remain_tree[p-1]) + sum(n_remain_tree[p-1]))),
+												(total_n_remain_tree[p-1][0] + n_remain_tree[p-1][0]),
+												(total_n_remain_tree[p-1][1] + n_remain_tree[p-1][1]),
+												(total_n_remain_tree[p-1][2] + n_remain_tree[p-1][2])];
 				do send to: "All" contents:to_json(["type"::"score_update", "team"::color_list[p-1], "score"::n_remain_tree_all[p-1]]);
 				do send to: "All" contents:to_json(["type"::"stack_tree_update", "team"::color_list[p-1], "score"::remaining_tree_per_plot[p-1]]);
-				do send to: "All" contents:to_json(["type"::"tree_growth_stage_update", "team"::color_list[p-1], "score"::n_remain_tree[p-1]]);
+				do send to: "All" contents:to_json(["type"::"tree_growth_stage_update", "team"::color_list[p-1], "score"::team_score_list]);
 			}
 		}
 		ask Server{

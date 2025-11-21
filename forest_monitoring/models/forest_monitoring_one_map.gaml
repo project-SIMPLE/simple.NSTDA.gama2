@@ -64,6 +64,7 @@ global{
 	geometry usable_area_for_tree;
 	
 	list<list<int>> n_remain_tree <- list_with(6, list_with(3, 0));
+	list<list<int>> total_n_remain_tree <- list_with(6, list_with(3, 0));
 	list<list<int>> n_remain_tree_all <- list_with(6, list_with(10, 0));
 	list<list<list<int>>> remaining_tree_per_plot <- list_with(6,list_with(6, list_with(3, 0)));
 	list<int> sum_score_list <- list_with(6,0);
