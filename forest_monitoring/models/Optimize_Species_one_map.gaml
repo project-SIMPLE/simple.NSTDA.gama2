@@ -33,6 +33,27 @@ global{
 	}
 }
 
+species questionnaire_status{
+	int player ;
+	bool recive_message ;
+	string type ;
+	geometry shape <- circle(2#m);
+	rgb color <- #red;
+	
+	reflex change_color{
+		if recive_message{
+			color <- #green;
+		}
+		else {
+			color <- #red;
+		}
+	}
+	
+	aspect default{
+		draw shape color:color;
+	}
+}
+
 species reset {
 	image_file img <- reset_image;
 	aspect default {

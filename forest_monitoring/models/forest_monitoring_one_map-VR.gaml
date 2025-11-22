@@ -9,7 +9,30 @@ global{
 	list all_for_send <- [];
 	init{
 		create Server {
-			do connect protocol: "websocket_server" port: 3001 with_name: name raw: true;
+//			do connect protocol: "websocket_server" port: 3001 with_name: name raw: true;
+		}
+	}
+	
+	action ReQuestionnaire (string player_name_ID, string type){
+		int player_ID <- -1;
+		loop i from:0 to:length(unity_player) - 1{
+			ask unity_player[i] {
+				if self.name = player_name_ID{
+					player_ID <- i;
+				}
+			}
+		}
+		
+		write "ReQuestionnaire for player " + player_ID + " name -> " + player_name_ID + " type -> " + type;
+		
+		if player_ID != -1{
+			ask unity_linker {
+				do send_message players: unity_player[player_ID] as list 
+					mes: ["ListOfMessage"::[["Head"::"ReQuestionnaire", 
+											"Body"::type, 
+											"Trees"::"",
+											"Threats"::""]]];
+			}
 		}
 	}
 	
@@ -46,7 +69,7 @@ global{
 			}
 		}
 		
-		write "resend for player " + player_ID;
+		write "resend for player " + player_ID + " name -> " + player_name_ID;
 		
 		if player_ID != -1{
 			if all_player_ready{
@@ -178,12 +201,6 @@ global{
 					"Trees"::"",
 					"Threats"::""] to:all_for_send;
 				write "send TutorialStart at cycle = " + cycle;
-				
-				if skip_tutorial{
-					do pause;
-					can_start <- true;
-					tutorial_finish <- true;
-				}
 			}
 		}
 		else{
@@ -196,6 +213,8 @@ global{
 				ready_team_list <- [];
 				before_Q_team_list <- [];
 				after_Q_team_list <- [];
+				all_player_before_Q <- true;
+				all_player_after_Q <- false;
 				tutorial_finish <- false;
 				for_save_answer <- list_with(6, list_with(2, []));
 				
@@ -214,6 +233,10 @@ global{
 															myself.location.z *precision];
 						move_player_event <- true;
 					}
+				}
+				
+				ask questionnaire_status{
+					recive_message <- false;
 				}
 
 				ask old_tree {do die;}
@@ -332,6 +355,19 @@ global{
 	
 	reflex for_send_readID when: cycle = (create_tree_cycle+1){
 		do send_readID;
+	}
+	
+	reflex for_stop_questionnaire1 when: cycle = (questionnaire1_cycle+2){
+		do pause;
+		can_start <- true;
+		tutorial_finish <- true;
+	}
+	
+	reflex for_stop_questionnaire2 when: cycle = (questionnaire2_cycle+2){
+		do save_Questionnaire_answer_to_csv;
+		write "save_Questionnaire_answer_to_csvvvvvvvvvvvvvvvvvvvvvvvvvvvv";
+		do pause;
+		can_start <- true;
 	}
 	
 	reflex update_height_and_threats when: tutorial_finish and 
@@ -634,7 +670,7 @@ global{
 		if count_start = 1{
 			list header <- ["round", "team", "no.", "before/after", "answer"];
 			write header;
-			save header to: "../results/Questionnaire_answers.csv" header:false format:"csv" rewrite:true;
+			save header to: ("../results/Questionnaire_answers_" + today + ".csv") header:false format:"csv" rewrite:true;
 		}	
 		
 		loop p over:connect_team_list{
@@ -648,7 +684,7 @@ global{
 					add for_save_answer[map_player_idint[map_player_intid[p]]-1][0][i] to:temp;
 					
 					write temp;
-					save temp to: "../results/Questionnaire_answers.csv" header:false format:"csv" rewrite:false;
+					save temp to: ("../results/Questionnaire_answers_" + today + ".csv") header:false format:"csv" rewrite:false;
 				}
 			}
 			else{
@@ -665,7 +701,7 @@ global{
 					add for_save_answer[map_player_idint[map_player_intid[p]]-1][1][i] to:temp;
 					
 					write temp;
-					save temp to: "../results/Questionnaire_answers.csv" header:false format:"csv" rewrite:false;
+					save temp to: ("../results/Questionnaire_answers_" + today + ".csv") header:false format:"csv" rewrite:false;
 				}	
 			}
 			else{
@@ -816,62 +852,81 @@ species unity_linker parent: abstract_unity_linker {
 			add i to: answer_list;
 		}
 		
-		if Header = "Before"{
-			write "" + Header + " " + answer_list;
-			
-			if not (map_player_idint[PlayerID] in before_Q_team_list){
-				add map_player_idint[PlayerID] to:before_Q_team_list;	
-				loop i over: answer_list{
-					add i to: for_save_answer[map_player_idint[PlayerID]-1][0];
+		write "length of answer_list = " + length(answer_list);
+		
+		if length(answer_list) > 0{
+			if Header = "Before"{
+				write "" + Header + " " + answer_list;
+				
+				if not (map_player_idint[PlayerID] in before_Q_team_list){
+					add map_player_idint[PlayerID] to:before_Q_team_list;	
+					loop i over: answer_list{
+						add i to: for_save_answer[map_player_idint[PlayerID]-1][0];
+					}
+				}
+				write for_save_answer;
+				
+				ask questionnaire_status where (each.player = map_player_idint[PlayerID] and
+												each.type = "before"){
+					recive_message <- true;								
+				}
+					
+				if (before_Q_team_list sort_by (each)) = (connect_team_list sort_by (each)){
+					write "All player before Q " + (before_Q_team_list sort_by (each)) + " = " +
+						(connect_team_list sort_by (each));
+					all_player_before_Q <- true;
+//					ask world{
+//						do pause;
+//						can_start <- true;
+//						tutorial_finish <- true;
+//					}
+					questionnaire1_cycle <- cycle;
 				}
 			}
-			write for_save_answer;
+			else if Header = "After"{
+				list<map<string,string>> send_tree_update_environment <- [];
+				write "" + Header + " " + answer_list;
 				
-			if (before_Q_team_list sort_by (each)) = (connect_team_list sort_by (each)){
-				write "All player before Q " + (before_Q_team_list sort_by (each)) + " = " +
-					(connect_team_list sort_by (each));
-				all_player_before_Q <- true;
-				ask world{
-					do pause;
-					can_start <- true;
-					tutorial_finish <- true;
+				if not (map_player_idint[PlayerID] in after_Q_team_list){
+					add map_player_idint[PlayerID] to:after_Q_team_list;	
+					loop i over: answer_list{
+						add i to: for_save_answer[map_player_idint[PlayerID]-1][1];
+					}
+				}
+				write for_save_answer;
+				
+				ask questionnaire_status where (each.player = map_player_idint[PlayerID] and
+												each.type = "after"){
+					recive_message <- true;								
+				}
+				
+				// Background
+				add map<string, string>(["PlayerID"::PlayerID, 
+										"Name"::string(2), 
+										"State"::""]) to:send_tree_update_environment;
+				write "Player " + PlayerID + " send " + string("Environment"+(2)) ;
+				
+				add ["Head"::"Background", 
+					"Body"::"", 
+					"Trees"::send_tree_update_environment, 
+					"Threats"::""] to:all_for_send;
+							
+				if (after_Q_team_list sort_by (each)) = (connect_team_list sort_by (each)){
+					write "All player after Q " + (after_Q_team_list sort_by (each)) + " = " +
+						(connect_team_list sort_by (each));
+					all_player_after_Q <- true;
+//					ask world{
+//						do save_Questionnaire_answer_to_csv;
+//						write "save_Questionnaire_answer_to_csvvvvvvvvvvvvvvvvvvvvvvvvvvvv";
+//						do pause;
+//						can_start <- true;
+//					}
+					questionnaire2_cycle <- cycle;
 				}
 			}
 		}
-		else if Header = "After"{
-			list<map<string,string>> send_tree_update_environment <- [];
-			write "" + Header + " " + answer_list;
-			
-			if not (map_player_idint[PlayerID] in after_Q_team_list){
-				add map_player_idint[PlayerID] to:after_Q_team_list;	
-				loop i over: answer_list{
-					add i to: for_save_answer[map_player_idint[PlayerID]-1][1];
-				}
-			}
-			write for_save_answer;
-			
-			// Background
-			add map<string, string>(["PlayerID"::PlayerID, 
-									"Name"::string(2), 
-									"State"::""]) to:send_tree_update_environment;
-			write "Player " + PlayerID + " send " + string("Environment"+(2)) ;
-			
-			add ["Head"::"Background", 
-				"Body"::"", 
-				"Trees"::send_tree_update_environment, 
-				"Threats"::""] to:all_for_send;
-						
-			if (after_Q_team_list sort_by (each)) = (connect_team_list sort_by (each)){
-				write "All player after Q " + (after_Q_team_list sort_by (each)) + " = " +
-					(connect_team_list sort_by (each));
-				all_player_after_Q <- true;
-				ask world{
-					do save_Questionnaire_answer_to_csv;
-					write "save_Questionnaire_answer_to_csvvvvvvvvvvvvvvvvvvvvvvvvvvvv";
-					do pause;
-					can_start <- true;
-				}
-			}
+		else{
+			write "Not passsssssss <- length of answer_list = " + length(answer_list) + " for player " + PlayerID;
 		}
 	}
 	

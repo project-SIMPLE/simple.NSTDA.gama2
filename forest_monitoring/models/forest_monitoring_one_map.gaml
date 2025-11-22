@@ -40,8 +40,10 @@ global{
 	bool all_player_after_Q <- false;
 	bool send_ready <- true;
 	int create_tree_cycle <- int(#infinity);
+	int questionnaire1_cycle <- int(#infinity);
+	int questionnaire2_cycle <- int(#infinity);
+	string today <- string(date("now"), "dd_MM_yyyy_HH:mm:ss");
 	
-	bool skip_tutorial <- false;
 	bool can_start <- true;
 	bool tutorial_finish <- false;
 	int time_now <- 0;
@@ -59,6 +61,7 @@ global{
 	action remove_threat(int p, string threat);
 	action resend_command_to_unity (string player_name_ID);
 	action reload_scene (string player_name_ID);
+	action ReQuestionnaire (string player_name_ID, string type);
 	
 	geometry usable_area_for_wildfire ;
 	geometry usable_area_for_tree;
@@ -129,6 +132,21 @@ global{
 			
 			create reload{
 				location <- {width + 12, 4.5 + (8*i)}; 
+			}
+			create questionnaire_status{
+				player <- i+1;
+				recive_message <- false;
+				type <- "before";
+				location <- {width + 20, 4.5 + (8*i)}; 
+			}
+		}
+		
+		loop i from:0 to:5{
+			create questionnaire_status{
+				player <- i+1;
+				recive_message <- false;
+				type <- "after";
+				location <- {width + 26, 4.5 + (8*i)}; 
 			}
 		}
 	}
@@ -260,10 +278,12 @@ global{
 
 experiment init_exp type: gui {
 	output{ 
-		layout vertical([horizontal([0::1, 1::1])::1, horizontal([2::1, 3::1, 4::1, 5::1, 6::1, 7::1])::1]) 
-		toolbars: false tabs: false parameters: false consoles: false navigator: false controls: true tray: false ;
+//		layout vertical([horizontal([0::1, 1::1])::1, horizontal([2::1, 3::1, 4::1, 5::1, 6::1, 7::1])::1]) 
+		layout 
+		toolbars: true tabs: false parameters: false consoles: false navigator: false controls: true tray: false ;
 		display "Main" type: 3d background: rgb(50,50,50) locked:true antialias:true {
-			camera 'default' location: {25.14,12.2616,92.8721} target: {25.14,12.26,0.0};
+//			camera 'default' location: {25.14,12.2616,92.8721} target: {25.14,12.26,0.0};
+			camera 'default' location: {43.1022,16.9566,114.5901} target: {43.1022,16.9546,0.0};
 			species map_area;
 			species playerable_area;
 			species tree_area;
@@ -273,10 +293,13 @@ experiment init_exp type: gui {
 			species icon_everything;
 			species reset;
 			species reload;
+			species questionnaire_status;
 			
 			event #mouse_down {
 				int temp_team1 <- 1;
 				int temp_team2 <- 2;
+				
+//				resend_command_to_unity
 				if (#user_location distance_to reset[0] < 3) and not paused{
 					ask world{
 						//write "Reset Player_101" ;
@@ -315,42 +338,123 @@ experiment init_exp type: gui {
 				}
 				
 				
-				if (#user_location distance_to reload[0] < 1) and not paused{
+//				reload_scene
+				if (#user_location distance_to reload[0] < 2) and not paused{
 					ask world{
 						//write "Reload Player_101" ;
 						do reload_scene(player_name[0]);
 					}
 				}
-				else if (#user_location distance_to reload[1] < 1) and not paused{
+				else if (#user_location distance_to reload[1] < 2) and not paused{
 					ask world{
 						//write "Reload Player_102" ;
 						do reload_scene(player_name[1]);
 					}
 				}
-				else if (#user_location distance_to reload[2] < 1) and not paused{
+				else if (#user_location distance_to reload[2] < 2) and not paused{
 					ask world{
 						//write "Reload Player_103" ;
 						do reload_scene(player_name[2]);
 					}
 				}
-				else if (#user_location distance_to reload[3] < 1) and not paused{
+				else if (#user_location distance_to reload[3] < 2) and not paused{
 					ask world{
 						//write "Reload Player_104" ;
 						do reload_scene(player_name[3]);
 					}
 				}
-				else if (#user_location distance_to reload[4] < 1) and not paused{
+				else if (#user_location distance_to reload[4] < 2) and not paused{
 					ask world{
 						//write "Reload Player_105" ;
 						do reload_scene(player_name[4]);
 					}
 				}
-				else if (#user_location distance_to reload[5] < 1) and not paused{
+				else if (#user_location distance_to reload[5] < 2) and not paused{
 					ask world{
 						//write "Reload Player_106" ;
 						do reload_scene(player_name[5]);
 					}
 				}
+				
+				
+//				ReQuestionnaire
+//				Before
+				if (#user_location distance_to questionnaire_status[0] < 2) and not paused{
+					ask world{
+						//write "ReQuestionnaire Player_101" ;
+						do ReQuestionnaire(player_name[0], "before");
+					}
+				}
+				else if (#user_location distance_to questionnaire_status[1] < 2) and not paused{
+					ask world{
+						//write "ReQuestionnaire Player_102" ;
+						do ReQuestionnaire(player_name[1], "before");
+					}
+				}
+				else if (#user_location distance_to questionnaire_status[2] < 2) and not paused{
+					ask world{
+						//write "ReQuestionnaire Player_103" ;
+						do ReQuestionnaire(player_name[2], "before");
+					}
+				}
+				else if (#user_location distance_to questionnaire_status[3] < 2) and not paused{
+					ask world{
+						//write "ReQuestionnaire Player_104" ;
+						do ReQuestionnaire(player_name[3], "before");
+					}
+				}
+				else if (#user_location distance_to questionnaire_status[4] < 2) and not paused{
+					ask world{
+						//write "ReQuestionnaire Player_105" ;
+						do ReQuestionnaire(player_name[4], "before");
+					}
+				}
+				else if (#user_location distance_to questionnaire_status[5] < 2) and not paused{
+					ask world{
+						//write "ReQuestionnaire Player_106" ;
+						do ReQuestionnaire(player_name[5], "before");
+					}
+				}
+				
+//				After
+				else if (#user_location distance_to questionnaire_status[6] < 2) and not paused{
+					ask world{
+						//write "ReQuestionnaire Player_101" ;
+						do ReQuestionnaire(player_name[0], "after");
+					}
+				}
+				else if (#user_location distance_to questionnaire_status[7] < 2) and not paused{
+					ask world{
+						//write "ReQuestionnaire Player_102" ;
+						do ReQuestionnaire(player_name[1], "after");
+					}
+				}
+				else if (#user_location distance_to questionnaire_status[8] < 2) and not paused{
+					ask world{
+						//write "ReQuestionnaire Player_103" ;
+						do ReQuestionnaire(player_name[2], "after");
+					}
+				}
+				else if (#user_location distance_to questionnaire_status[9] < 2) and not paused{
+					ask world{
+						//write "ReQuestionnaire Player_104" ;
+						do ReQuestionnaire(player_name[3], "after");
+					}
+				}
+				else if (#user_location distance_to questionnaire_status[10] < 2) and not paused{
+					ask world{
+						//write "ReQuestionnaire Player_105" ;
+						do ReQuestionnaire(player_name[4], "after");
+					}
+				}
+				else if (#user_location distance_to questionnaire_status[11] < 2) and not paused{
+					ask world{
+						//write "ReQuestionnaire Player_106" ;
+						do ReQuestionnaire(player_name[5], "after");
+					}
+				}
+				
+				
 			}
 			
 			graphics Strings {
@@ -359,28 +463,31 @@ experiment init_exp type: gui {
 						draw "Remaining time: "+ ((time_to_play - time_now) div 60) + " minutes " + 
 						((time_to_play - time_now) mod 60) + " seconds"
 						at:{width/4.5, -21} 
-						font:font("Times", 20, #bold+#italic) ;
+						font:font("Times", 28, #bold+#italic) ;
 					}
 					else{
 						draw "Remaining time: Finished!!!" 
 						at:{width/4.5, -21} 
-						font:font("Times", 20, #bold+#italic) ;
+						font:font("Times", 28, #bold+#italic) ;
 					}
 					
 				}
 				else{
 					draw "Remaining time: - (Tutorial " + (count_start+1) + ")..." 
 					at:{width/4.5, -21} 
-					font:font("Times", 20, #bold+#italic) ;
+					font:font("Times", 28, #bold+#italic) ;
 				}
 				loop i from:0 to:5{
 					draw "Team" + (i+1) + " " + color_list[i] +  ": " 
 						at:{width+1, 2 + (8*i)} 
-						font:font("Times", 12, #bold+#italic) 
+						font:font("Times", 28, #bold+#italic) 
 						color:player_colors[i];		
 				}
+				draw "Q1" at:{width + 20, -1} font:font("Times", 28, #bold) anchor:#center; 
+				draw "Q2" at:{width + 26, -1} font:font("Times", 28, #bold) anchor:#center; 
 			}
 		}
+		
 		display "Total Scores" type: 2d locked:true{
 			chart "Total Scores" type:histogram reverse_axes:true
 			y_range:[0, 20 + max_score]
@@ -394,114 +501,114 @@ experiment init_exp type: gui {
 
 				}
 			}
-			graphics Strings {
-				loop i from:0 to:(length(sum_score_list)-1){
-					draw "" + int(total_score_list[i]+sum_score_list[i]) + 
-						"(" + 
-						int(sum_score_list[i]) + 
-						")"
-						at:{width/1.5, 8 + 6.3*i} 
-						font:font("Times", 14, #bold+#italic) 
-						border:#black color:player_colors[i];
-				}
-			}
+//			graphics Strings {
+//				loop i from:0 to:(length(sum_score_list)-1){
+//					draw "" + int(total_score_list[i]+sum_score_list[i]) + 
+//						"(" + 
+//						int(sum_score_list[i]) + 
+//						")"
+//						at:{width/1.5, 8 + 6.3*i} 
+//						font:font("Times", 14, #bold+#italic) 
+//						border:#black color:player_colors[i];
+//				}
+//			}
 		}
 		
-		display "His_Team1" type: 2d locked:true{ 		
-			chart "Team1" type:histogram 
-			x_serie_labels: ["State"] 				
-			y_range:[0, sum(n_tree)] 		
-			style:"3d" 			  
-			series_label_position: xaxis {
-				data "D" value: sum(n_tree)-sum(n_remain_tree[0])
-				color:#black ;
-					
-				loop j from:0 to:2{
-					data "S" + j value: n_remain_tree[0][j]
-					color:state_colors[j] ;
-				}
-			}
-		}	
-		
-		display "His_Team2" type: 2d locked:true{ 		
-			chart "Team2" type:histogram 
-			x_serie_labels: ["State"] 				
-			y_range:[0, sum(n_tree)] 		
-			style:"3d" 			  
-			series_label_position: xaxis {
-				data "D" value: sum(n_tree)-sum(n_remain_tree[1])
-				color:#black ;
-					
-				loop j from:0 to:2{
-					data "S" + j value: n_remain_tree[1][j]
-					color:state_colors[j] ;
-				}	
-			}
-		}
-		
-		display "His_Team3" type: 2d locked:true{ 		
-			chart "Team3" type:histogram 
-			x_serie_labels: ["State"] 				
-			y_range:[0, sum(n_tree)] 		
-			style:"3d" 			  
-			series_label_position: xaxis {
-				data "D" value: sum(n_tree)-sum(n_remain_tree[2])
-				color:#black ;
-					
-				loop j from:0 to:2{
-					data "S" + j value: n_remain_tree[2][j]
-					color:state_colors[j] ;
-				}
-			}
-		}
-		
-		display "His_Team4" type: 2d locked:true{ 		
-			chart "Team4" type:histogram 
-			x_serie_labels: ["State"] 				
-			y_range:[0, sum(n_tree)] 		
-			style:"3d" 			  
-			series_label_position: xaxis {
-				data "D" value: sum(n_tree)-sum(n_remain_tree[3])
-				color:#black ;
-					
-				loop j from:0 to:2{
-					data "S" + j value: n_remain_tree[3][j]
-					color:state_colors[j] ;
-				}
-			}
-		}
-		
-		display "His_Team5" type: 2d locked:true{ 		
-			chart "Team5" type:histogram 
-			x_serie_labels: ["State"] 				
-			y_range:[0, sum(n_tree)] 		
-			style:"3d" 			  
-			series_label_position: xaxis {
-				data "D" value: sum(n_tree)-sum(n_remain_tree[4])
-				color:#black ;
-					
-				loop j from:0 to:2{
-					data "S" + j value: n_remain_tree[4][j]
-					color:state_colors[j] ;
-				}
-			}
-		}
-		
-		display "His_Team6" type: 2d locked:true{ 		
-			chart "Team6" type:histogram 
-			x_serie_labels: ["State"] 				
-			y_range:[0, sum(n_tree)] 		
-			style:"3d" 			  
-			series_label_position: xaxis {
-				data "D" value: sum(n_tree)-sum(n_remain_tree[5])
-				color:#black ;
-					
-				loop j from:0 to:2{
-					data "S" + j value: n_remain_tree[5][j]
-					color:state_colors[j] ;
-				}
-			}
-		}
+//		display "His_Team1" type: 2d locked:true{ 		
+//			chart "Team1" type:histogram 
+//			x_serie_labels: ["State"] 				
+//			y_range:[0, sum(n_tree)] 		
+//			style:"3d" 			  
+//			series_label_position: xaxis {
+//				data "D" value: sum(n_tree)-sum(n_remain_tree[0])
+//				color:#black ;
+//					
+//				loop j from:0 to:2{
+//					data "S" + j value: n_remain_tree[0][j]
+//					color:state_colors[j] ;
+//				}
+//			}
+//		}	
+//		
+//		display "His_Team2" type: 2d locked:true{ 		
+//			chart "Team2" type:histogram 
+//			x_serie_labels: ["State"] 				
+//			y_range:[0, sum(n_tree)] 		
+//			style:"3d" 			  
+//			series_label_position: xaxis {
+//				data "D" value: sum(n_tree)-sum(n_remain_tree[1])
+//				color:#black ;
+//					
+//				loop j from:0 to:2{
+//					data "S" + j value: n_remain_tree[1][j]
+//					color:state_colors[j] ;
+//				}	
+//			}
+//		}
+//		
+//		display "His_Team3" type: 2d locked:true{ 		
+//			chart "Team3" type:histogram 
+//			x_serie_labels: ["State"] 				
+//			y_range:[0, sum(n_tree)] 		
+//			style:"3d" 			  
+//			series_label_position: xaxis {
+//				data "D" value: sum(n_tree)-sum(n_remain_tree[2])
+//				color:#black ;
+//					
+//				loop j from:0 to:2{
+//					data "S" + j value: n_remain_tree[2][j]
+//					color:state_colors[j] ;
+//				}
+//			}
+//		}
+//		
+//		display "His_Team4" type: 2d locked:true{ 		
+//			chart "Team4" type:histogram 
+//			x_serie_labels: ["State"] 				
+//			y_range:[0, sum(n_tree)] 		
+//			style:"3d" 			  
+//			series_label_position: xaxis {
+//				data "D" value: sum(n_tree)-sum(n_remain_tree[3])
+//				color:#black ;
+//					
+//				loop j from:0 to:2{
+//					data "S" + j value: n_remain_tree[3][j]
+//					color:state_colors[j] ;
+//				}
+//			}
+//		}
+//		
+//		display "His_Team5" type: 2d locked:true{ 		
+//			chart "Team5" type:histogram 
+//			x_serie_labels: ["State"] 				
+//			y_range:[0, sum(n_tree)] 		
+//			style:"3d" 			  
+//			series_label_position: xaxis {
+//				data "D" value: sum(n_tree)-sum(n_remain_tree[4])
+//				color:#black ;
+//					
+//				loop j from:0 to:2{
+//					data "S" + j value: n_remain_tree[4][j]
+//					color:state_colors[j] ;
+//				}
+//			}
+//		}
+//		
+//		display "His_Team6" type: 2d locked:true{ 		
+//			chart "Team6" type:histogram 
+//			x_serie_labels: ["State"] 				
+//			y_range:[0, sum(n_tree)] 		
+//			style:"3d" 			  
+//			series_label_position: xaxis {
+//				data "D" value: sum(n_tree)-sum(n_remain_tree[5])
+//				color:#black ;
+//					
+//				loop j from:0 to:2{
+//					data "S" + j value: n_remain_tree[5][j]
+//					color:state_colors[j] ;
+//				}
+//			}
+//		}
 	}
 }
 
