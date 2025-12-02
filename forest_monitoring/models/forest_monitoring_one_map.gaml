@@ -31,15 +31,9 @@ global{
 	map<string, int> map_player_idint <- [player_name[0]::1, player_name[1]::2, player_name[2]::3, player_name[3]::4, player_name[4]::5, player_name[5]::6];
 	map<string, int> map_player_colorint <- [color_list[0]::1, color_list[1]::2, color_list[2]::3, color_list[3]::4, color_list[4]::5, color_list[5]::6];
 	list<int> connect_team_list <- [];
-	list<int> ready_team_list <- [];
 	list<int> before_Q_team_list <- [];
 	list<int> after_Q_team_list <- [];
 	list<list<list<string>>> for_save_answer <- list_with(6, list_with(2, []));
-	bool all_player_ready <- false;
-	bool all_player_before_Q <- false;
-	bool all_player_after_Q <- false;
-	bool send_ready <- true;
-	int create_tree_cycle <- int(#infinity);
 	int questionnaire1_cycle <- int(#infinity);
 	int questionnaire2_cycle <- int(#infinity);
 	string today <- string(date("now"), "dd_MM_yyyy_HH:mm:ss");
@@ -51,6 +45,7 @@ global{
 	int count_start <- 0 ;
 	bool game_start <- false;
 	bool next_time <- false;
+	bool final_main_game <- false;
 	
 	point result_location;
 	point tutorial_location;
@@ -59,9 +54,7 @@ global{
 	action resume_game;
 	action pause_game;
 	action remove_threat(int p, string threat);
-	action resend_command_to_unity (string player_name_ID);
-	action reload_scene (string player_name_ID);
-	action ReQuestionnaire (string player_name_ID, string type);
+	action Resent_text_to_unity(string player_name_ID, string type, string head);
 	
 	geometry usable_area_for_wildfire ;
 	geometry usable_area_for_tree;
@@ -245,8 +238,7 @@ global{
 		}
 		usable_area_for_tree <- usable_area_for_tree - (tree[count_create_tree-1].shape + tree_distance);
 		save usable_area_for_tree to:"../includes/export/usable_area_for_tree_with_alltree.shp" format:"shp";
-		create_tree_cycle <- cycle;
-		write "Create tree at cycle = " + create_tree_cycle + " = " + cycle;
+		write "Create tree at cycle = " + cycle;
 	}
 	
 	reflex update_time_and_bound when: not paused and tutorial_finish and game_start{
@@ -259,10 +251,9 @@ global{
 	}
 	
 	reflex do_resume when: not paused and can_start{
-		if all_player_ready and tutorial_finish {
+		if tutorial_finish {
 			count_start <- count_start + 1 ;
 			init_time <- gama.machine_time div 1000;
-			game_start <- true;
 		}
 		
 		can_start <- false;
@@ -270,7 +261,7 @@ global{
 	}
 	
 
-	reflex do_pause when: (time_now >= time_to_play+2) 
+	reflex do_pause when: (time_now >= time_to_play+1) 
 		and (cycle != 0) and not can_start and tutorial_finish{
 		do pause_game;
 	}
@@ -303,37 +294,37 @@ experiment init_exp type: gui {
 				if (#user_location distance_to reset[0] < 3) and not paused{
 					ask world{
 						//write "Reset Player_101" ;
-						do resend_command_to_unity(player_name[0]);
+						do Resent_text_to_unity(player_name[0],"","Main");
 					}
 				}
 				else if (#user_location distance_to reset[1] < 3) and not paused{
 					ask world{
 						//write "Reset Player_102" ;
-						do resend_command_to_unity(player_name[1]);
+						do Resent_text_to_unity(player_name[1],"","Main");
 					}
 				}
 				else if (#user_location distance_to reset[2] < 3) and not paused{
 					ask world{
 						//write "Reset Player_103" ;
-						do resend_command_to_unity(player_name[2]);
+						do Resent_text_to_unity(player_name[2],"","Main");
 					}
 				}
 				else if (#user_location distance_to reset[3] < 3) and not paused{
 					ask world{
 						//write "Reset Player_104" ;
-						do resend_command_to_unity(player_name[3]);
+						do Resent_text_to_unity(player_name[3],"","Main");
 					}
 				}
 				else if (#user_location distance_to reset[4] < 3) and not paused{
 					ask world{
 						//write "Reset Player_105" ;
-						do resend_command_to_unity(player_name[4]);
+						do Resent_text_to_unity(player_name[4],"","Main");
 					}
 				}
 				else if (#user_location distance_to reset[5] < 3) and not paused{
 					ask world{
 						//write "Reset Player_106" ;
-						do resend_command_to_unity(player_name[5]);
+						do Resent_text_to_unity(player_name[5],"","Main");
 					}
 				}
 				
@@ -342,37 +333,37 @@ experiment init_exp type: gui {
 				if (#user_location distance_to reload[0] < 2) and not paused{
 					ask world{
 						//write "Reload Player_101" ;
-						do reload_scene(player_name[0]);
+						do Resent_text_to_unity(player_name[0], "", "Reload");
 					}
 				}
 				else if (#user_location distance_to reload[1] < 2) and not paused{
 					ask world{
 						//write "Reload Player_102" ;
-						do reload_scene(player_name[1]);
+						do Resent_text_to_unity(player_name[1], "", "Reload");
 					}
 				}
 				else if (#user_location distance_to reload[2] < 2) and not paused{
 					ask world{
 						//write "Reload Player_103" ;
-						do reload_scene(player_name[2]);
+						do Resent_text_to_unity(player_name[2], "", "Reload");
 					}
 				}
 				else if (#user_location distance_to reload[3] < 2) and not paused{
 					ask world{
 						//write "Reload Player_104" ;
-						do reload_scene(player_name[3]);
+						do Resent_text_to_unity(player_name[3], "", "Reload");
 					}
 				}
 				else if (#user_location distance_to reload[4] < 2) and not paused{
 					ask world{
 						//write "Reload Player_105" ;
-						do reload_scene(player_name[4]);
+						do Resent_text_to_unity(player_name[4], "", "Reload");
 					}
 				}
 				else if (#user_location distance_to reload[5] < 2) and not paused{
 					ask world{
 						//write "Reload Player_106" ;
-						do reload_scene(player_name[5]);
+						do Resent_text_to_unity(player_name[5], "", "Reload");
 					}
 				}
 				
@@ -382,37 +373,37 @@ experiment init_exp type: gui {
 				if (#user_location distance_to questionnaire_status[0] < 2) and not paused{
 					ask world{
 						//write "ReQuestionnaire Player_101" ;
-						do ReQuestionnaire(player_name[0], "before");
+						do Resent_text_to_unity(player_name[0], "before", "ReQuestionnaire");
 					}
 				}
 				else if (#user_location distance_to questionnaire_status[1] < 2) and not paused{
 					ask world{
 						//write "ReQuestionnaire Player_102" ;
-						do ReQuestionnaire(player_name[1], "before");
+						do Resent_text_to_unity(player_name[1], "before", "ReQuestionnaire");
 					}
 				}
 				else if (#user_location distance_to questionnaire_status[2] < 2) and not paused{
 					ask world{
 						//write "ReQuestionnaire Player_103" ;
-						do ReQuestionnaire(player_name[2], "before");
+						do Resent_text_to_unity(player_name[2], "before", "ReQuestionnaire");
 					}
 				}
 				else if (#user_location distance_to questionnaire_status[3] < 2) and not paused{
 					ask world{
 						//write "ReQuestionnaire Player_104" ;
-						do ReQuestionnaire(player_name[3], "before");
+						do Resent_text_to_unity(player_name[3], "before", "ReQuestionnaire");
 					}
 				}
 				else if (#user_location distance_to questionnaire_status[4] < 2) and not paused{
 					ask world{
 						//write "ReQuestionnaire Player_105" ;
-						do ReQuestionnaire(player_name[4], "before");
+						do Resent_text_to_unity(player_name[4], "before", "ReQuestionnaire");
 					}
 				}
 				else if (#user_location distance_to questionnaire_status[5] < 2) and not paused{
 					ask world{
 						//write "ReQuestionnaire Player_106" ;
-						do ReQuestionnaire(player_name[5], "before");
+						do Resent_text_to_unity(player_name[5], "before", "ReQuestionnaire");
 					}
 				}
 				
@@ -420,37 +411,37 @@ experiment init_exp type: gui {
 				else if (#user_location distance_to questionnaire_status[6] < 2) and not paused{
 					ask world{
 						//write "ReQuestionnaire Player_101" ;
-						do ReQuestionnaire(player_name[0], "after");
+						do Resent_text_to_unity(player_name[0], "after", "ReQuestionnaire");
 					}
 				}
 				else if (#user_location distance_to questionnaire_status[7] < 2) and not paused{
 					ask world{
 						//write "ReQuestionnaire Player_102" ;
-						do ReQuestionnaire(player_name[1], "after");
+						do Resent_text_to_unity(player_name[1], "after", "ReQuestionnaire");
 					}
 				}
 				else if (#user_location distance_to questionnaire_status[8] < 2) and not paused{
 					ask world{
 						//write "ReQuestionnaire Player_103" ;
-						do ReQuestionnaire(player_name[2], "after");
+						do Resent_text_to_unity(player_name[2], "after", "ReQuestionnaire");
 					}
 				}
 				else if (#user_location distance_to questionnaire_status[9] < 2) and not paused{
 					ask world{
 						//write "ReQuestionnaire Player_104" ;
-						do ReQuestionnaire(player_name[3], "after");
+						do Resent_text_to_unity(player_name[3], "after", "ReQuestionnaire");
 					}
 				}
 				else if (#user_location distance_to questionnaire_status[10] < 2) and not paused{
 					ask world{
 						//write "ReQuestionnaire Player_105" ;
-						do ReQuestionnaire(player_name[4], "after");
+						do Resent_text_to_unity(player_name[4], "after", "ReQuestionnaire");
 					}
 				}
 				else if (#user_location distance_to questionnaire_status[11] < 2) and not paused{
 					ask world{
 						//write "ReQuestionnaire Player_106" ;
-						do ReQuestionnaire(player_name[5], "after");
+						do Resent_text_to_unity(player_name[5], "after", "ReQuestionnaire");
 					}
 				}
 				
@@ -490,7 +481,7 @@ experiment init_exp type: gui {
 		
 		display "Total Scores" type: 2d locked:true{
 			chart "Total Scores" type:histogram reverse_axes:true
-			y_range:[0, 20 + max_score]
+			y_range:[0, 20 + max_score + ceil(max_score*0.1)]
 			x_serie_labels: [""]
 			style:"3d"
 			series_label_position: xaxis
