@@ -320,7 +320,13 @@ async def broadcast_team_scores_update():
 
 async def broadcast_round_update():
     # broadcast รอบปัจจุบันให้ทุก browser
-    await _broadcast({"type": "round_update", "team": "", "score": ROUND})
+    # NOTE: ส่งทั้ง round และ score = ROUND เพื่อให้ frontend ที่อ่าน obj.round ใช้งานได้
+    await _broadcast({
+        "type": "round_update",
+        "team": "",
+        "round": ROUND,
+        "score": ROUND,
+    })
 
 
 # ---------- simple CSV logger for actions ----------
@@ -744,6 +750,9 @@ async def ws_bridge(websocket: WebSocket):
                     # เผื่อมีคนส่ง "scores"
                     if score is None:
                         score = obj.get("scores", None)
+                    # เผื่อ GAMA ส่ง round แทน score สำหรับ round_update
+                    if score is None and typ == "round_update":
+                        score = obj.get("round", None)
 
                     # 1) species score (10 ค่า ต่อทีม)
                     if typ in ("score_update", "scores_update") and team in TEAMS and isinstance(score, list):

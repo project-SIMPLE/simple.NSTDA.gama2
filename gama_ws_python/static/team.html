@@ -355,7 +355,7 @@
             <div class="d-grid gap-3">
               <button class="btn btn-success py-3 fs-6" id="btn_grass"><span class="icon">🌿</span>Reset Grass (cost
                 1)</button>
-              <button class="btn btn-warning py-3 fs-6" id="btn_alien"><span class="icon">👽</span>Reset Alien (cost
+              <button class="btn btn-warning py-3 fs-6" id="btn_alien"><span class="icon">🌼</span>Reset Alien (cost
                 2)</button>
               <button class="btn btn-danger py-3 fs-6" id="btn_fire"><span class="icon">🔥</span>Reset Fire (cost
                 3)</button>
@@ -486,17 +486,22 @@
 
     function setRoundDisplay(roundVal) {
       if (!teamRoundEl) return;
+
+      // ถ้ายังไม่ได้ส่งค่า หรือเป็นค่าว่าง ไม่ต้องเขียนทับค่าเดิม
+      if (roundVal === undefined || roundVal === null || roundVal === "") {
+        return;
+      }
+
       const r = Number(roundVal);
       if (Number.isFinite(r) && r >= 0) {
         teamRoundEl.textContent = `Current round: ${r}`;
-      } else {
-        teamRoundEl.textContent = "Current round: –";
       }
+      // ถ้าค่าเพี้ยนก็ไม่ทำอะไร ปล่อยใช้ค่าก่อนหน้า
     }
 
     async function fetchRound() {
       try {
-        const res = await fetch("/api/round");
+        const res = await fetch("/api/round", { cache: "no-store" });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         setRoundDisplay(data.round);
@@ -517,7 +522,7 @@
       if (typeof initialVal === "number" && !Number.isNaN(initialVal)) {
         initialCoins = Math.max(0, initialVal | 0);
         totalCoinsEl.textContent = String(initialCoins);
-      } 
+      }
       // fallback: กรณีไม่มี initial_coins (เช่น backend เก่า)
       else if (initialCoins === null) {
         initialCoins = currentCoins;
@@ -883,7 +888,9 @@
         // 0) round update
         if (obj.type === "round_update") {
           if (!obj.team || obj.team === TEAM) {
-            setRoundDisplay(obj.round);
+            // รองรับทั้งกรณีส่ง round หรือ score
+            const raw = (obj.round !== undefined ? obj.round : obj.score);
+            setRoundDisplay(raw);
           }
           return;
         }
@@ -918,7 +925,7 @@
           }
           return;
         }
-        
+
 
         // 5) team score (leaderboard) → ใช้อัปเดต Team Score gauge
         if (obj.type === "team_score_update") {
@@ -1041,7 +1048,7 @@
       'rgb(140, 214, 16)',  // เขียว: ค่าสูง
       'rgb(53, 117, 0)'     // เขียวเข้ม: ค่าสูงมาก
     ];
-    
+
     function getColor(v) {
       // v = percent 0-100
       if (v < 25) return COLORS[0];
