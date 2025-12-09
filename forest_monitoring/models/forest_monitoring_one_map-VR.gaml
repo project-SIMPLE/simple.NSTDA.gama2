@@ -9,7 +9,7 @@ global{
 	list all_for_send <- [];
 	init{
 		create Server {
-//			do connect protocol: "websocket_server" port: 3001 with_name: name raw: true;
+			do connect protocol: "websocket_server" port: 3001 with_name: name raw: true;
 		}
 	}
 	
@@ -197,6 +197,10 @@ global{
 			else{
 				do prepare_step;
 				do send_readID;
+				
+				ask Server{
+					do send to: "All" contents:to_json(["type"::"round_update", "team"::"", "score"::count_start+1]);
+				}
 				
 				final_main_game <- false;
 				

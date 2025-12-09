@@ -271,7 +271,7 @@ experiment init_exp type: gui {
 	output{ 
 //		layout vertical([horizontal([0::1, 1::1])::1, horizontal([2::1, 3::1, 4::1, 5::1, 6::1, 7::1])::1]) 
 		layout 
-		toolbars: true tabs: false parameters: false consoles: false navigator: false controls: true tray: false ;
+		toolbars: false tabs: false parameters: false consoles: false navigator: false controls: true tray: false ;
 		display "Main" type: 3d background: rgb(50,50,50) locked:true antialias:true {
 //			camera 'default' location: {25.14,12.2616,92.8721} target: {25.14,12.26,0.0};
 			camera 'default' location: {43.1022,16.9566,114.5901} target: {43.1022,16.9546,0.0};

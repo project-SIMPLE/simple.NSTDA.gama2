@@ -186,53 +186,51 @@
 
   <script src="/static/vendor/bootstrap.bundle.min.js"></script>
   <script src="/static/vendor/qrcode.min.js"></script>
-  <!-- <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script> -->
   <script src="/static/vendor/echarts.min.js"></script>
 
 </head>
 
 <body>
   <div class="container py-4">
+
+    <!-- Top controls -->
     <div class="card p-4">
-      <h2 class="mb-3">Setup · GAMA Coins 🪙</h2>
+      <h2 class="mb-1">Setup · GAMA Coins 🪙</h2>
+      <small id="roundText" class="text-muted d-block mb-3">Current round: 0</small>
 
-      <div class="coin-block">
-        <div class="coin-row">
-        </div>
+      <div class="mb-3">
+        <button class="btn btn-outline-primary text-start fs-5" data-bs-toggle="collapse"
+          data-bs-target="#coinsCollapse">
+          Coins per team
+        </button>
 
-        <div class="link-row">
+        <div id="coinsCollapse" class="collapse show mt-2">
+          <div id="rows" class="vstack gap-2"></div>
         </div>
       </div>
 
-      <!-- Top controls -->
-      <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
-        <h5 class="mb-0 me-auto">Coins per team</h5>
-      </div>
-
-      <div id="rows" class="vstack gap-2 mb-3" role="group" aria-label="Coins per team"></div>
-
-      <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mt-2">
+      <div class="d-flex gap-2 justify-content-between align-items-center mt-2">
         <small id="statusText" class="text-muted">
           Enter coins (at least one team &gt; 0), then click <strong>Submit</strong> to unlock team links.
         </small>
+
         <div class="d-flex gap-2">
-          <button id="resetAllBtn" class="btn btn-outline-danger">Reset all to zero</button>
+          <button id="resetAllBtn" class="btn btn-outline-danger">Reset all</button>
           <button id="submitBtn" class="btn btn-success" disabled>Submit</button>
         </div>
       </div>
-
     </div>
 
+    <!-- Charts -->
     <div class="row mt-4">
-
       <!-- Scores Chart -->
       <div class="col-md-6 mb-4">
         <div class="card shadow-sm p-4 h-100">
           <div class="meta-line d-flex justify-content-between align-items-center">
-            <div class="fw-semibold">Leading board [Team Scores]</div>
+            <div class="fw-semibold fs-4">Team Scores</div>
             <small id="scoreLastUpdate">Last update: –</small>
           </div>
-          <div id="scoreChart" class="mt-2"></div>
+          <div id="scoreChart" class="mt-2" style="height: 350px;"></div>
         </div>
       </div>
 
@@ -240,14 +238,14 @@
       <div class="col-md-6 mb-4">
         <div class="card shadow-sm p-4 h-100">
           <div class="meta-line d-flex justify-content-between align-items-center">
-            <div class="fw-semibold">Leading board [Team Coins]</div>
+            <div class="fw-semibold fs-4">Team Coins</div>
             <small id="coinLastUpdate">Last update: –</small>
           </div>
-          <div id="coinChart" class="mt-2"></div>
+          <div id="coinChart" class="mt-2" style="height: 350px;"></div>
         </div>
       </div>
-
     </div>
+
   </div>
 
   <!-- Toasts -->
@@ -257,7 +255,6 @@
     /* ---------- Constants & elements ---------- */
     const teams = ["Blue", "Red", "Green", "Yellow", "Black", "White"];
     const rows = document.getElementById('rows');
-    // const linksBox = document.getElementById('links'); // unused
     const submitBtn = document.getElementById('submitBtn');
     const resetAllBtn = document.getElementById('resetAllBtn');
     const statusTxt = document.getElementById('statusText');
@@ -337,6 +334,21 @@
       } catch {
         showToast("Failed to save coins to server.", "danger");
         return null;
+      }
+    }
+
+    /* ---------- Round display ---------- */
+    async function fetchRound() {
+      try {
+        const res = await fetch("/api/round", { cache: "no-store" });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const data = await res.json(); // { round: <int> }
+        const el = document.getElementById("roundText");
+        if (el && typeof data.round === "number") {
+          el.textContent = "Current round: " + data.round;
+        }
+      } catch (err) {
+        console.error("Fetch round failed:", err);
       }
     }
 
@@ -510,6 +522,9 @@
       statusTxt.textContent = "Coins saved on server. You can now Open/Copy/QR each team.";
       statusTxt.classList.remove("text-muted");
       statusTxt.classList.add("text-success");
+      const collapseEl = document.getElementById("coinsCollapse");
+      const bsCollapse = bootstrap.Collapse.getOrCreateInstance(collapseEl);
+      bsCollapse.hide();
     };
 
     /* ---------- Reset all to zero ---------- */
@@ -532,6 +547,9 @@
 
     /* ---------- Init flow (coins + links) ---------- */
     (async function init() {
+      // ดึง round ก่อน (ใช้ค่าเริ่มต้นจาก server)
+      await fetchRound();
+
       const loading = document.createElement("div");
       loading.className = "text-muted small";
       loading.textContent = "Loading coins from server…";
@@ -580,11 +598,21 @@
             return `${params.name}<br/>Total: ${params.value}<br/>Current: ${current}`;
           }
         },
-        xAxis: { type: "value", min: 0 },
+        xAxis: {
+          type: "value",
+          min: 0,
+          axisLabel: {
+            fontSize: 14
+          }
+        },
         yAxis: {
           type: "category",
           data: teams,
-          inverse: true
+          inverse: true,
+          axisLabel: {
+            fontSize: 16,
+            fontWeight: "bold"
+          }
         },
         series: [{
           type: "bar",
@@ -593,8 +621,13 @@
             color: (params) => TEAM_COLOR[params.name],
             borderRadius: [10, 10, 10, 10]
           },
-          barWidth: "55%",
-          label: { show: true, position: "right" }
+          barWidth: "70%",
+          label: {
+            show: true,
+            position: "right",
+            fontSize: 14,
+            formatter: (params) => `${params.value} 🏆`
+          }
         }]
       });
     }
@@ -661,8 +694,21 @@
 
       coinChart.setOption({
         tooltip: {},
-        xAxis: { type: "value", min: 0 },
-        yAxis: { type: "category", data: teams },
+        xAxis: {
+          type: "value",
+          min: 0,
+          axisLabel: {
+            fontSize: 14
+          }
+        },
+        yAxis: {
+          type: "category",
+          data: teams,
+          axisLabel: {
+            fontSize: 16,
+            fontWeight: "bold"
+          }
+        },
         series: [{
           type: "bar",
           data: [],
@@ -670,8 +716,13 @@
             color: (params) => TEAM_COLOR[params.name],
             borderRadius: [10, 10, 10, 10]
           },
-          barWidth: "55%",
-          label: { show: true, position: "right" }
+          barWidth: "70%",
+          label: {
+            show: true,
+            position: "right",
+            fontSize: 14,
+            formatter: (params) => `${params.value} 🪙`
+          }
         }]
       });
     }
@@ -709,7 +760,7 @@
       }
     }
 
-    /* ---------- Init flow (charts) ---------- */
+    /* ---------- Init flow (charts + round polling) ---------- */
     window.addEventListener("DOMContentLoaded", () => {
       initScoreChart();
       initCoinChart();
@@ -717,10 +768,16 @@
       updateScoreChart();
       updateCoinChart();
 
+      // อัปเดตกราฟทุก 1 วินาที
       setInterval(() => {
         updateScoreChart();
         updateCoinChart();
-      }, 1000); // 1 seconds
+      }, 1000);
+
+      // อัปเดต round ทุก 60 วินาที (เผื่อเปลี่ยนจากหน้าอื่น)
+      setInterval(() => {
+        fetchRound();
+      }, 60000);
     });
 
   </script>

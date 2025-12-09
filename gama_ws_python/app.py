@@ -18,6 +18,7 @@ SCORES_FILE        = os.path.join(BASE_DIR, "scores.json")        # species (10 
 STACK_TREES_FILE   = os.path.join(BASE_DIR, "stack_trees.json")   # 6x3 ต่อทีม
 TREE_GROWTH_FILE   = os.path.join(BASE_DIR, "tree_growth.json")   # 4 ค่า ต่อทีม: [Dead, Stage1, Stage2, Stage3]
 TEAM_SCORES_FILE   = os.path.join(BASE_DIR, "team_scores.json")   # 2 ค่า ต่อทีม: [total, current]
+ROUND_FILE         = os.path.join(BASE_DIR, "round.json")         # รอบปัจจุบัน (global)
 
 LOG_FILE   = os.path.join(BASE_DIR, "gama_actions.csv")
 
@@ -111,6 +112,25 @@ def _norm_growth(values) -> List[int]:
 def _zero_team_scores() -> Dict[str, List[int]]:
     """ให้แต่ละทีมเก็บ [total_score, current_score]"""
     return {t: [0, 0] for t in TEAMS}
+
+
+# ---------- round helpers ----------
+def load_round() -> int:
+    """โหลดค่า round จากไฟล์ ถ้าไม่มีให้เป็น 0"""
+    if os.path.exists(ROUND_FILE):
+        try:
+            with open(ROUND_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            v = int(max(0, float(data.get("round", 0))))
+            return v
+        except Exception:
+            pass
+    return 0
+
+def save_round(value: int):
+    """บันทึกค่า round ลงไฟล์"""
+    v = int(max(0, float(value)))
+    atomic_write_json(ROUND_FILE, {"round": v})
 
 
 # ---------- coins state with simple JSON persistence ----------
@@ -254,13 +274,16 @@ def save_team_scores(state: Dict[str, List[int]]):
 TEAM_SCORES: Dict[str, List[int]] = load_team_scores()
 
 
-# ---------- locks ----------
+# ---------- globals & locks ----------
+ROUND: int = load_round()   # รอบปัจจุบัน (global)
+
 team_locks   = {t: asyncio.Lock() for t in TEAMS}   # coins per team
 coins_lock   = asyncio.Lock()
 scores_locks = {t: asyncio.Lock() for t in TEAMS}   # species scores per team
 stack_locks  = {t: asyncio.Lock() for t in TEAMS}   # stack trees per team
 growth_locks = {t: asyncio.Lock() for t in TEAMS}   # growth stage per team
 team_scores_lock = asyncio.Lock()
+round_lock = asyncio.Lock()
 
 
 # ---------- browser WS pool (for broadcast) ----------
@@ -295,6 +318,10 @@ async def broadcast_team_scores_update():
     scores_list = [[TEAM_SCORES[t][0], TEAM_SCORES[t][1]] for t in TEAMS]
     await _broadcast({"type": "team_score_update", "team": "", "teams": TEAMS, "score": scores_list})
 
+async def broadcast_round_update():
+    # broadcast รอบปัจจุบันให้ทุก browser
+    await _broadcast({"type": "round_update", "team": "", "score": ROUND})
+
 
 # ---------- simple CSV logger for actions ----------
 def init_log_file():
@@ -313,7 +340,7 @@ def append_action_log(team: str, action: str, client_ip: str = "-"):
 # ---------- reset to zero on startup ----------
 @app.on_event("startup")
 async def reset_on_startup():
-    global COINS, INITIAL_COINS, SCORES, STACK_TREES, TREE_GROWTH, TEAM_SCORES
+    global COINS, INITIAL_COINS, SCORES, STACK_TREES, TREE_GROWTH, TEAM_SCORES, ROUND
     init_log_file()
 
     if RESET_ON_START:
@@ -338,6 +365,11 @@ async def reset_on_startup():
     else:
         print("↩️  Skipped scores reset on startup (RESET_SCORES_ON_START=0)")
 
+    # เริ่มต้น round = 0 เสมอ และเขียนทับ round.json
+    ROUND = 0
+    save_round(ROUND)
+    print(f"🔁 Reset round to {ROUND} at server startup")
+
 
 # ---------- pages ----------
 @app.get("/", response_class=HTMLResponse)
@@ -361,8 +393,18 @@ def healthz():
         "stack_trees_file": os.path.exists(STACK_TREES_FILE),
         "tree_growth_file": os.path.exists(TREE_GROWTH_FILE),
         "team_scores_file": os.path.exists(TEAM_SCORES_FILE),
+        "round_file": os.path.exists(ROUND_FILE),
         "browser_ws": len(BROWSER_SOCKETS),
     }
+
+
+# ---------- round API ----------
+@app.get("/api/round")
+def api_get_round():
+    return {"round": ROUND}
+
+
+# (ถ้าอยากให้มี endpoint ตั้งค่าเองในอนาคต ค่อยเพิ่ม POST /api/round ทีหลังได้)
 
 
 # ---------- coins API ----------
@@ -549,6 +591,7 @@ def _parse_gama_json(msg: str) -> Optional[dict]:
       {"type":"stack_tree_update","team":"Blue","score":[[...],[...],...]}
       {"type":"tree_growth_stage_update","team":"Blue","score":[...]}  # ตอนนี้ score ยาว 4 ค่า
       {"type":"team_score_update","team":"","score":[...]}  # ตอนนี้ score อาจเป็น [total,current] ต่อทีม
+      {"type":"round_update","team":"","score":3}
     """
     try:
         o = json.loads(msg)
@@ -618,6 +661,18 @@ async def _ingest_team_score_update(arr):
                 TEAM_SCORES[t] = [0, 0]
         save_team_scores(TEAM_SCORES)
     await broadcast_team_scores_update()
+
+async def _ingest_round_update(score_value):
+    """อัปเดตค่า ROUND จาก GAMA"""
+    global ROUND
+    try:
+        v = int(max(0, float(score_value)))
+    except Exception:
+        v = 0
+    async with round_lock:
+        ROUND = v
+        save_round(ROUND)
+    await broadcast_round_update()
 
 
 # ---------- WebSocket (bridge) ----------
@@ -705,6 +760,10 @@ async def ws_bridge(websocket: WebSocket):
                     # 4) team score (leaderboard) → ไม่ใช้ team
                     elif typ == "team_score_update" and isinstance(score, list):
                         await _ingest_team_score_update(score)
+
+                    # 5) round update (global)
+                    elif typ == "round_update":
+                        await _ingest_round_update(score)
 
                 # ส่งต่อข้อความดิบกลับให้ client ปัจจุบัน (เผื่อ frontend อยากใช้เอง)
                 await websocket.send_text(msg)
