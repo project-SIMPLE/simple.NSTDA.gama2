@@ -116,20 +116,20 @@ def _zero_team_scores() -> Dict[str, List[int]]:
 
 # ---------- round helpers ----------
 def load_round() -> int:
-    """โหลดค่า round จากไฟล์ ถ้าไม่มีให้เป็น 0"""
+    """โหลดค่า round จากไฟล์ ถ้าไม่มีให้เริ่มที่ 1"""
     if os.path.exists(ROUND_FILE):
         try:
             with open(ROUND_FILE, "r", encoding="utf-8") as f:
                 data = json.load(f)
-            v = int(max(0, float(data.get("round", 0))))
+            v = int(max(1, float(data.get("round", 1))))
             return v
         except Exception:
             pass
-    return 0
+    return 1  # ถ้าไฟล์ไม่เจอหรืออ่านไม่ได้ → เริ่มที่ 1
 
 def save_round(value: int):
     """บันทึกค่า round ลงไฟล์"""
-    v = int(max(0, float(value)))
+    v = int(max(1, float(value)))
     atomic_write_json(ROUND_FILE, {"round": v})
 
 
@@ -372,7 +372,7 @@ async def reset_on_startup():
         print("↩️  Skipped scores reset on startup (RESET_SCORES_ON_START=0)")
 
     # เริ่มต้น round = 0 เสมอ และเขียนทับ round.json
-    ROUND = 0
+    ROUND = 1
     save_round(ROUND)
     print(f"🔁 Reset round to {ROUND} at server startup")
 
@@ -672,7 +672,7 @@ async def _ingest_round_update(score_value):
     """อัปเดตค่า ROUND จาก GAMA"""
     global ROUND
     try:
-        v = int(max(0, float(score_value)))
+        v = int(max(1, float(score_value)))
     except Exception:
         v = 0
     async with round_lock:
