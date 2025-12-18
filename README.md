@@ -522,7 +522,7 @@ During gameplay, the environment reflects the current state of the forest accord
 
       - At the same time, a burning **fire sound effect** is played to further notify the player of the ongoing fire.
   
-         <video src="video/fire_sound.mp4" width="250" controls></video>
+         https://github.com/user-attachments/assets/a43a62bc-64d6-4ce0-9890-f4e6584a308d
 
       - In the game, forest fires can appear in three main forms:
          - a campfire 
@@ -557,15 +557,15 @@ During gameplay, the environment reflects the current state of the forest accord
       - At the same time, a **“help” voice effect** is played, as illustrated in the clip below. \
          This continues until the player removes the threats; if they do not arrive in time, the tree will die.
 
-        <video src="video/icon_tree_cry.mp4" width="250" controls></video><br><br>
+        https://github.com/user-attachments/assets/30a65634-8a80-432b-be0f-fbb9fbeac674
 
 	   - When the player removes weeds or alien species, a **cutting sound effect** is played to indicate that \
        the grass or alien species has been successfully cleared.
 
-         <video src="video/cut_alien.mp4" width="250" controls></video><br><br>
+      	https://github.com/user-attachments/assets/b35c45b9-1df5-4b16-868e-5f723bf578c0
+
 
    
-
 - **In-Game Activities**:
 
    Handling the three types of threats:
