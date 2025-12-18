@@ -633,38 +633,42 @@ The cone shape extending from the player indicates the direction they are facing
 
   - **Map**
 
-     <a id= "map_gama" href="Pictures/map_visual.png">
-        <img src="Pictures/map_visual.png" alt="map_gama" width="400">
-     </a><br><br>
+<a id= "map_gama" href="Pictures/map_visual.png">
+   <img src="Pictures/map_visual.png" alt="map_gama" width="400">
+</a><br><br>
 
-     1. **Tutorial zone**:
-        The area where players practice basic skills before the main game,
-        such as picking up tools to remove threats and pulling out grass by hand.
+1. **Tutorial zone**: \
+  The area where players practice basic skills before the main game, \
+  such as picking up tools to remove threats and pulling out grass by hand.
 
-     2. **Playing area**:
-        The main forest area where seedlings, existing trees, 
-        and threats (grass, alien species, and fire) are located during the game.
+2. **Playing area**: \
+  The main forest area where seedlings, existing trees, \
+  and threats (grass, alien species, and fire) are located during the game.
 
-     3. **Remaining time**:
-        A timer showing how much time is left in the current round.
+3. **Remaining time**:\
+  A timer showing how much time is left in the current round.
 
-     4. **Threat icons**:
-         Icons indicating the locations and types of threats (grass, alien species, and fire) on the map.
+4. **Threat icons**:\
+   Icons indicating the locations and types of threats (grass, alien species, and fire) on the map.
 
-     5. **Reset button**:
-        Used when a player is disconnected. It sends the current game state back to Unity, for example to send the player to the tutorial again, to start the game, or to stop the game. Typically, the Reset button is pressed after the Reload button.
+5. **Reset button**:\
+  Used when a player is disconnected. It sends the current game state back to Unity,\
+ for example to send the player to the tutorial again,to start the game, or to stop the game. \
+ Typically, the Reset button is pressed after the Reload button.
 
-     6. **Reload button**:
-        Used when a player is disconnected to send them back to the IP input screen, so they can reconnect and enter the game again.
+6. **Reload button**:\
+  Used when a player is disconnected to send them back to the IP input screen, \
+   so they can reconnect and enter the game again.
 
-     7. **Q1 – Pre-game questionnaire**:
-        Used to check whether the player has completed the pre-game questionnaire.
-        * Green circle = questionnaire completed
-        * Red circle = questionnaire not yet completed
+7. **Q1 – Pre-game questionnaire**:\
+  Used to check whether the player has completed the pre-game questionnaire.
+  * Green circle = questionnaire completed
+  * Red circle = questionnaire not yet completed
 
-     8. **Q2 – Post-game questionnaire**:
-        Used to check whether the player has completed the post-game questionnaire, 
-        in the same way as Q1 (indicated by a green or red circle).
+8. **Q2 – Post-game questionnaire**:\
+  Used to check whether the player has completed the post-game questionnaire, \
+  in the same way as Q1 (indicated by a green or red circle).
+
 
    - **Web application**
       - **For Student**
