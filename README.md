@@ -420,7 +420,7 @@ Click “Submit” to confirm the updated values and send them to the system (th
   - **QR button**: shows a QR code for the team’s link, which each team’s representative can scan to open their team page.
 
       <a id= "link_coin" href="Pictures/link_coin.PNG">
-           <img src="Pictures/link_coin.png" alt="link_coin" width="450">
+           <img src="Pictures/link_coin.PNG" alt="link_coin" width="450">
      </a>
    
 
