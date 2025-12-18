@@ -466,9 +466,7 @@ Users interact with the GAMA interface mainly by **left-clicking** on the availa
    - **1 minute remaining (sound)**: when there is only 1 minute left in the round, \
    a voice effect saying *“1 minute remaining”* is played to alert the player that the round is about to end.
 
-      <a id= "1min_remain" href="video/1min_remain.mp4">
-         <video src="video/1min_remain.mp4" width="250" controls></video>
-      </a>
+	https://github.com/user-attachments/assets/bb42fc1a-6e0f-453c-92d2-32011b5c4d92
 
 2. **Score**
 
