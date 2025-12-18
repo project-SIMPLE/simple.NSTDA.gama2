@@ -378,50 +378,51 @@ Users interact with the GAMA interface mainly by **left-clicking** on the availa
 
 - **For Student**
 
-   <a id= "reset_button" href="Pictures/reset_web.PNG">
-      <img src="Pictures/reset_web.PNG" alt="reset_button" width="200">
-   </a>
+<a id= "reset_button" href="Pictures/reset_web.PNG">
+   <img src="Pictures/reset_web.PNG" alt="reset_button" width="200">
+</a>
 
-   1. **Re-Connect Button**
+1. **Re-Connect Button**
 
-      If the web application disconnects from GAMA, click the “Re-connect” button to connect again.
+   If the web application disconnects from GAMA, click the “Re-connect” button to connect again.
 
-   2. **Reset Threat coins** 
+2. **Reset Threat coins** 
 
-      These buttons use coins to reset different threats. The coins in the system will be deducted according to the type of threat you reset:
+   These buttons use coins to reset different threats. The coins in the system will be deducted according to the type of threat you reset:
 
-      2.1 **Reset Grass**: costs 1 coin\
-      2.2 **Reset Alien**: costs 2 coins\
-      2.3 **Reset Fire**: costs 3 coins
+   2.1 **Reset Grass**: costs 1 coin\
+   2.2 **Reset Alien**: costs 2 coins\
+   2.3 **Reset Fire**: costs 3 coins
 
      
 - **For Teacher**
-   
-   1. **Numeric stepper**\
-      This field is used to set the number of coins for each team. \
-      The teacher can either type a value directly or use the + and – buttons to increase or decrease the number.
 
-   2. **Reset all to zero button**\
-      Click “Reset all to zero” to set the coin values of all teams back to 0.
+1. **Numeric stepper**\
+  This field is used to set the number of coins for each team. \
+  The teacher can either type a value directly or use the + and – buttons to increase or decrease the number.
 
-   3. **Submit Button**\
-   Click “Submit” to confirm the updated values and send them to the system (this also unlocks the links for each team).
+2. **Reset all to zero button**\
+  Click “Reset all to zero” to set the coin values of all teams back to 0.
 
-      <a id= "setup_coin" href="Pictures/setup_coin.PNG">
-            <img src="Pictures/setup_coin.PNG" alt="setup_coin" width="450">
-      </a>
+3. **Submit Button**\
+Click “Submit” to confirm the updated values and send them to the system (this also unlocks the links for each team).
+
+   <a id= "setup_coin" href="Pictures/setup_coin.PNG">
+      <img src="Pictures/setup_coin.PNG" alt="setup_coin" width="450">
+   </a>
 
 
-   4. **Links for each team**
-      After clicking Submit, the web application links for all teams will appear, including:
-      - **Link**: a direct link for each team that can be opened immediately.
-      - **Copy button**: copies the team’s link to the clipboard so it can be opened in a browser.
-      - **Open button**: opens the team’s link in a new browser tab.
-      - **QR button**: shows a QR code for the team’s link, which each team’s representative can scan to open their team page.
+4. **Links for each team**
+  After clicking Submit, the web application links for all teams will appear, including:
+  - **Link**: a direct link for each team that can be opened immediately.
+  - **Copy button**: copies the team’s link to the clipboard so it can be opened in a browser.
+  - **Open button**: opens the team’s link in a new browser tab.
+  - **QR button**: shows a QR code for the team’s link, which each team’s representative can scan to open their team page.
 
       <a id= "link_coin" href="Pictures/link_coin.PNG">
-               <img src="Pictures/link_coin.PNG" alt="link_coin" width="450">
-         </a>
+           <img src="Pictures/link_coin.png" alt="link_coin" width="450">
+     </a>
+   
 
 ---
 
@@ -466,7 +467,8 @@ Users interact with the GAMA interface mainly by **left-clicking** on the availa
    - **1 minute remaining (sound)**: when there is only 1 minute left in the round, \
    a voice effect saying *“1 minute remaining”* is played to alert the player that the round is about to end.
 
-	https://github.com/user-attachments/assets/bb42fc1a-6e0f-453c-92d2-32011b5c4d92
+     https://github.com/user-attachments/assets/bb42fc1a-6e0f-453c-92d2-32011b5c4d92
+
 
 2. **Score**
 
@@ -522,7 +524,7 @@ During gameplay, the environment reflects the current state of the forest accord
 
       - At the same time, a burning **fire sound effect** is played to further notify the player of the ongoing fire.
   
-         https://github.com/user-attachments/assets/a43a62bc-64d6-4ce0-9890-f4e6584a308d
+        https://github.com/user-attachments/assets/a43a62bc-64d6-4ce0-9890-f4e6584a308d
 
       - In the game, forest fires can appear in three main forms:
          - a campfire 
@@ -562,10 +564,10 @@ During gameplay, the environment reflects the current state of the forest accord
 	   - When the player removes weeds or alien species, a **cutting sound effect** is played to indicate that \
        the grass or alien species has been successfully cleared.
 
-      	https://github.com/user-attachments/assets/b35c45b9-1df5-4b16-868e-5f723bf578c0
-
+         https://github.com/user-attachments/assets/b35c45b9-1df5-4b16-868e-5f723bf578c0
 
    
+
 - **In-Game Activities**:
 
    Handling the three types of threats:
@@ -600,70 +602,69 @@ During gameplay, the environment reflects the current state of the forest accord
 
 - **Agents**: 
 
-   <a id= "agent" href="Pictures/agent_new.png">
-      <img src="Pictures/agent_new.png" alt="agent" width="450">
-   </a><br><br>
+<a id= "agent" href="Pictures/agent_new.png">
+   <img src="Pictures/agent_new.png" alt="agent" width="450">
+</a><br><br>
 
-   1. **Map**:
-   It displays the playing area, showing the locations of trees and the positions of different threats (grass, alien species, and fire) around the seedlings.
+1. **Map**:
+It displays the playing area, showing the locations of trees and the positions of different threats (grass, alien species, and fire) around the seedlings.
 
-   2. **Tree**:
-   Each tree (or seedling) is an agent with its own growth state. Trees can grow, survive, or die depending on how well players protect them from threats during the game. Trees are represented by different colors:
-      - Green: newly planted trees that can still grow.
-      - Yellow: large, existing trees in the plot that can no longer grow.
-      - Gray: a tree for which at least one team has caused the tree at that position to die; it turns black when all teams have caused the tree at that position to die.
+1. **Tree**:
+Each tree (or seedling) is an agent with its own growth state. Trees can grow, survive, or die depending on how well players protect them from threats during the game. Trees are represented by different colors:
+   - Green: newly planted trees that can still grow.
+   - Yellow: large, existing trees in the plot that can no longer grow.
+   - Gray: a tree for which at least one team has caused the tree at that position to die; it turns black when all teams have caused the tree at that position to die.
 
-   3. **Player**:
-   Represents the team member who is currently wearing the VR headset. Each player is shown as a colored circle (red, green, yellow, blue, black, or white). 
-   The cone shape extending from the player indicates the direction they are facing.
+1. **Player**:
+Represents the team member who is currently wearing the VR headset. Each player is shown as a colored circle (red, green, yellow, blue, black, or white). 
+The cone shape extending from the player indicates the direction they are facing.
 
 
 - **Data Visualization**:
 
-   - **GAMA**
-      - **Graph**
+- **GAMA**
+  - **Graph**
 
-         <a id= "total_score" href="Pictures/Graph_GAMA_total.png">
-            <img src="Pictures/Graph_GAMA_total.png" alt="total_score" width="600">
-         </a>
+     <a id= "total_score" href="Pictures/Graph_GAMA_total.png">
+        <img src="Pictures/Graph_GAMA_total.png" alt="total_score" width="600">
+     </a>
 
-         * Total Scores: a horizontal bar chart showing the total score of each team.
+     * Total Scores: a horizontal bar chart showing the total score of each team.
 
+  - **Map**
 
-      - **Map**
+     <a id= "map_gama" href="Pictures/map_visual.png">
+        <img src="Pictures/map_visual.png" alt="map_gama" width="400">
+     </a><br><br>
 
-         <a id= "map_gama" href="Pictures/map_visual.png">
-            <img src="Pictures/map_visual.png" alt="map_gama" width="400">
-         </a><br><br>
+     1. **Tutorial zone**:
+        The area where players practice basic skills before the main game,
+        such as picking up tools to remove threats and pulling out grass by hand.
 
-         1. **Tutorial zone**:
-            The area where players practice basic skills before the main game,
-            such as picking up tools to remove threats and pulling out grass by hand.
+     2. **Playing area**:
+        The main forest area where seedlings, existing trees, 
+        and threats (grass, alien species, and fire) are located during the game.
 
-         2. **Playing area**:
-            The main forest area where seedlings, existing trees, 
-            and threats (grass, alien species, and fire) are located during the game.
+     3. **Remaining time**:
+        A timer showing how much time is left in the current round.
 
-         3. **Remaining time**:
-            A timer showing how much time is left in the current round.
+     4. **Threat icons**:
+         Icons indicating the locations and types of threats (grass, alien species, and fire) on the map.
 
-         4. **Threat icons**:
-             Icons indicating the locations and types of threats (grass, alien species, and fire) on the map.
+     5. **Reset button**:
+        Used when a player is disconnected. It sends the current game state back to Unity, for example to send the player to the tutorial again, to start the game, or to stop the game. Typically, the Reset button is pressed after the Reload button.
 
-         5. **Reset button**:
-            Used when a player is disconnected. It sends the current game state back to Unity, for example to send the player to the tutorial again, to start the game, or to stop the game. Typically, the Reset button is pressed after the Reload button.
+     6. **Reload button**:
+        Used when a player is disconnected to send them back to the IP input screen, so they can reconnect and enter the game again.
 
-         6. **Reload button**:
-            Used when a player is disconnected to send them back to the IP input screen, so they can reconnect and enter the game again.
+     7. **Q1 – Pre-game questionnaire**:
+        Used to check whether the player has completed the pre-game questionnaire.
+        * Green circle = questionnaire completed
+        * Red circle = questionnaire not yet completed
 
-         7. **Q1 – Pre-game questionnaire**:
-            Used to check whether the player has completed the pre-game questionnaire.
-            * Green circle = questionnaire completed
-            * Red circle = questionnaire not yet completed
-
-         8. **Q2 – Post-game questionnaire**:
-            Used to check whether the player has completed the post-game questionnaire, 
-            in the same way as Q1 (indicated by a green or red circle).
+     8. **Q2 – Post-game questionnaire**:
+        Used to check whether the player has completed the post-game questionnaire, 
+        in the same way as Q1 (indicated by a green or red circle).
 
    - **Web application**
       - **For Student**
