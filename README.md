@@ -407,8 +407,8 @@ Users interact with the GAMA interface mainly by **left-clicking** on the availa
    3. **Submit Button**\
    Click “Submit” to confirm the updated values and send them to the system (this also unlocks the links for each team).
 
-      <a id= "setup_coin" href="Pictures/setup_coin.png">
-            <img src="Pictures/setup_coin.png" alt="setup_coin" width="450">
+      <a id= "setup_coin" href="Pictures/setup_coin.PNG">
+            <img src="Pictures/setup_coin.PNG" alt="setup_coin" width="450">
       </a>
 
 
@@ -419,8 +419,8 @@ Users interact with the GAMA interface mainly by **left-clicking** on the availa
       - **Open button**: opens the team’s link in a new browser tab.
       - **QR button**: shows a QR code for the team’s link, which each team’s representative can scan to open their team page.
 
-      <a id= "link_coin" href="Pictures/link_coin.png">
-               <img src="Pictures/link_coin.png" alt="link_coin" width="450">
+      <a id= "link_coin" href="Pictures/link_coin.PNG">
+               <img src="Pictures/link_coin.PNG" alt="link_coin" width="450">
          </a>
 
 ---
