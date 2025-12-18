@@ -2,7 +2,7 @@ import os
 from uvicorn import Config, Server
 from app import app
 
-LAN_IP = "192.168.68.51" 
+LAN_IP = "10.225.193.255" 
 PORT   = 8040         
 
 HOST = "0.0.0.0"

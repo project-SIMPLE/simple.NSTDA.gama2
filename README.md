@@ -53,7 +53,7 @@ so that the seedlings collected from the Forest Trails model in VU#1 can grow ac
 
 ### VR Headsets
 - Meta Quest 3
-- BioDivRestorer.apk latest release
+- BiodiVRestorer2.apk latest release
 
 ---
 
@@ -61,7 +61,7 @@ so that the seedlings collected from the Forest Trails model in VU#1 can grow ac
 
 ### Unity VR Application Installation
 
-1. Download BiodiVRestorer.apk from [download location]() to your computer.
+1. Download BiodiVRestorer2.apk from [download location](https://github.com/project-SIMPLE/simple.NSTDA.unityVRproject/releases) to your computer.
 2. Connect the headset to your computer with a USB-C cable and allow data access.
 3. Install the APK using SideQuest.
 4. On the headset, go to Apps Unknown Sources and launch BiodiVRestorer2.
@@ -80,6 +80,66 @@ so that the seedlings collected from the Forest Trails model in VU#1 can grow ac
 
 ### Starting the Virtual Universe (VU)
 
+   <a href="Pictures/flow1.png">
+         <img src="Pictures/flow1.png" alt="flow1" width="200">
+   </a>
+
+
+According to the flowchart above, these are the steps for preparing the system and equipment before starting the game. \
+The details for each step are as follows:
+
+#### **1. Open the Web platform**
+
+Open a terminal and run the command below to generate a URL for the web platform.\
+Then copy that URL and open it in your web browser.
+
+```bash
+ cd /path/to/simple.webplatform/
+ npm start
+```
+
+Open the web platform and select **Forest Monitoring**
+
+
+#### **2. Accessing the game (VR)**
+
+- 2.1 Launch the VR application
+
+   After the player puts on the VR headset, make sure it is connected to the same Wi-Fi network as the computer.\
+   Then, select the **“BiodiVRestorer 2”**  application on the headset.
+
+- 2.2 On the first screen, players can **change the language (Thai or English)**, then select the **Online version**.
+  
+   <a id= "first_page" href="Pictures/in_game.jpg">
+         <img src="Pictures/in_game.jpg" alt="first_page" width="400">
+   </a>
+
+- 2.3 On the next screen, players must enter **the IP and Port** of the host machine running the Web Platform and GAMA.
+
+   <a id= "IP_page" href="Pictures/IP_Port.jpg">
+         <img src="Pictures/IP_Port.jpg" alt="IP_page" width="400">
+   </a>
+
+- 2.4 The player is then taken into the game
+
+
+#### **3. Connecting the VR**
+
+- 3.1 Check VR connections from the web platform
+
+Click the VR headset icon on the webplatform to check the connection status of each player.
+
+   <a id= "check-vr-connect" href="Pictures/check_vr.png">
+         <img src="Pictures/check_vr.png" alt="check_vr_connect" width="500">
+   </a>
+
+- 3.2 Once you have confirmed that all players are connected, 
+you can click the  <img src="Pictures/begin_anyway_button.png" alt="beginanyway" width="100">  button to call the **Forest Monitoring** Simulation.
+
+   
+
+
+<!--
 1. Open the Web platform
 
 Open a terminal and run the command below to generate a URL for the web platform.\
@@ -203,9 +263,6 @@ The following flow is the overall workflow of Forest Monitoring, starting from t
    <a id= "UI_wating" href="Pictures/waiting_ui.jpg">
             <img src="Pictures/waiting_ui.jpg" alt="UI_wating" width="600">
       </a>
--->
-
-
 
 8. Start the main simulation (4-minute/plot)
 
@@ -245,7 +302,38 @@ click the red cross button on the web platform to stop the simulation in GAMA an
    <a id= "end-simulation" href="Pictures/end_sim.png">
             <img src="Pictures/end_sim.png" alt="end_sim" width="600">
       </a>
+-->
+---
 
+### Game Play
+
+   <a href="Pictures/flow2.png">
+         <img src="Pictures/flow2.png" alt="flow2" width="300">
+   </a><br><br><br>
+
+The flowchart above summarizes the gameplay steps, which are described below.
+
+Check that all players are ready, then **press <img src="Pictures/play_button.png" alt="play_button" width="50">  on the web platform** to start the tutorial. <br>
+
+#### **1. Strat the tutorial**
+
+- 1.1 Player watches a forest-change animation
+
+- 1.2 Plant trees and apply fertillizer together
+
+- 1.3 Practice managing three threats: Fire, Alien, Grass
+
+Check that everyone is ready, then **press <img src="Pictures/play_button.png" alt="play_button2" width="50">  on the web platform** to start protecting seedlings<br>
+
+#### **2. Strat protecting seedlings over 2 years**, monitor them on smartphones and record the data
+
+When players enter the main game, they walk around the forest and use tools to remove three threats: grass (weeds), alien species, and fire. Each plot lasts 4 minutes, and players have limited coins, spent via the web application to reset threats, so they must use them wisely. After each round, the VR headset is passed to the next player until everyone has played, with the number of rounds matching the number of players (up to six per group).
+
+#### **3. My Forest after 20 years**
+
+At the end of each game round, players can press the **“Show Result”** button to view their own outcomes from protecting the forest. The result screen presents one of three possible scenarios, depending on the player’s final score.
+
+---
 
 ### Basic Controls
 
@@ -257,8 +345,8 @@ Users interact with the GAMA interface mainly by **left-clicking** on the availa
 3. **Reset** button — used when a player loses connection 
 4. **Reload** button — used when a player loses connection 
 
-      <a  href="Pictures/gama_control.png">
-            <img src="Pictures/gama_control.png" alt="GAMA_control" width="450">
+      <a  href="Pictures/GAMA_control_new.png">
+            <img src="Pictures/GAMA_control_new.png" alt="GAMA_control" width="450">
       </a>
 
 #### For Unity VR Games
@@ -271,7 +359,7 @@ Users interact with the GAMA interface mainly by **left-clicking** on the availa
    - Press the **Meta / Oculus button** on the right controller to open the main menu and exit the game.
 
    <a href="Pictures/VRGameControl.png">
-         <img src="Pictures/VRGameControl.png" alt="Vr_control" width="600">
+         <img src="Pictures/VRGameControl.png" alt="Vr_control" width="500">
    </a>
 
 
@@ -280,7 +368,7 @@ Users interact with the GAMA interface mainly by **left-clicking** on the availa
 2. **Close Button**
 
    <a id= "play-pause" href="Pictures/play_pause.png">
-         <img src="Pictures/play_pause.png" alt="play_pause" width="600">
+         <img src="Pictures/play_pause.png" alt="play_pause" width="500">
    </a>
 
 3. **VR headset Status Checking**   
@@ -363,16 +451,6 @@ Users interact with the GAMA interface mainly by **left-clicking** on the availa
       At the end, the team reviews their notes together with the dashboard visualizations to \
       reflect on their strategies and how their decisions affected forest restoration.
 
-   - Technical Info:
-
-      The diagram below shows the overall workflow of the Forest monitoring module.
-
-      <a id= "work_flow" href="Pictures/forest_monitoring.png">
-         <img src="Pictures/forest_monitoring.png" alt="work_flow" width="300">
-      </a>
-
-
-
 #### Interactive Elements
 - **Environmental Indicators**: 
 
@@ -388,15 +466,16 @@ Users interact with the GAMA interface mainly by **left-clicking** on the availa
    - **1 minute remaining (sound)**: when there is only 1 minute left in the round, \
    a voice effect saying *“1 minute remaining”* is played to alert the player that the round is about to end.
 
+      <video src="video/1min_remain.mp4" width="250" controls></video>
+
 
 2. **Score**
 
-   Players can observe the surrounding forest environment, 
-   which is shown in three possible conditions based on their current score:
-   
+   Players can observe the surrounding forest environment, which appears in one of three conditions depending on their current score. In each round, the maximum score is 300 points, and the surrounding forest environment is divided into three levels based on score ranges as follows:
+
 - ***Level 1 of forest degradation***: \
-   This is the healthiest condition of the forest, with high biodiversity and lush vegetation.
-   
+   This is the healthiest condition of the forest, with high biodiversity and lush vegetation. \
+   The player’s current score is in the range **[240–300]**.
 
    <a id= "level1" href="Pictures/level1.PNG">
       <img src="Pictures/level1.PNG" alt="level1" width="400">
@@ -407,7 +486,8 @@ Users interact with the GAMA interface mainly by **left-clicking** on the availa
 -->
 
    - ***Level 2 of forest degradation***: \
-      This represents a moderately healthy forest, but the forest is not as rich or dense as in Level 1.
+      This represents a moderately healthy forest, but the forest is not as rich or dense as in Level 1. \
+      The player’s current score is in the range **[150–240)**.
 
       <a id= "level2" href="Pictures/level2.PNG">
          <img src="Pictures/level2.PNG" alt="level2" width="400">
@@ -419,7 +499,8 @@ Users interact with the GAMA interface mainly by **left-clicking** on the availa
 
    - ***Level 3 of forest degradation***: \
       This is the most degraded condition. The forest is open and sparse, \
-      with very low biodiversity, and players can see signs of disturbance such as smoke from fires.
+      with very low biodiversity, and players can see signs of disturbance such as smoke from fires. \
+      The player’s current score is in the range **[0–150)**.
 
        <a id= "level3" href="Pictures/level3.PNG">
          <img src="Pictures/level3.PNG" alt="level3" width="400">
@@ -433,54 +514,58 @@ During gameplay, the environment reflects the current state of the forest accord
    illustrating the long-term impact of the player’s restoration decisions.~~
 -->
 
-3. **Threat**
+1. **Threat**
    - Fire
       - When a forest fire occurs, the player’s VR view shows **floating fire** particle effects 
          around the edges of the screen, alerting them that a fire has started.
+
+         <img src="gif/floating_fire.gif" width="250" /><br><br>
+
       - At the same time, a burning **fire sound effect** is played to further notify the player of the ongoing fire.
+  
+         <video src="video/fire_sound.mp4" width="250" controls></video>
+
       - In the game, forest fires can appear in three main forms:
          - a campfire 
 
-
-            <a id= "campfire" href="Pictures/campfire.PNG">
-               <img src="Pictures/campfire.PNG" alt="campfire" width="200">
-            </a>
+            <img src="gif/fire_tree.gif" width="300" /><br><br>
 
          - fireballs
 
-            <a id= "campfire" href="Pictures/fireball.PNG">
-               <img src="Pictures/fireball.PNG" alt="campfire" width="200">
-            </a>
+            <img src="gif/fireballs.gif" width="300" /><br><br>
 
          - flames burning on trees
- <!--
-(เพิ่ม วิดีโอ gif)
--->
+         
+            <img src="gif/fire_tree.gif" width="300" /><br><br>
 
       - When the player uses the **water gun** to extinguish the fire,
        a progress bar appears, indicating how close they are to successfully putting out the fire.
 
+         <img src="gif/water_gun.gif" width="300" /><br><br>
+
    - Grass and Alien species
+  
 	   - When a tree is exposed to more than 4 threats (including both grass and alien species), \
       an **icon of a “startled tree”** appears to alert the player to come and protect that tree.
-
-         <a id= "tree_warning" href="Pictures/tree_warning.PNG">
-            <img src="Pictures/tree_warning.PNG" alt="tree_warning" width="200">
-         </a>
+      
+          <img src="gif/icon_tree_alert.gif" width="300" /><br><br>
 
 
+	   - When a tree is exposed to more than 6 threats, the tree shows a **“crying tree” icon** 
+      
+         <img src="gif/icon_tree_cry.gif" width="300" /><br><br>
 
-	   - When a tree is exposed to more than 6 threats, the tree shows a **“crying tree” icon** \
-      and also plays a **“help” voice effect**. This continues until the player comes to remove the threats; \
-       if they do not arrive in time, the tree will die.
+      - At the same time, a **“help” voice effect** is played, as illustrated in the clip below. \
+         This continues until the player removes the threats; if they do not arrive in time, the tree will die.
 
-         <a id= "tree_cry" href="Pictures/tree_cry.PNG">
-            <img src="Pictures/tree_cry.PNG" alt="tree_cry" width="200">
-         </a>
-
+        <video src="video/icon_tree_cry.mp4" width="250" controls></video><br><br>
 
 	   - When the player removes weeds or alien species, a **cutting sound effect** is played to indicate that \
        the grass or alien species has been successfully cleared.
+
+         <video src="video/cut_alien.mp4" width="250" controls></video><br><br>
+
+   
 
 - **In-Game Activities**:
 
@@ -491,30 +576,34 @@ During gameplay, the environment reflects the current state of the forest accord
       and use your right middle finger to pick up the water gun.
       Then, use your left index finger to spray water and extinguish the fire.
 
+      <a id= "water_gun" href="Pictures/water_gun.png">
+         <img src="Pictures/water_gun.png" alt="water_gun" width="450">
+      </a><br><br>
+
    - **Removing alien species**\
    Raise your left arm and look at it. You will see two tools attached to your arm.
    Use your right middle finger to grab the harrow.
    Then, use the harrow to remove the alien species, being careful not to hit any seedlings.
 
+      <a id= "alien_species" href="Pictures/grass_cut.png">
+         <img src="Pictures/grass_cut.png" alt="alien_species" width="450">
+      </a><br><br>
+
 	- **Removing grass (weeds)**\
       Use your left thumb to move towards the grass. Once you are close enough,
       use your right middle finger to pull out the grass.
   
-
-      <a id= "in_game_threat" href="Pictures/In-game_VU2.png">
-         <img src="Pictures/In-game_VU2.png" alt="in_game_threat" width="450">
-      </a>
+      <a id= "weed" href="Pictures/weed.png">
+         <img src="Pictures/weed.png" alt="weed" width="450">
+      </a><br><br>
+   
 
 
 - **Agents**: 
 
-   <a id= "agent" href="Pictures/agent.png">
-      <img src="Pictures/agent.png" alt="agent" width="450">
-   </a>
-<!--
-(เปลี่ยนรูปเป็น 6 คน)
--->
-
+   <a id= "agent" href="Pictures/agent_new.png">
+      <img src="Pictures/agent_new.png" alt="agent" width="450">
+   </a><br><br>
 
    1. **Map**:
    It displays the playing area, showing the locations of trees and the positions of different threats (grass, alien species, and fire) around the seedlings.
@@ -535,8 +624,8 @@ During gameplay, the environment reflects the current state of the forest accord
    - **GAMA**
       - **Graph**
 
-         <a id= "total_score" href="Pictures/graph_total_score.png">
-            <img src="Pictures/graph_total_score.png" alt="total_score" width="600">
+         <a id= "total_score" href="Pictures/Graph_GAMA_total.png">
+            <img src="Pictures/Graph_GAMA_total.png" alt="total_score" width="600">
          </a>
 
          * Total Scores: a horizontal bar chart showing the total score of each team.
@@ -544,9 +633,9 @@ During gameplay, the environment reflects the current state of the forest accord
 
       - **Map**
 
-         <a id= "map_gama" href="Pictures/map_gama.png">
-            <img src="Pictures/map_gama.png" alt="map_gama" width="400">
-         </a>
+         <a id= "map_gama" href="Pictures/map_visual.png">
+            <img src="Pictures/map_visual.png" alt="map_gama" width="400">
+         </a><br><br>
 
          1. **Tutorial zone**:
             The area where players practice basic skills before the main game,
@@ -626,8 +715,8 @@ During gameplay, the environment reflects the current state of the forest accord
    
       - **For Teacher**
 
-         <a id= "leading_board" href="Pictures/leading_board.PNG">
-            <img src="Pictures/leading_board.PNG" alt="leading_board" width="500">
+         <a id= "leading_board" href="Pictures/lead_board_new.png">
+            <img src="Pictures/lead_board_new.png" alt="leading_board" width="500">
          </a>
 
          1. **Team score**: (left)\
@@ -660,7 +749,7 @@ During gameplay, the environment reflects the current state of the forest accord
 
 ### Game Progression 
 
-#### Tree Growth Stages ? ตั้งชื่อ stage ใหม่ ? (หลังกลับจาก forru)
+#### Tree Growth Stages 
 
 The tree growth in this model is based on a logistic growth equation and is divided into three stages:
 
@@ -670,8 +759,9 @@ The tree growth in this model is based on a logistic growth equation and is divi
 - **Stage 2 – Intermediate growth**  
   Trees in a medium growth stage. 
 
-- **Stage 3 – Mature tree ???**
-  ~~Fully grown trees that have reached their mature size and represent successful forest restoration.~~
+- **Stage 3 Best 2-year growth** \
+  Trees that have reached their best possible growth within the 2-year simulation period.
+  
 
 #### Achievement System
 <!--
@@ -752,8 +842,10 @@ The tree growth in this model is based on a logistic growth equation and is divi
    - Activity worksheets are provided for students to record information during gameplay, \
    including each player’s score for the current round and the number of remaining trees for each species.
 
-- External links to resources\
+- External links to resources
+<!--
  slide canva
+-->
 
 - Teacher's guide availability
 
@@ -764,17 +856,13 @@ The tree growth in this model is based on a logistic growth equation and is divi
 ### Common Issues and Solutions
 
 #### VR-Specific Issues
-**Problem**: One headset turned-off during a game\
+**Problem**: One headset turned-off during a game \
 **Solution**:
 - Turn it back on
 - Reopen the game
 - Auto-magically reconnecting
 
-<!--
--พี่เติ้ล 
--->
-**Problem**: Unable to connect to GAMA during a game
-
+**Problem**: Unable to connect to GAMA during a game \
 **Solution**:
 - Reopen the game
 - Restart GAMA or Middleware
@@ -794,6 +882,8 @@ A: No.
 **Q: Is this available in my language?**\
 A: Available in Thai and English.
 
+---
+
 ### Technical Questions
 
 **Q: What VR headsets are supported?**\
@@ -801,6 +891,8 @@ A: Meta Quest 3 only.
 
 **Q: Can I run this on a tablet/mobile device?**\
 A: No.
+
+---
 
 ### Educational Questions
 
@@ -811,11 +903,14 @@ A: The forest monitoring session takes approximately 40–60 minutes.
 A: Yes. Teachers can monitor progress in real time through the web application, \
 which shows each team’s scores, team’s coins 
 
+---
+
 ### Bug Reporting
 
 Please report bugs through: [**GitHub issues page**](https://github.com/project-SIMPLE/simple.NSTDA.gama2/issues)
 
 ---
+
 <!--
 [**Coin System**](Web_Coin_System.md)
 -->
