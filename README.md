@@ -515,7 +515,7 @@ During gameplay, the environment reflects the current state of the forest accord
    illustrating the long-term impact of the player’s restoration decisions.~~
 -->
 
-1. **Threat**
+3. **Threat**
    - Fire
       - When a forest fire occurs, the player’s VR view shows **floating fire** particle effects 
          around the edges of the screen, alerting them that a fire has started.
@@ -609,13 +609,13 @@ During gameplay, the environment reflects the current state of the forest accord
 1. **Map**:
 It displays the playing area, showing the locations of trees and the positions of different threats (grass, alien species, and fire) around the seedlings.
 
-1. **Tree**:
+2. **Tree**:
 Each tree (or seedling) is an agent with its own growth state. Trees can grow, survive, or die depending on how well players protect them from threats during the game. Trees are represented by different colors:
    - Green: newly planted trees that can still grow.
    - Yellow: large, existing trees in the plot that can no longer grow.
    - Gray: a tree for which at least one team has caused the tree at that position to die; it turns black when all teams have caused the tree at that position to die.
 
-1. **Player**:
+3. **Player**:
 Represents the team member who is currently wearing the VR headset. Each player is shown as a colored circle (red, green, yellow, blue, black, or white). 
 The cone shape extending from the player indicates the direction they are facing.
 
