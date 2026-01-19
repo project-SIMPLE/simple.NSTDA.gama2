@@ -121,9 +121,9 @@ global{
 							" name -> " + player_name_ID + 
 							" type -> " + type + 
 							" head -> " + head + "(TutorialStart)";
+				}
 			}
-				
-			}
+			
 			else{
 				ask unity_linker {
 					do send_message players: unity_player[player_ID] as list 
@@ -191,7 +191,6 @@ global{
 					
 				}
 				sum_score_list <- list_with(6,0);
-			
 			}
 			
 			else{
@@ -210,9 +209,8 @@ global{
 					"Threats"::""] to:all_for_send;
 				write "send TutorialStart at cycle = " + cycle;
 				
-				before_Q_team_list <- [];
-				after_Q_team_list <- [];
-				for_save_answer <- list_with(6, list_with(2, []));
+				finish_tutorial_team_list <- [];
+				finish_game_team_list <- [];
 				
 				ask unity_player{
 					self.correct_location <- false;
@@ -225,10 +223,6 @@ global{
 					}
 				}
 				
-				ask questionnaire_status{
-					recive_message <- false;
-				}
-	
 				ask old_tree {do die;}
 				ask tree {do die;}
 			}
@@ -297,6 +291,10 @@ global{
 		}
 		write "connect_team_list " + connect_team_list;
 	}
+	
+//	reflex add_player when:every(2#cycle){
+//		do prepare_step;
+//	}
 		
 	action update_n_remain_tree {		
 		list<int> temp_max_total_score <- list_with(6,0);
@@ -355,15 +353,13 @@ global{
 		write "Send ReadID at cycle = " + cycle;
 	}
 	
-	reflex for_stop_questionnaire1 when: cycle = (questionnaire1_cycle+2){
+	reflex for_stop_tutorial when: cycle = (finish_tutorial_cycle+2) and (not tutorial_finish){
 		do pause;
 		can_start <- true;
 		tutorial_finish <- true;
 	}
 	
-	reflex for_stop_questionnaire2 when: cycle = (questionnaire2_cycle+2){
-		do save_Questionnaire_answer_to_csv;
-		write "save_Questionnaire_answer_to_csvvvvvvvvvvvvvvvvvvvvvvvvvvvv";
+	reflex for_stop_finish_game when: cycle = (finish_game_cycle+2){
 		do pause;
 		can_start <- true;
 	}
@@ -662,50 +658,6 @@ global{
 			all_for_send <- [];
 		}
 	}
-	
-	action save_Questionnaire_answer_to_csv{
-		if count_start = 1{
-			list header <- ["round", "team", "no.", "before/after", "answer"];
-			write header;
-			save header to: ("../results/Questionnaire_answers_" + today + ".csv") header:false format:"csv" rewrite:true;
-		}	
-		
-		loop p over:connect_team_list{
-			if not empty(for_save_answer[map_player_idint[map_player_intid[p]]-1][0]){
-				loop i from:0 to: length(for_save_answer[map_player_idint[map_player_intid[p]]-1][0])-1{
-					list temp <- [];
-					add count_start to:temp;
-					add ("team"+p) to:temp;
-					add (i+1) to:temp;
-					add "before" to:temp;
-					add for_save_answer[map_player_idint[map_player_intid[p]]-1][0][i] to:temp;
-					
-					write temp;
-					save temp to: ("../results/Questionnaire_answers_" + today + ".csv") header:false format:"csv" rewrite:false;
-				}
-			}
-			else{
-				write "The questionnaire (before) is empty.";
-			}
-			
-			if not empty(for_save_answer[map_player_idint[map_player_intid[p]]-1][1]){
-				loop i from:0 to: length(for_save_answer[map_player_idint[map_player_intid[p]]-1][1])-1{
-					list temp <- [];
-					add count_start to:temp;
-					add ("team"+p) to:temp;
-					add (i+1) to:temp;
-					add "after" to:temp;
-					add for_save_answer[map_player_idint[map_player_intid[p]]-1][1][i] to:temp;
-					
-					write temp;
-					save temp to: ("../results/Questionnaire_answers_" + today + ".csv") header:false format:"csv" rewrite:false;
-				}	
-			}
-			else{
-				write "The questionnaire (after) is empty.";
-			}
-		}
-	}
 }
 
 species Server skills: [network] parallel: false {	
@@ -781,14 +733,16 @@ species unity_linker parent: abstract_unity_linker {
 	}
 	
 	action ChangeTreeState(string tree_Name, string status, string player_ID){
-		ask tree where ((each.name = tree_Name)){
+		ask tree where (each.name = tree_Name){
 			if it_can_growth[map_player_idint[player_ID]-1] in ["-1", "1"]{
 				it_can_growth[map_player_idint[player_ID]-1] <- status;
 			}
 		}	
 	}
 	
-	action PlayerID_Ready(string player_ID, string Ready){					
+	action PlayerID_Ready(string player_ID, string Ready){		
+		write " ";
+		write "Action PlayerID_Ready -> " + player_ID + " Ready -> " + Ready;
 		if Ready = "Ready2"{
 			ask unity_player where (each.name = player_ID){
 				location <- {tutorial_location.x, tutorial_location.y + adjust_y, adjust_z};
@@ -800,6 +754,20 @@ species unity_linker parent: abstract_unity_linker {
 				}
 			}
 			write "PlayerID_Ready " + player_ID + " " + Ready + " move to tutorial zone";
+			
+			if skip_tutorial{
+				if not (map_player_idint[player_ID] in finish_tutorial_team_list){
+					add map_player_idint[player_ID] to:finish_tutorial_team_list;	
+				}
+				
+				if not empty(connect_team_list){
+					if (finish_tutorial_team_list sort_by (each)) = (connect_team_list sort_by (each)){
+						write "All player tutorial " + (finish_tutorial_team_list sort_by (each)) + " = " +
+							(connect_team_list sort_by (each));
+						finish_tutorial_cycle <- cycle;
+					}
+				}
+			}
 		}
 		
 		else if Ready = "Ready3"{
@@ -813,88 +781,35 @@ species unity_linker parent: abstract_unity_linker {
 				}
 			}
 			write "PlayerID_Ready " + player_ID + " " + Ready + " move to main zone";
-		}
-	}
-	
-	action QuestionnaireData(string PlayerID, string Header, string Message){
-		write "QuestionnaireData " + Header + " " + PlayerID + " " + Message;
-
-		list<string> answer_list ;
-		loop i over: container(Message){
-			add i to: answer_list;
-		}
-		
-		write "length of answer_list = " + length(answer_list);
-		
-		if length(answer_list) > 0{
-			if Header = "Before"{
-				write "" + Header + " " + answer_list;
-				
-				if not (map_player_idint[PlayerID] in before_Q_team_list){
-					add map_player_idint[PlayerID] to:before_Q_team_list;	
-					loop i over: answer_list{
-						add i to: for_save_answer[map_player_idint[PlayerID]-1][0];
-					}
-				}
-				write for_save_answer;
-				
-				ask questionnaire_status where (each.player = map_player_idint[PlayerID] and
-												each.type = "before"){
-					recive_message <- true;								
-				}
-				ask world{
-					do Resent_text_to_unity(PlayerID, "", "ReceiveQuestionnaire");
-				}
-					
-				if (before_Q_team_list sort_by (each)) = (connect_team_list sort_by (each)){
-					write "All player before Q " + (before_Q_team_list sort_by (each)) + " = " +
-						(connect_team_list sort_by (each));
-					questionnaire1_cycle <- cycle;
-				}
+			
+			if not (map_player_idint[player_ID] in finish_tutorial_team_list){
+				add map_player_idint[player_ID] to:finish_tutorial_team_list;	
 			}
-			else if Header = "After"{
-				list<map<string,string>> send_tree_update_environment <- [];
-				write "" + Header + " " + answer_list;
-				
-				if not (map_player_idint[PlayerID] in after_Q_team_list){
-					add map_player_idint[PlayerID] to:after_Q_team_list;	
-					loop i over: answer_list{
-						add i to: for_save_answer[map_player_idint[PlayerID]-1][1];
-					}
-				}
-				write for_save_answer;
-				
-				ask questionnaire_status where (each.player = map_player_idint[PlayerID] and
-												each.type = "after"){
-					recive_message <- true;								
-				}
-				ask world{
-					do Resent_text_to_unity(PlayerID, "", "ReceiveQuestionnaire");
-				}
-				
-				// Background
-				add map<string, string>(["PlayerID"::PlayerID, 
-										"Name"::string(2), 
-										"State"::""]) to:send_tree_update_environment;
-				write "Player " + PlayerID + " send " + string("Environment"+(2)) ;
-				
-				add ["Head"::"Background", 
-					"Body"::"", 
-					"Trees"::send_tree_update_environment, 
-					"Threats"::""] to:all_for_send;
-							
-				if (after_Q_team_list sort_by (each)) = (connect_team_list sort_by (each)){
-					write "All player after Q " + (after_Q_team_list sort_by (each)) + " = " +
+			
+			if not empty(connect_team_list){
+				if (finish_tutorial_team_list sort_by (each)) = (connect_team_list sort_by (each)){
+					write "All player tutorial " + (finish_tutorial_team_list sort_by (each)) + " = " +
 						(connect_team_list sort_by (each));
-					questionnaire2_cycle <- cycle;
+					finish_tutorial_cycle <- cycle;
 				}
 			}
 		}
-		else{
-			write "Not passsssssss <- length of answer_list = " + length(answer_list) + " for player " + PlayerID;
+		
+		else if Ready = "Ready4"{			
+			if not (map_player_idint[player_ID] in finish_game_team_list){
+				add map_player_idint[player_ID] to:finish_game_team_list;	
+			}
+			
+			if not empty(connect_team_list){
+				if (finish_game_team_list sort_by (each)) = (connect_team_list sort_by (each)){
+					write "All player finish game " + (finish_game_team_list sort_by (each)) + " = " +
+						(connect_team_list sort_by (each));
+					finish_game_cycle <- cycle;
+				}
+			}
 		}
 	}
-	
+		
 	init {
 		do define_properties;
 	}
@@ -1034,7 +949,7 @@ species unity_linker parent: abstract_unity_linker {
 			do add_geometries_to_send(old_tree_type8,up_oldtree_8);
 		}	
 		if not empty(old_tree_type9){
-			do add_geometries_to_send(old_tree_type9,up_oldtree_9);
+			do add_geometries_to_send(old_tree_type9,up_oldtree_1);
 		}	
 		if not empty(old_tree_type10){
 			do add_geometries_to_send(old_tree_type10,up_oldtree_10);

@@ -15,11 +15,12 @@ global{
 	image_file blank_image_file <- image_file("../images/blank.png");
 	image_file reset_image <- image_file("../images/reset.png");
 	image_file reload_image <- image_file("../images/reload.png");
-
+	
+	list<int> connect_team_list;
 	int time_now;
 	int n_years <- 2;
 	int time_to_play <- 240;
-	int announce_time <- time_to_play - 60;
+	int announce_time <- time_to_play - 62;
 	
 	float init_height <- 50.0;
 	
@@ -30,27 +31,6 @@ global{
 		
 	init{
 		write "time_to_play " + time_to_play;
-	}
-}
-
-species questionnaire_status{
-	int player ;
-	bool recive_message ;
-	string type ;
-	geometry shape <- circle(2#m);
-	rgb color <- #red;
-	
-	reflex change_color{
-		if recive_message{
-			color <- #green;
-		}
-		else {
-			color <- #red;
-		}
-	}
-	
-	aspect default{
-		draw shape color:color;
 	}
 }
 
@@ -127,7 +107,7 @@ species tree{
 	
 	reflex update_tree_ratio{
 		int dead_stack_tree <- it_can_growth count (each = "0");
-		tree_ratio <- dead_stack_tree/length(it_can_growth);
+		tree_ratio <- dead_stack_tree/length(connect_team_list);
 	}
 	
 	reflex change_color{
