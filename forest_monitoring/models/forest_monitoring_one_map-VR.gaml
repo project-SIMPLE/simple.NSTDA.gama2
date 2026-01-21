@@ -27,6 +27,40 @@ global{
 			if (head = "Main"){
 				if not final_main_game {
 					if tutorial_finish{
+						list<map<string,string>> send_tree_update_grow <- [];
+						list<map<string,string>> send_tree_update_grass <- [];
+						list<map<string,string>> send_tree_update_threats <- [];
+		
+						int p <- map_player_idint[player_name_ID];
+						
+						ask tree where (each.it_can_growth[p-1] = "-1"){
+							if flip(0.7){
+								add map<string, string>(["PlayerID"::map_player_intid[p], "Name"::self.name, "State"::99]) to:send_tree_update_grass;
+							}
+							else{
+								point at_location <- {self.location.x + rnd_choice([(-1)::0.5,(1)::0.5]) + rnd(0.5, tree_distance/1.5), 
+													self.location.y + rnd_choice([(-1)::0.5,(1)::0.5]) + rnd(0.5, tree_distance/1.5), 
+													self.location.z};
+									
+								add map<string, string>(["Name"::"Alien", 
+									"x"::at_location.x, 
+									"y"::at_location.z, 
+									"z"::-at_location.y,
+									"PlayerID"::map_player_intid[p]]) to:send_tree_update_threats;
+							}
+
+						}
+						
+						ask tree where (each.it_can_growth[p-1] = "0"){
+							add map<string, string>(["PlayerID"::map_player_intid[p], "Name"::self.name, "State"::0]) to:send_tree_update_grow;
+						}
+						ask tree where (each.it_state[p-1] = 2){
+							add map<string, string>(["PlayerID"::map_player_intid[p], "Name"::self.name, "State"::2]) to:send_tree_update_grow;
+						}
+						ask tree where (each.it_state[p-1] = 3){
+							add map<string, string>(["PlayerID"::map_player_intid[p], "Name"::self.name, "State"::3]) to:send_tree_update_grow;
+						}
+						
 						ask unity_linker {
 							do send_message players: unity_player[player_ID] as list 
 								mes: ["ListOfMessage"::[["Head"::"ReadID", 
@@ -37,7 +71,22 @@ global{
 														["Head"::"StartGame", 
 														"Body"::"", 
 														"Trees"::"",
-														"Threats"::""]]];
+														"Threats"::""],
+														
+														["Head"::"Update", 
+														"Body"::"GROW", 
+														"Trees"::send_tree_update_grow, 
+														"Threats"::""],
+														
+														["Head"::"Update", 
+														"Body"::"GRASS", 
+														"Trees"::send_tree_update_grass, 
+														"Threats"::""],
+														
+														["Head"::"Update", 
+														"Body"::"", 
+														"Trees"::"",
+														"Threats"::send_tree_update_threats]]];
 						}
 					
 						ask unity_player[player_ID]{
