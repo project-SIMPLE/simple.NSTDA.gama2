@@ -135,8 +135,8 @@ global{
 		usable_area_for_wildfire <- playerable_area[0].shape - tree_area[0].shape ;
 		usable_area_for_tree <- tree_area[0].shape;
 		
-		save usable_area_for_wildfire to:"../includes/export/usable_area_for_wildfire.shp" format:"shp";
-		save usable_area_for_tree to:"../includes/export/usable_area_for_tree.shp" format:"shp";
+//		save usable_area_for_wildfire to:"../includes/export/usable_area_for_wildfire.shp" format:"shp";
+//		save usable_area_for_tree to:"../includes/export/usable_area_for_tree.shp" format:"shp";
 		
 		ask old_tree {do die;}
 		ask tree {do die;}
@@ -176,7 +176,7 @@ global{
 		}
 
 		usable_area_for_tree <- usable_area_for_tree - (old_tree[count_create_tree-1].shape + tree_distance);
-		save usable_area_for_tree to:"../includes/export/usable_area_for_tree_with_oldtree.shp" format:"shp";
+//		save usable_area_for_tree to:"../includes/export/usable_area_for_tree_with_oldtree.shp" format:"shp";
 		
 		count_create_tree <- 0;
 		count_label_tree <- 0;
@@ -224,7 +224,7 @@ global{
 			}
 		}
 		usable_area_for_tree <- usable_area_for_tree - (tree[count_create_tree-1].shape + tree_distance);
-		save usable_area_for_tree to:"../includes/export/usable_area_for_tree_with_alltree.shp" format:"shp";
+//		save usable_area_for_tree to:"../includes/export/usable_area_for_tree_with_alltree.shp" format:"shp";
 		write "Create tree at cycle = " + cycle;
 	}
 	
